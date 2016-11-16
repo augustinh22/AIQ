@@ -83,6 +83,8 @@ else:
     # other Sentinel file related command parameters
     parser.add_option("-s","--sentinel", dest="sentinel", action="store",type="string",  \
             help="Sentinel mission considered (e.g. S1 or S2)", default='S2')
+    parser.add_option("-t","--tile", dest="tile", action="store",type="string",  \
+            help="Sentinel-2 Tile number",default=None)
     parser.add_option("-d", "--start_date", dest="start_date", action="store", type="string", \
             help="Start date, fmt('2015-12-22')", default=None)
     parser.add_option("-f","--end_date", dest="end_date", action="store", type="string", \
