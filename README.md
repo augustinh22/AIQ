@@ -12,3 +12,5 @@ the University of Salzburg's M.Sc program in Applied Geoinformatics.
  * Download most recent version
  * Unzip and copy the contents of the folder into the folder containing python
  * Python can now access aria2!
+
+ *This is in the new branch!*
