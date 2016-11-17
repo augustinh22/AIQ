@@ -24,7 +24,7 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-import os, sys, optparse, urllib2, urllib, tkMessageBox
+import os, sys, optparse, urllib, urllib2, tkMessageBox
 from xml.dom import minidom
 from datetime import date
 import xml.etree.ElementTree as etree
@@ -314,12 +314,12 @@ if messagebox == True:
         os.system(command_aria)
         print 'Downloaded Scene #' + entry + 1
 
-    print "\n-----------------------------------------------------------------"
+    print "\n------------------------------------------------------------------"
     print 'Downloading complete!'
-    print "-----------------------------------------------------------------\n"
+    print "------------------------------------------------------------------\n"
 
 
 else:
-    print "\n-----------------------------------------------------------------"
+    print "\n------------------------------------------------------------------"
     print "Nothing downloaded, but xml file saved!"
-    print "-----------------------------------------------------------------\n"
+    print "------------------------------------------------------------------\n"
