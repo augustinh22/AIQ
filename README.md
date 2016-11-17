@@ -7,3 +7,8 @@ the University of Salzburg's M.Sc program in Applied Geoinformatics.
  * Add path to the directory containing python to the Path variable
   * e.g. C:\Python27\ArcGIS10.4
  * Now you can run Python from the command line!
+* Install aria2 downloading agent
+ * Go to: https://aria2.github.io/
+ * Download most recent version
+ * Unzip and copy the contents of the folder into the folder containing python
+ * Python can now access aria2!
