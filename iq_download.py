@@ -34,11 +34,11 @@ from Tkinter import *
 class OptionParser (optparse.OptionParser):
 
     def check_required(self, opt):
-      option = self.get_option(opt)
+        option = self.get_option(opt)
 
-      # assumes the option's 'default' is set to None!
-      if getattr(self.values, option.dest) is None:
-          self.error("%s option not supplied" % option)
+    # assumes the option's 'default' is set to None!
+        if getattr(self.values, option.dest) is None:
+            self.error("%s option not supplied" % option)
 
 ################################################################################
 
@@ -47,22 +47,25 @@ class OptionParser (optparse.OptionParser):
 #------------------------------------------------------------------------------#
 if len(sys.argv) == 1:
     prog = os.path.basename(sys.argv[0])
-    print '      '+sys.argv[0]+' [options]'
-    print "     Help : ", prog, " --help"
-    print "        or : ", prog, " -h"
-    print "example python  %s --lat 43.6 --lon 1.44 "%sys.argv[0]
+    print '\n        ' + sys.argv[0] + ' [options]'
+    print "        Help: ", prog, " --help"
+    print "        or: ", prog, " -h"
+    print "example python  %s --lat 43.6 --lon 1.44 \n" % sys.argv[0]
     sys.exit(-1)
 else:
     usage = "usage: %prog [options] "
     parser = OptionParser(usage=usage)
 
     # authorization and directory related commands
-    parser.add_option("-a","--auth", dest="auth", action="store", type="string", \
-           help="Sentinels Scientific Data Hub account and password file, if available")
-    parser.add_option("-w","--write_dir", dest="write_dir", action="store",type="string",  \
-            help="Path where the products should be downloaded",default=".")
-    parser.add_option("-r",dest="MaxRecords",action="store",type="int",  \
-            help="Maximum number of records to download (default=100)",default=100)
+    parser.add_option("-a", "--auth", dest="auth", action="store", \
+            type="string", help="Sentinels Scientific Data Hub account and "
+            "password file, if available")
+    parser.add_option("-w", "--write_dir", dest="write_dir", action="store", \
+            type="string", help="Path where products should be downloaded", \
+            default=".")
+    parser.add_option("-r", dest="MaxRecords", action="store", type="int", \
+            help="Maximum number of records to download (default=100)", \
+            default=100)
 
     # location related commands
     parser.add_option("--lat", dest="lat", action="store", type="float", \
@@ -77,58 +80,82 @@ else:
             help="Min longitude in decimal degrees", default=None)
     parser.add_option("--lonmax", dest="lonmax", action="store", type="float", \
             help="Max longitude in decimal degrees", default=None)
-    parser.add_option("-l","--location", dest="location", action="store", type="string", \
-            help="Town name (pick one which is not too frequent to avoid confusions)", default=None)
+    parser.add_option("-l", "--location", dest="location", action="store", \
+            type="string", help="Town name (pick one which is not too "
+            "frequent to avoid confusions)", default=None)
 
     # other Sentinel file related command parameters
-    parser.add_option("-s","--sentinel", dest="sentinel", action="store",type="string",  \
-            help="Sentinel mission considered (e.g. S1 or S2)", default='S2')
-    parser.add_option("-t","--tile", dest="tile", action="store",type="string",  \
-            help="Sentinel-2 Tile number",default=None)
-    parser.add_option("-d", "--start_date", dest="start_date", action="store", type="string", \
-            help="Start date, fmt('2015-12-22')", default=None)
-    parser.add_option("-f","--end_date", dest="end_date", action="store", type="string", \
-            help="End date, fmt('2015-12-23')", default=None)
-    parser.add_option("-c","--max_cloud", dest="max_cloud", action="store",type="float",  \
-            help="Only search for products up to a certain cloud percentage (e.g. 50 for 50%)", default=None)
-    parser.add_option("-o","--orbit", dest="orbit", action="store", type="int", \
-            help="Orbit path number", default=None)
+    parser.add_option("-s", "--sentinel", dest="sentinel", action="store", \
+            type="string", help="Sentinel mission considered (e.g. S1 or S2)", \
+            default='S2')
+    parser.add_option("-t", "--tile", dest="tile", action="store", \
+            type="string", help="Sentinel-2 Tile number", default=None)
+    parser.add_option("-d", "--start_date", dest="start_date", action="store", \
+            type="string", help="Start date, fmt('2015-12-22')", default=None)
+    parser.add_option("-f", "--end_date", dest="end_date", action="store", \
+            type="string", help="End date, fmt('2015-12-23')", default=None)
+    parser.add_option("-c", "--max_cloud", dest="max_cloud", action="store", \
+            type="float", help="Only search for products up to a certain "
+            "cloud percentage (e.g. 50 for 50%)", default=None)
+    parser.add_option("-o","--orbit", dest="orbit", action="store", \
+            type="int", help="Orbit path number", default=None)
 
 # currently unused commands that could be built into the script at a later date
-##    parser.add_option("-n","--no_download", dest="no_download", action="store_true",  \
-##            help="Do not download products, just print aria2 command",default=False)
-##    parser.add_option("-p","--proxy_passwd", dest="proxy", action="store", type="string", \
-##            help="Proxy account and password file",default=None)
+    # parser.add_option("-n", "--no_download", dest="no_download", \
+    #        action="store_true", help="Do not download products, just "
+    #        "print aria2 command", default=False)
+    # parser.add_option("-p", "--proxy_passwd", dest="proxy", \
+    #        action="store", type="string", help="Proxy account and "
+    #        "password file", default=None)
 
     (options, args) = parser.parse_args()
 
 # build in checks for valid commands ::: spatial aspect
 if options.location == None:
     if options.lat == None or options.lon == None:
-        if options.latmin == None or options.lonmin == None or options.latmax == None or options.lonmax == None:
-            print "\nPlease provide at least a point or rectangle!\n"
+        if (options.latmin == None or options.lonmin == None
+                or options.latmax == None or options.lonmax == None):
+            # Explain problem and give example
+            print "\nPlease provide at least one point, rectangle or location!"
+            print "\nExamples:"
+            print "\tPoint: python iq_download.py --lat 47.083 --lon 12.842"
+            print "\tPolygon: python iq_download.py --latmin 46 --latmax 48 " \
+            "--lonmin 12 --lonmax 14"
+            print "\tLocation: python iq_download.py -l Vienna\n"
             sys.exit(-1)
         else:
             geom = 'rectangle'
     else:
-        if options.latmin==None and options.lonmin==None and options.latmax==None and options.lonmax==None:
-            geom='point'
+        if (options.latmin == None and options.lonmin == None
+                and options.latmax == None and options.lonmax == None):
+            geom = 'point'
         else:
-            print "\nPlease choose between point and rectangle, but not both!\n"
+            print "\nPlease choose either point or rectangle, but not both!"
+            print "\nExamples:"
+            print "\tPoint: python iq_download.py --lat 47.083 --lon 12.842"
+            print "\tPolygon: python iq_download.py --latmin 46 --latmax 48 " \
+            "--lonmin 12 --lonmax 14\n"
             sys.exit(-1)
 else:
-    if options.latmin == None and options.lonmin == None and options.latmax == None and options.lonmax == None and options.lat == None or options.lon == None:
+    if (options.latmin == None and options.lonmin == None
+            and options.latmax == None and options.lonmax == None
+            and options.lat == None or options.lon == None):
         geom = 'location'
     else:
-          print "\nPlease choose location and coordinates, but not both!\n"
-          sys.exit(-1)
+        print "\nPlease choose location and coordinates, but not both!\n"
+        print "\nExamples:"
+        print "\tPoint: python iq_download.py --lat 47.083 --lon 12.842"
+        print "\tPolygon: python iq_download.py --latmin 46 --latmax 48 " \
+                    "--lonmin 12 --lonmax 14"
+        print "\tLocation: python iq_download.py -l Vienna\n"
+        sys.exit(-1)
 
 # create spatial parts of the query ::: point, rectangle or location name
-if geom=='point':
-    query_geom='footprint:"\""Intersects(%f,%f)"\""'%(options.lat,options.lon)
+if geom == 'point':
+    query_geom = '(footprint:"\""Intersects(%f %f)"\"")' % (options.lat, options.lon)
 elif geom == 'rectangle':
-    query_geom = 'footprint:"\""Intersects(POLYGON(({lonmin} {latmin}, {lonmax} {latmin}, {lonmax} {latmax}, {lonmin} {latmax}, \
-                {lonmin} {latmin})))"\""'.format(latmin = options.latmin, latmax = options.latmax, lonmin = options.lonmin, lonmax = options.lonmax)
+    query_geom = '(footprint:"\""Intersects(POLYGON(({lonmin} {latmin}, {lonmax} {latmin}, {lonmax} {latmax}, {lonmin} {latmax}, \
+                {lonmin} {latmin})))"\"")'.format(latmin = options.latmin, latmax = options.latmax, lonmin = options.lonmin, lonmax = options.lonmax)
 elif geom == 'location':
     query_geom = "%s" % options.location
 
@@ -136,7 +163,7 @@ elif geom == 'location':
 if options.orbit == None:
     query_orb = query_geom
 else:
-    query_orb = '(%s) AND (relativeorbitnumber:%s)' % (query_geom,options.orbit)
+    query_orb = '(%s) AND (relativeorbitnumber:%s)' % (query_geom, options.orbit)
 
 # add Sentinel mission
 if options.sentinel == 'S2':
@@ -150,7 +177,7 @@ else:
 if options.start_date != None:
     start_date = options.start_date
 else:
-    start_date='2015-06-13' # Sentinel-2 launch date
+    start_date = '2015-06-13' # Sentinel-2 launch date
 
 if options.end_date != None:
     end_date = options.end_date
@@ -167,8 +194,8 @@ else:
 
 # tile query check (currently not built into script!)
 if options.tile != None and options.sentinel != 'S2':
-   print "The tile option (-t) can only be used for Sentinel-2!"
-   sys.exit(-1)
+    print "The tile option (-t) can only be used for Sentinel-2!"
+    sys.exit(-1)
 
 
 #------------------------------------------------------------------------------#
