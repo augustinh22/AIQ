@@ -340,9 +340,9 @@ root = Tk().withdraw()
 # content of the window
 messagebox = tkMessageBox.askyesno('Sentinel Downloader', question)
 if messagebox == True:
-   	#download all whole scenes matching the query
+   	# download all whole scenes matching the query
     for entry in range(len(entries)):
-        #create download command for the entry
+        # create download command for the entry
         uuid_element = (entries[entry].find('{http://www.w3.org/2005/Atom}'
             'id')).text
         sentinel_link = ("https://scihub.copernicus.eu/dhus/odata/v1/Products('"
