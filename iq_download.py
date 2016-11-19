@@ -14,12 +14,10 @@
 ### - adjust query strings to use "append" or "join"
 ### - add tile search funcitonality, with limit of 5 digits
 ### - add additional password/user option (CLI)
-### - change Tkinter to include name instead of importing all
+### - change Tkinter import to include name instead of importing all
 ### - figure out incorporating unzipping
 ### - check for unzipped fields
 ### - learn more about python GUI modules: Tkinter and pyGTK
-
-
 
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
@@ -67,7 +65,7 @@ else:
             'password file, if available')
     parser.add_option('-w', '--write_dir', dest='write_dir', action='store', \
             type='string', help='Path where products should be downloaded', \
-            default='.')
+            default='')
     parser.add_option('-r', dest='MaxRecords', action='store', type='int', \
             help='Maximum number of records to download (default=100)', \
             default=100)
@@ -96,7 +94,7 @@ else:
     parser.add_option('-t', '--tile', dest='tile', action='store', \
             type='string', help='Sentinel-2 Tile number', default=None)
     parser.add_option('-d', '--start_date', dest='start_date', action='store', \
-            type='string', help='Start date, fmt("2015-12-22'")', default=None)
+            type='string', help='Start date, fmt("2015-12-22")', default=None)
     parser.add_option('-f', '--end_date', dest='end_date', action='store', \
             type='string', help='End date, fmt("2015-12-23")', default=None)
     parser.add_option('-c', '--max_cloud', dest='max_cloud', action='store', \
@@ -125,7 +123,7 @@ if options.location == None:
             print '\nExamples:'
             print '\tPoint: python iq_download.py --lat 47.083 --lon 12.842'
             print '\tPolygon: python iq_download.py --latmin 46 --latmax 48 ' \
-            '--lonmin 12 --lonmax 14'
+                '--lonmin 12 --lonmax 14'
             print '\tLocation: python iq_download.py -l Vienna\n'
             sys.exit(-1)
         else:
@@ -139,7 +137,7 @@ if options.location == None:
             print '\nExamples:'
             print '\tPoint: python iq_download.py --lat 47.083 --lon 12.842'
             print '\tPolygon: python iq_download.py --latmin 46 --latmax 48 ' \
-            '--lonmin 12 --lonmax 14\n'
+                '--lonmin 12 --lonmax 14\n'
             sys.exit(-1)
 else:
     if (options.latmin == None and options.lonmin == None
@@ -151,32 +149,35 @@ else:
         print '\nExamples:'
         print '\tPoint: python iq_download.py --lat 47.083 --lon 12.842'
         print '\tPolygon: python iq_download.py --latmin 46 --latmax 48 ' \
-        '--lonmin 12 --lonmax 14'
+            '--lonmin 12 --lonmax 14'
         print '\tLocation: python iq_download.py -l Vienna\n'
         sys.exit(-1)
 
 # create spatial parts of the query ::: point, rectangle or location name
 if geom == 'point':
-    query_geom = ('(footprint:"\""Intersects({} {})"\"")').format(options.lat, options.lon)
+    query_geom = '(footprint:"\""Intersects({} {})"\"")'.format(
+        options.lat, options.lon)
 elif geom == 'rectangle':
     query_geom = ('(footprint:"\""Intersects(POLYGON(({lonmin} {latmin}, '
-    '{lonmax} {latmin}, {lonmax} {latmax}, {lonmin} {latmax}, '
-    '{lonmin} {latmin})))"\"")').format(latmin = options.latmin,
-    latmax = options.latmax, lonmin = options.lonmin, lonmax = options.lonmax)
+        '{lonmax} {latmin}, {lonmax} {latmax}, {lonmin} {latmax}, '
+        '{lonmin} {latmin})))"\"")').format(latmin = options.latmin,
+        latmax = options.latmax, lonmin = options.lonmin,
+        lonmax = options.lonmax)
 elif geom == 'location':
-    query_geom = ('{}').format(options.location)
+    query_geom = '{}'.format(options.location)
 
 # add orbit, if defined (default: NONE)
 if options.orbit == None:
     query_orb = query_geom
 else:
-    query_orb = ('({}) AND (relativeorbitnumber:{})').format(query_geom, options.orbit)
+    query_orb = '({}) AND (relativeorbitnumber:{})'.format(
+        query_geom, options.orbit)
 
 # add Sentinel mission
 if options.sentinel == 'S2':
-    query_slc = ('{} AND (platformname:Sentinel-2)').format(query_orb)
+    query_slc = '{} AND (platformname:Sentinel-2)'.format(query_orb)
 elif options.sentinel == 'S1':
-    query_slc = ('{} AND (platformname:Sentinel-1)').format(query_orb)
+    query_slc = '{} AND (platformname:Sentinel-1)'.format(query_orb)
 else:
     query_slc = query_orb
 
@@ -192,11 +193,13 @@ else:
     end_date = date.today().isoformat()
 
 query_time = ('{} AND (beginPosition:[{}T00:00:00.000Z TO {}T23:59:59.999Z] '
-'AND endPosition:[{}T00:00:00.000Z TO {}T23:59:59.999Z])').format(query_slc, start_date, end_date, start_date, end_date)
+    'AND endPosition:[{}T00:00:00.000Z TO {}T23:59:59.999Z])').format(
+    query_slc, start_date, end_date, start_date, end_date)
 
 # cloud cover query
 if options.max_cloud != None:
-    query = ('{} AND  (cloudcoverpercentage:[0.0 TO {}])').format(query_time, options.max_cloud / 100)
+    query = '{} AND  (cloudcoverpercentage:[0.0 TO {}])'.format(
+        query_time, options.max_cloud / 100)
 else:
     query = query_time
 
@@ -225,7 +228,7 @@ if options.auth != None:
 
 # authenticate at Sentinels Scientific Data Hub
 else:
-    url =  'https://scihub.copernicus.eu/apihub/search?q='
+    url =  'https://scihub.copernicus.eu/dhus/search?q='
     account = raw_input ('Username: ')
     passwd = raw_input ('Password: ')
     password_mgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
@@ -244,14 +247,17 @@ if os.path.exists('query_results.xml'):
     os.remove('query_results.xml')
 
 # set query variables used throughout the script
-url_search = 'https://scihub.copernicus.eu/apihub/search?q='
+url_search = 'https://scihub.copernicus.eu/dhus/search?q='
 wg = 'aria2c --check-certificate=false'
-auth = '--http-user="%s" --http-passwd="%s"' % (account, passwd)
+auth = '--http-user="{}" --http-passwd="{}"'.format(account, passwd)
 search_output = ' --continue -o query_results.xml'
 wg_opt = ' -o '
 
-# execute command to download and save query as xml-file in the same location as the python script
-command_aria = '%s %s %s "%s%s&rows=%d"' % (wg, auth, search_output, url_search, query, options.MaxRecords)
+# execute command to download and save query as xml-file in the same location
+# as the python script
+command_aria = '{} {} {} "{}{}&rows={}"'.format(
+    wg, auth, search_output, url_search, query, options.MaxRecords)
+
 print command_aria
 os.system(command_aria)
 
@@ -271,12 +277,16 @@ total_size = 0
 
 for entry in range(len(entries)):
     # the UUID element creates the path to the file
-    uuid_element = (entries[entry].find('{http://www.w3.org/2005/Atom}id')).text
-    sentinel_link = "https://scihub.copernicus.eu/apihub/odata/v1/Products('" + uuid_element + "')/$value"
+    uuid_element = (entries[entry].find('{http://www.w3.org/2005/Atom}'
+        'id')).text
+    sentinel_link = ("https://scihub.copernicus.eu/dhus/odata/v1/Products('"
+        + uuid_element + "')/$value")
 
     # the title element contains the corresponding file name
-    title_element = (entries[entry].find('{http://www.w3.org/2005/Atom}title')).text
-    summary_element = (entries[entry].find('{http://www.w3.org/2005/Atom}summary')).text
+    title_element = (entries[entry].find('{http://www.w3.org/2005/Atom}'
+        'title')).text
+    summary_element = (entries[entry].find('{http://www.w3.org/2005/Atom}'
+        'summary')).text
 
     zipfile = title_element + '.zip'
 
@@ -286,7 +296,8 @@ for entry in range(len(entries)):
     print summary_element
 
     # return cloud cover
-    cloud_element = (entries[entry].find(".//*[@name='cloudcoverpercentage']")).text
+    cloud_element = (entries[entry].find('.//*[@name="cloudcoverpercentage"]')
+        ).text
     print 'Cloud cover percentage: ' + cloud_element
 
     # return the size, parse to double and add to running total of size
@@ -328,26 +339,29 @@ question = 'Number of scenes found: ' + str(scenes) + \
 root = Tk().withdraw()
 # content of the window
 messagebox = tkMessageBox.askyesno('Sentinel Downloader', question)
-
 if messagebox == True:
-   	# download all whole scenes matching the query
+   	#download all whole scenes matching the query
     for entry in range(len(entries)):
-
-        # create download command for the entry
-        uuid_element = (entries[entry].find('{http://www.w3.org/2005/Atom}id')).text
-        sentinel_link = "https://scihub.copernicus.eu/apihub/odata/v1/Products('" + uuid_element + "')/$value"
-        title_element = (entries[entry].find('{http://www.w3.org/2005/Atom}title')).text
+        #create download command for the entry
+        uuid_element = (entries[entry].find('{http://www.w3.org/2005/Atom}'
+            'id')).text
+        sentinel_link = ("https://scihub.copernicus.eu/dhus/odata/v1/Products('"
+            + uuid_element + "')/$value")
+        title_element = (entries[entry].find('{http://www.w3.org/2005/Atom}'
+            'title')).text
 
         # if write_dir defined, save there, otherwise save to folder where
         # the python script is located
-        if options.write_dir != '.':
-            command_aria = '%s %s --dir %s %s%s "%s"' % (wg, auth, options.write_dir, wg_opt, zipfile, sentinel_link)
+        if options.write_dir != '':
+            command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
+                options.write_dir, wg_opt, zipfile, sentinel_link)
         else:
-            command_aria = '%s %s %s%s/%s "%s"' % (wg,auth, wg_opt, options.write_dir, zipfile, sentinel_link)
+            command_aria = '{} {} {}{}{} "{}"'.format(wg, auth, wg_opt,
+                options.write_dir, zipfile, sentinel_link)
 
         # execute download
         os.system(command_aria)
-        print 'Downloaded Scene #' + entry + 1
+        print 'Downloaded Scene #' + str(entry + 1)
 
     print '\n------------------------------------------------------------------'
     print 'Downloading complete!'
