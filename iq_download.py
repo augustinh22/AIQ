@@ -228,7 +228,7 @@ if options.auth != None:
 
 # authenticate at Sentinels Scientific Data Hub
 else:
-    url =  'https://scihub.copernicus.eu/dhus/search?q='
+    url =  'https://scihub.copernicus.eu/apihub/search?q='
     account = raw_input ('Username: ')
     passwd = raw_input ('Password: ')
     password_mgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
@@ -247,7 +247,7 @@ if os.path.exists('query_results.xml'):
     os.remove('query_results.xml')
 
 # set query variables used throughout the script
-url_search = 'https://scihub.copernicus.eu/dhus/search?q='
+url_search = 'https://scihub.copernicus.eu/apihub/search?q='
 wg = 'aria2c --check-certificate=false'
 auth = '--http-user="{}" --http-passwd="{}"'.format(account, passwd)
 search_output = ' --continue -o query_results.xml'
@@ -279,7 +279,7 @@ for entry in range(len(entries)):
     # the UUID element creates the path to the file
     uuid_element = (entries[entry].find('{http://www.w3.org/2005/Atom}'
         'id')).text
-    sentinel_link = ("https://scihub.copernicus.eu/dhus/odata/v1/Products('"
+    sentinel_link = ("https://scihub.copernicus.eu/apihub/odata/v1/Products('"
         + uuid_element + "')/$value")
 
     # the title element contains the corresponding file name
@@ -345,8 +345,8 @@ if messagebox == True:
         # create download command for the entry
         uuid_element = (entries[entry].find('{http://www.w3.org/2005/Atom}'
             'id')).text
-        sentinel_link = ("https://scihub.copernicus.eu/dhus/odata/v1/Products('"
-            + uuid_element + "')/$value")
+        sentinel_link = ('https://scihub.copernicus.eu/apihub/odata/v1/Products'
+            '(\'' + uuid_element + '\')/$value')
         title_element = (entries[entry].find('{http://www.w3.org/2005/Atom}'
             'title')).text
 
