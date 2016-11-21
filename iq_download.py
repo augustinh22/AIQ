@@ -10,7 +10,6 @@
 #-------------------------------------------------------------------------------
 
 ### To-do List
-### - adjust lines to all be less than 80 characters
 ### - adjust query strings to use "append" or "join"
 ### - add tile search funcitonality, with limit of 5 digits
 ### - add additional password/user option (CLI)
@@ -28,6 +27,7 @@ import optparse
 import urllib
 import urllib2
 import tkMessageBox
+import requests
 import xml.etree.ElementTree as etree
 from xml.dom import minidom
 from datetime import date
@@ -44,29 +44,81 @@ class OptionParser (optparse.OptionParser):
             self.error('{} option not supplied'.format(option))
 
 ################################################################################
+
+# check's for existance of ESA kml file
+def check_kml():
+    if os.path.exists('S2A_OPER_GIP_TILPAR_MPC__20151209T095117'
+            '_V20150622T000000_21000101T000000_B00.kml') == False:
+        print '\n--------------------------------------------------------------'
+        print 'Please download the ESA Sentinel-2 kml file!'
+        print 'See README.md for details.'
+        print '--------------------------------------------------------------\n'
+        sys.exit(-1)
+
 # function returns center coordinates of tile, if the tile exists
 def tile_point(tile):
-    # Sentinel-2 tile kml file (see README.md for download link and info)
+
+    print '\n------------------------------------------------------------------'
+    print 'Hold on while we check the kml for the tile\'s center point!'
     kml_file = ('S2A_OPER_GIP_TILPAR_MPC__20151209T095117_V20150622T000000'
         '_21000101T000000_B00.kml')
 
     tree = etree.parse(kml_file)
-
+    # go get all the placemarks
     placemarks = tree.findall('.//{http://www.opengis.net/kml/2.2}Placemark')
 
+    # establish empty list to fill, or not
+    coords = []
     # cycle through the attributes within each placemark
     for attributes in placemarks:
         for subAttribute in attributes:
-            # if the name of the placemark is the same as the tile then...
-            if (subAttribute.tag == '{http://www.opengis.net/kml/2.2}name'
-                    and subAttribute.text == tile):
+            # iterate through the names of each placemark
+            name = attributes.find('.//{http://www.opengis.net/kml/2.2}name')
+            # if the name is the same as the defined tile, get coordinates
+            if name.text == tile:
                 # find the center point tag
-                points = tree.find('.//{http://www.opengis.net/kml/2.2}Point')
-                # save the center point values as a list
+                points = attributes.find('.//{http://www.opengis.net/kml/2.2}'
+                    'Point')
+                # have to go in deeper, thanks to etree
                 for unit in points:
+                    # save the center point values as a list
                     coords = (unit.text).split(',')
                     # ['longitude', 'latitude', 'vertical']
                     return coords
+    # if list is empty, tile was not found
+    if not coords:
+        print 'Tile does not exist. Try again.'
+        sys.exit(-1)
+
+# returns tiles for a package if the user so desires
+def return_tiles(uuid_element, filename):
+    # create link to search for tile/granule data at ESA APIHub
+    granule_link = ("https://scihub.copernicus.eu/apihub/odata/v1/Products"
+        "('{}')/Nodes('{}')/Nodes('GRANULE')/Nodes").format(
+        uuid_element, filename)
+
+    # GET request from hub and essentially parse it
+    response = session.get(granule_link, stream=True)
+    tile_tree = etree.fromstring(response.content)
+    # Search for all entires (i.e. tiles)
+    tile_entries = tile_tree.findall('{http://www.w3.org/2005/Atom}entry')
+
+    # Empty string to fill with all tiles in the file
+    granules = ''
+
+    # Go through each tile and save the tile name to the string
+    for tile_entry in range(len(tile_entries)):
+        # the UUID element creates the path to the file
+        granule_dir_name = (tile_entries[tile_entry].find(''
+            '{http://www.w3.org/2005/Atom}title')).text
+        granule = granule_dir_name[50:55]
+        granules = granules + ' ' + granule
+
+    # print the number of tiles and their names
+    tiles = len(tile_entries)
+    print '# of Tiles: ' + str(tiles)
+    print 'Tiles:' + granules
+
 ################################################################################
 
 #------------------------------------------------------------------------------#
@@ -110,13 +162,13 @@ else:
     parser.add_option('-l', '--location', dest='location', action='store', \
             type='string', help='Town name (pick one which is not too '
             'frequent to avoid confusions)', default=None)
+    parser.add_option('-t', '--tile', dest='tile', action='store', \
+            type='string', help='Sentinel-2 Tile number', default=None)
 
     # other Sentinel file related command parameters
     parser.add_option('-s', '--sentinel', dest='sentinel', action='store', \
             type='string', help='Sentinel mission considered (e.g. S1 or S2)', \
             default='S2')
-    parser.add_option('-t', '--tile', dest='tile', action='store', \
-            type='string', help='Sentinel-2 Tile number', default=None)
     parser.add_option('-d', '--start_date', dest='start_date', action='store', \
             type='string', help='Start date, fmt("2015-12-22")', default=None)
     parser.add_option('-f', '--end_date', dest='end_date', action='store', \
@@ -144,45 +196,59 @@ else:
 
     (options, args) = parser.parse_args()
 
+# tile query check (currently not built into script!)
+if options.tile != None and options.sentinel != 'S2':
+    print 'The tile option (-t) can only be used for Sentinel-2!'
+    sys.exit(-1)
+
 # build in checks for valid commands ::: spatial aspect
-if options.location == None:
-    if options.lat == None or options.lon == None:
-        if (options.latmin == None or options.lonmin == None
-                or options.latmax == None or options.lonmax == None):
-            # Explain problem and give example
-            print '\nPlease provide at least one point, rectangle or location!'
+if options.tile == None or options.tile == '?':
+    if options.location == None:
+        if options.lat == None or options.lon == None:
+            if (options.latmin == None or options.lonmin == None
+                    or options.latmax == None or options.lonmax == None):
+                # Explain problem and give example
+                print '\nPlease provide at least one point/rectangle/location!'
+                print '\nExamples:'
+                print '\tPoint: python iq_download.py --lat 47.083 --lon 12.842'
+                print '\tPolygon: python iq_download.py --latmin 46 ' \
+                    '--latmax 48 --lonmin 12 --lonmax 14'
+                print '\tLocation: python iq_download.py -l Vienna\n'
+                sys.exit(-1)
+            else:
+                geom = 'rectangle'
+        else:
+            if (options.latmin == None and options.lonmin == None
+                    and options.latmax == None and options.lonmax == None):
+                geom = 'point'
+            else:
+                print '\nPlease choose either point or rectangle, but not both!'
+                print '\nExamples:'
+                print '\tPoint: python iq_download.py --lat 47.083 --lon 12.842'
+                print '\tPolygon: python iq_download.py --latmin 46 ' \
+                    '--latmax 48 --lonmin 12 --lonmax 14\n'
+                sys.exit(-1)
+    else:
+        if (options.latmin == None and options.lonmin == None
+                and options.latmax == None and options.lonmax == None
+                and options.lat == None or options.lon == None):
+            geom = 'location'
+        else:
+            print '\nPlease choose location and coordinates, but not both!\n'
             print '\nExamples:'
             print '\tPoint: python iq_download.py --lat 47.083 --lon 12.842'
             print '\tPolygon: python iq_download.py --latmin 46 --latmax 48 ' \
                 '--lonmin 12 --lonmax 14'
             print '\tLocation: python iq_download.py -l Vienna\n'
             sys.exit(-1)
-        else:
-            geom = 'rectangle'
-    else:
-        if (options.latmin == None and options.lonmin == None
-                and options.latmax == None and options.lonmax == None):
-            geom = 'point'
-        else:
-            print '\nPlease choose either point or rectangle, but not both!'
-            print '\nExamples:'
-            print '\tPoint: python iq_download.py --lat 47.083 --lon 12.842'
-            print '\tPolygon: python iq_download.py --latmin 46 --latmax 48 ' \
-                '--lonmin 12 --lonmax 14\n'
-            sys.exit(-1)
 else:
-    if (options.latmin == None and options.lonmin == None
-            and options.latmax == None and options.lonmax == None
-            and options.lat == None or options.lon == None):
-        geom = 'location'
-    else:
-        print '\nPlease choose location and coordinates, but not both!\n'
-        print '\nExamples:'
-        print '\tPoint: python iq_download.py --lat 47.083 --lon 12.842'
-        print '\tPolygon: python iq_download.py --latmin 46 --latmax 48 ' \
-            '--lonmin 12 --lonmax 14'
-        print '\tLocation: python iq_download.py -l Vienna\n'
-        sys.exit(-1)
+    # quits if kml file not there
+    check_kml()
+    # quits if the tile doesn't exist, otherwise returns center coordinates
+    coords = tile_point(options.tile)
+    options.lon = str(coords[0])
+    options.lat = str(coords[1])
+    geom = 'point'
 
 # create spatial parts of the query ::: point, rectangle or location name
 if geom == 'point':
@@ -234,12 +300,6 @@ if options.max_cloud != None:
 else:
     query = query_time
 
-# tile query check (currently not built into script!)
-if options.tile != None and options.sentinel != 'S2':
-    print 'The tile option (-t) can only be used for Sentinel-2!'
-    sys.exit(-1)
-
-
 #------------------------------------------------------------------------------#
 #                          Read authentification file                          #
 #------------------------------------------------------------------------------#
@@ -268,6 +328,11 @@ else:
     handler = urllib2.HTTPBasicAuthHandler(password_mgr)
     opener = urllib2.build_opener(handler)
     urllib2.install_opener(opener)
+
+if options.tile == '?':
+    # Start Session/Authorization in requests
+    session = requests.Session()
+    session.auth = (account, passwd)
 
 #------------------------------------------------------------------------------#
 #                Prepare aria2 command line to search catalog                  #
@@ -327,6 +392,8 @@ for entry in range(len(entries)):
     print 'Scene ', entry + 1, 'of ', len(entries)
     print title_element
     print summary_element
+    if options.tile == '?':
+        return_tiles(uuid_element, filename)
 
     # return cloud cover
     cloud_element = (entries[entry].find('.//*[@name="cloudcoverpercentage"]')
