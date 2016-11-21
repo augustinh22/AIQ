@@ -15,6 +15,7 @@ from Tkinter import *
 import requests
 
 ################################################################################
+# returns tiles for each package if the user so desires
 def return_tiles(uuid_element, filename):
     # create link to search for tile/granule data at ESA APIHub
     granule_link = ("https://scihub.copernicus.eu/apihub/odata/v1/Products"
@@ -83,32 +84,7 @@ for entry in range(len(entries)):
     print 'Scene ', entry + 1, 'of ', len(entries)
     print title_element
     print summary_element
-
-    granule_link = ("https://scihub.copernicus.eu/apihub/odata/v1/Products"
-        "('{}')/Nodes('{}')/Nodes('GRANULE')/Nodes").format(uuid_element, filename)
-
-    # GET request from hub based on session authorization (already defined)
-    response = session.get(granule_link, stream=True)
-    # create tree from string
-    tile_tree = etree.fromstring(response.content)
-    # Search for all entires (i.e. tiles)
-    tile_entries = tile_tree.findall('{http://www.w3.org/2005/Atom}entry')
-
-    # Empty string to fill with all tiles in the file
-    granules = ''
-
-    # Go through each tile and save the tile name to the string
-    for tile_entry in range(len(tile_entries)):
-        # the UUID element creates the path to the file
-        granule_dir_name = (tile_entries[tile_entry].find('{http://www.w3.org/2005/Atom}'
-            'title')).text
-        granule = granule_dir_name[50:55]
-        granules = granules + ' ' + granule
-
-    # print the number of tiles and their names
-    tiles = len(tile_entries)
-    print '# of Tiles: ' + str(tiles)
-    print 'Tiles:' + granules
+    return_tiles(uuid_element, filename)
 
     # return cloud cover
     cloud_element = (entries[entry].find('.//*[@name="cloudcoverpercentage"]')
