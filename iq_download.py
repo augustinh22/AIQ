@@ -294,6 +294,7 @@ for entry in range(len(entries)):
         'title')).text
     summary_element = (entries[entry].find('{http://www.w3.org/2005/Atom}'
         'summary')).text
+    filename = (entries[entry].find('.//*[@name="filename"]')).text
 
     zipfile = title_element + '.zip'
 
