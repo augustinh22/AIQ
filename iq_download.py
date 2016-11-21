@@ -44,6 +44,30 @@ class OptionParser (optparse.OptionParser):
             self.error('{} option not supplied'.format(option))
 
 ################################################################################
+# function returns center coordinates of tile, if the tile exists
+def tile_point(tile):
+    # Sentinel-2 tile kml file (see README.md for download link and info)
+    kml_file = ('S2A_OPER_GIP_TILPAR_MPC__20151209T095117_V20150622T000000'
+        '_21000101T000000_B00.kml')
+
+    tree = etree.parse(kml_file)
+
+    placemarks = tree.findall('.//{http://www.opengis.net/kml/2.2}Placemark')
+
+    # cycle through the attributes within each placemark
+    for attributes in placemarks:
+        for subAttribute in attributes:
+            # if the name of the placemark is the same as the tile then...
+            if (subAttribute.tag == '{http://www.opengis.net/kml/2.2}name'
+                    and subAttribute.text == tile):
+                # find the center point tag
+                points = tree.find('.//{http://www.opengis.net/kml/2.2}Point')
+                # save the center point values as a list
+                for unit in points:
+                    coords = (unit.text).split(',')
+                    # ['longitude', 'latitude', 'vertical']
+                    return coords
+################################################################################
 
 #------------------------------------------------------------------------------#
 #                             Parse command line                               #
