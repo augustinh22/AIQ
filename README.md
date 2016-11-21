@@ -12,3 +12,8 @@ the University of Salzburg's M.Sc program in Applied Geoinformatics.
  * Download most recent version
  * Unzip and copy the contents of the folder into the folder containing python
  * Python can now access aria2!
+* Install requests
+* Download kml tiling grid
+ * Go to: https://sentinel.esa.int/web/sentinel/missions/sentinel-2/data-products
+ * Download kml file: S2A_OPER_GIP_TILPAR_MPC__20151209T095117_V20150622T000000_21000101T000000_B00.kml
+ * Save in folder where iq_download.py is located
