@@ -41,7 +41,7 @@ class OptionParser (optparse.OptionParser):
 
     # assumes the option's 'default' is set to None!
         if getattr(self.values, option.dest) is None:
-            self.error(('{} option not supplied').format(option))
+            self.error('{} option not supplied'.format(option))
 
 ################################################################################
 
@@ -110,6 +110,13 @@ else:
     # parser.add_option('-p', '--proxy_passwd', dest='proxy', \
     #        action='store', type='string', help='Proxy account and '
     #        'password file', default=None)
+    # parser.add_option("--id", "--start_ingest_date", dest="start_ingest_date", action="store", type="string", \
+    #         help="start ingestion date, fmt('2015-12-22')", default=None)
+    # parser.add_option("--if", "--end_ingest_date", dest="end_ingest_date", action="store", type="string", \
+    #         help="end ingestion date, fmt('2015-12-23')", default=None)
+    # parser.add_option("--dhus", dest="dhus", action="store_true",  \
+    #         help="Try dhus interface when apihub is not working", default=False)
+
 
     (options, args) = parser.parse_args()
 
@@ -290,6 +297,7 @@ for entry in range(len(entries)):
 
     zipfile = title_element + '.zip'
 
+    # Print each entry's info
     print "\n------------------------------------------------------------------"
     print 'Scene ', entry + 1, 'of ', len(entries)
     print title_element
@@ -300,9 +308,9 @@ for entry in range(len(entries)):
         ).text
     print 'Cloud cover percentage: ' + cloud_element
 
-    # return the size, parse to double and add to running total of size
+    # return the size
     size_element = (entries[entry].find(".//*[@name='size']")).text
-
+    # parse size to double and add to running total of size
     if 'GB' in size_element:
         size_element = size_element.replace(' GB', '')
         size_element = float(size_element)
@@ -333,7 +341,7 @@ total_size = '{0:.2f}'.format(total_size) + ' GB'
 # the question to continue based on the number of scenes found
 question = 'Number of scenes found: ' + str(scenes) + \
     '\nTotal size of scenes: ' + total_size + \
-    '\n\nDo you want to download the images?'
+    '\n\nDo you want to download all results?'
 
 # hide the main window
 root = Tk().withdraw()
