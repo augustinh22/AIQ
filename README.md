@@ -25,7 +25,7 @@ the University of Salzburg's M.Sc program in Applied Geoinformatics.
 * python iq_download.py --lat 47.083 --lon 12.842
 
 ### Polygon
-* python iq_download.py --latmin 46 --latmax 48 --lonmin 12 --lonmax 14'
+* python iq_download.py --latmin 46 --latmax 48 --lonmin 12 --lonmax 14
 
 ### Location
 * python iq_download.py -l Vienna
