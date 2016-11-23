@@ -1,7 +1,7 @@
 #-------------------------------------------------------------------------------
 # Name:        Sentinel2 Downloader
-# Purpose:     This script uses aria2 via Powershell to download Sentinel2
-#              images from the Sentinels Scientific Data Hub.
+# Purpose:     This script uses aria2 and Powershell to download Sentinel2
+#              images from the Sentinel API or Scientific Data Hub.
 #
 # Author:      h.Augustin
 #
@@ -10,26 +10,26 @@
 #-------------------------------------------------------------------------------
 
 ### To-do List
-### - adjust query strings to use "append" or "join"
-### - add tile search funcitonality, with limit of 5 digits
-### - add additional password/user option (CLI)
-### - change Tkinter import to include name instead of importing all
-### - figure out incorporating unzipping
-### - check for unzipped fields
+### - add tile *download* funcitonality, with check of 5 digits
+### - update kml/tile check to do polygons and not just the center point
+### - add additional password/user option that hides input
+### - change download to be able to select packages rather than downloading all?
+### - figure out how to check unzipped files (long file name problem)
+### - incorporate automatic unzipping (for pre-processing)
 ### - learn more about python GUI modules: Tkinter and pyGTK
+### - switch optparse to argparse
+
+### - update building of query string using append or join
 
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
 import os
 import sys
-import optparse
-import urllib
-import urllib2
-import tkMessageBox
 import requests
+import optparse
+import tkMessageBox
 import xml.etree.ElementTree as etree
-from xml.dom import minidom
 from datetime import date
 from Tkinter import *
 
@@ -45,7 +45,7 @@ class OptionParser (optparse.OptionParser):
 
 ################################################################################
 
-# check's for existance of ESA kml file
+# function check's for existance of ESA kml file
 def check_kml():
     if os.path.exists('S2A_OPER_GIP_TILPAR_MPC__20151209T095117'
             '_V20150622T000000_21000101T000000_B00.kml') == False:
@@ -56,6 +56,7 @@ def check_kml():
         sys.exit(-1)
 
 # function returns center coordinates of tile, if the tile exists
+## this will be changed to polygon coordintes instead of points
 def tile_point(tile):
 
     print '\n------------------------------------------------------------------'
@@ -64,7 +65,8 @@ def tile_point(tile):
         '_21000101T000000_B00.kml')
 
     tree = etree.parse(kml_file)
-    # go get all the placemarks
+
+    # get all placemarks
     placemarks = tree.findall('.//{http://www.opengis.net/kml/2.2}Placemark')
 
     # establish empty list to fill, or not
@@ -85,38 +87,37 @@ def tile_point(tile):
                     coords = (unit.text).split(',')
                     # ['longitude', 'latitude', 'vertical']
                     return coords
-    # if list is empty, tile was not found
+    # if list is still empty after loop, tile was not found
     if not coords:
-        print 'Tile does not exist. Try again.'
+        print 'Tile not found. Try again.'
         sys.exit(-1)
 
-# returns tiles for a package if the user so desires
+# function returns tiles incldued in a package/file
 def return_tiles(uuid_element, filename):
     # create link to search for tile/granule data at ESA APIHub
-    granule_link = ("https://scihub.copernicus.eu/apihub/odata/v1/Products"
+    granule_link = (huburl + "odata/v1/Products"
         "('{}')/Nodes('{}')/Nodes('GRANULE')/Nodes").format(
         uuid_element, filename)
 
     # GET request from hub and essentially parse it
     response = session.get(granule_link, stream=True)
-    tile_tree = etree.fromstring(response.content)
-    # Search for all entires (i.e. tiles)
-    tile_entries = tile_tree.findall('{http://www.w3.org/2005/Atom}entry')
+    granule_tree = etree.fromstring(response.content)
+    # search for all entires (i.e. tiles)
+    granule_entries = granule_tree.findall('{http://www.w3.org/2005/Atom}entry')
 
-    # Empty string to fill with all tiles in the file
+    # empty string to fill with all tiles in the file
     granules = ''
 
-    # Go through each tile and save the tile name to the string
-    for tile_entry in range(len(tile_entries)):
-        # the UUID element creates the path to the file
-        granule_dir_name = (tile_entries[tile_entry].find(''
+    # go through each tile appending each name to string
+    for granule_entry in range(len(granule_entries)):
+        # UUID element creates the path to the file
+        granule_dir_name = (granule_entries[granule_entry].find(
             '{http://www.w3.org/2005/Atom}title')).text
         granule = granule_dir_name[50:55]
         granules = granules + ' ' + granule
 
     # print the number of tiles and their names
-    tiles = len(tile_entries)
-    print '# of Tiles: ' + str(tiles)
+    print '# of Tiles: ' + str(len(granule_entries))
     print 'Tiles:' + granules
 
 ################################################################################
@@ -145,6 +146,8 @@ else:
     parser.add_option('-r', dest='MaxRecords', action='store', type='int', \
             help='Maximum number of records to download (default=100)', \
             default=100)
+    parser.add_option('--hub', dest='hub', action='store_true',  \
+            help='Try other hubs if apihub is not working', default=None)
 
     # location related commands
     parser.add_option('--lat', dest='lat', action='store', type='float', \
@@ -186,20 +189,29 @@ else:
     # parser.add_option('-p', '--proxy_passwd', dest='proxy', \
     #        action='store', type='string', help='Proxy account and '
     #        'password file', default=None)
-    # parser.add_option("--id", "--start_ingest_date", dest="start_ingest_date", action="store", type="string", \
-    #         help="start ingestion date, fmt('2015-12-22')", default=None)
-    # parser.add_option("--if", "--end_ingest_date", dest="end_ingest_date", action="store", type="string", \
-    #         help="end ingestion date, fmt('2015-12-23')", default=None)
-    # parser.add_option("--dhus", dest="dhus", action="store_true",  \
-    #         help="Try dhus interface when apihub is not working", default=False)
+    # parser.add_option('--id', '--start_ingest_date', \
+    #         dest='start_ingest_date', action='store', type='string', \
+    #         help='start ingestion date, fmt("2015-12-22")', default=None)
+    # parser.add_option('--if', '--end_ingest_date', dest='end_ingest_date', \
+    #         action='store', type='string', help='end ingestion date, \
+    #         fmt("2015-12-23")', default=None)
 
 
     (options, args) = parser.parse_args()
 
-# tile query check (currently not built into script!)
+# tile query check
 if options.tile != None and options.sentinel != 'S2':
     print 'The tile option (-t) can only be used for Sentinel-2!'
     sys.exit(-1)
+
+# set data source (apihub vs dhus -- more could be added)
+if options.hub == None:
+    huburl = 'https://scihub.copernicus.eu/apihub/'
+elif options.hub == 'dhus':
+    huburl = 'https://scihub.copernicus.eu/dhus/'
+# # untested
+# elif options.hub == 'zamg':
+#     huburl = 'https://data.sentinel.zamg.ac.at/api/'
 
 # build in checks for valid commands ::: spatial aspect
 if options.tile == None or options.tile == '?':
@@ -246,11 +258,13 @@ else:
     check_kml()
     # quits if the tile doesn't exist, otherwise returns center coordinates
     coords = tile_point(options.tile)
-    options.lon = str(coords[0])
-    options.lat = str(coords[1])
+    options.lon = coords[0]
+    options.lat = coords[1]
+    print 'The center point is: ' + options.lat + ', ' + options.lon
     geom = 'point'
 
 # create spatial parts of the query ::: point, rectangle or location name
+# beware of the quotation marks!!
 if geom == 'point':
     query_geom = '(footprint:"\""Intersects({} {})"\"")'.format(
         options.lat, options.lon)
@@ -303,8 +317,8 @@ else:
 #------------------------------------------------------------------------------#
 #                          Read authentification file                          #
 #------------------------------------------------------------------------------#
-# use this part if you want to have your
-# password and username saved in a textfile
+# use this part if you want to have your password and username saved in a
+# textfile, with the file name as the command
 if options.auth != None:
     parser.check_required('-a')
     try:
@@ -314,23 +328,16 @@ if options.auth != None:
             passwd=passwd[:-1]
         f.close()
     except:
-        print 'Error with password file'
+        print 'Error with password file.'
         sys.exit(-2)
 
 # authenticate at Sentinels Scientific Data Hub
 else:
-    url =  'https://scihub.copernicus.eu/apihub/search?q='
+    url =  huburl + 'search?q='
     account = raw_input ('Username: ')
     passwd = raw_input ('Password: ')
-    password_mgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
 
-    password_mgr.add_password(None, url, account, passwd)
-    handler = urllib2.HTTPBasicAuthHandler(password_mgr)
-    opener = urllib2.build_opener(handler)
-    urllib2.install_opener(opener)
-
-if options.tile == '?':
-    # Start Session/Authorization in requests
+    # start session/authorization using requests module
     session = requests.Session()
     session.auth = (account, passwd)
 
@@ -343,7 +350,7 @@ if os.path.exists('query_results.xml'):
     os.remove('query_results.xml')
 
 # set query variables used throughout the script
-url_search = 'https://scihub.copernicus.eu/apihub/search?q='
+url_search = huburl + 'search?q='
 wg = 'aria2c --check-certificate=false'
 auth = '--http-user="{}" --http-passwd="{}"'.format(account, passwd)
 search_output = ' --continue -o query_results.xml'
@@ -375,8 +382,7 @@ for entry in range(len(entries)):
     # the UUID element creates the path to the file
     uuid_element = (entries[entry].find('{http://www.w3.org/2005/Atom}'
         'id')).text
-    sentinel_link = ("https://scihub.copernicus.eu/apihub/odata/v1/Products('"
-        + uuid_element + "')/$value")
+    sentinel_link = (huburl + "odata/v1/Products('" + uuid_element + "')/$value")
 
     # the title element contains the corresponding file name
     title_element = (entries[entry].find('{http://www.w3.org/2005/Atom}'
@@ -385,23 +391,21 @@ for entry in range(len(entries)):
         'summary')).text
     filename = (entries[entry].find('.//*[@name="filename"]')).text
 
-    zipfile = title_element + '.zip'
-
-    # Print each entry's info
+    # print each entry's info
     print "\n------------------------------------------------------------------"
     print 'Scene ', entry + 1, 'of ', len(entries)
     print title_element
     print summary_element
+    # return tile names per entry using function return_tiles if desired
     if options.tile == '?':
         return_tiles(uuid_element, filename)
-
-    # return cloud cover
     cloud_element = (entries[entry].find('.//*[@name="cloudcoverpercentage"]')
         ).text
     print 'Cloud cover percentage: ' + cloud_element
+    print sentinel_link
 
     # return the size
-    size_element = (entries[entry].find(".//*[@name='size']")).text
+    size_element = (entries[entry].find('.//*[@name="siz"])').text
     # parse size to double and add to running total of size
     if 'GB' in size_element:
         size_element = size_element.replace(' GB', '')
@@ -414,7 +418,7 @@ for entry in range(len(entries)):
         total_size += size_element
 
     # check if file was already downloaded
-    print sentinel_link
+    zipfile = title_element + '.zip'
     if os.path.exists(zipfile):
         print zipfile, ' has already been downloaded!',
      # do not download the product if it was already downloaded and unzipped
@@ -445,8 +449,8 @@ if messagebox == True:
         # create download command for the entry
         uuid_element = (entries[entry].find('{http://www.w3.org/2005/Atom}'
             'id')).text
-        sentinel_link = ('https://scihub.copernicus.eu/apihub/odata/v1/Products'
-            '(\'' + uuid_element + '\')/$value')
+        sentinel_link = (huburl + "odata/v1/Products('"
+            + uuid_element + "')/$value")
         title_element = (entries[entry].find('{http://www.w3.org/2005/Atom}'
             'title')).text
 
@@ -466,7 +470,6 @@ if messagebox == True:
     print '\n------------------------------------------------------------------'
     print 'Downloading complete!'
     print '------------------------------------------------------------------\n'
-
 
 else:
     print '\n------------------------------------------------------------------'
