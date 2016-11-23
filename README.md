@@ -23,11 +23,15 @@ the University of Salzburg's M.Sc program in Applied Geoinformatics.
 ## Example queries:
 ###Point
 * python iq_download.py --lat 47.083 --lon 12.842
+
 ### Polygon
 * python iq_download.py --latmin 46 --latmax 48 --lonmin 12 --lonmax 14'
+
 ### Location
 * python iq_download.py -l Vienna
+
 ### Tile
 * python iq_download.py -t 33TUN
+
 ### Discover tiles
 * python iq_download.py -l Salzburg -t ? -d 2016-11-10
