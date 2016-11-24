@@ -38,7 +38,7 @@ class OptionParser (optparse.OptionParser):
 def check_kml():
     kml_file = ('S2A_OPER_GIP_TILPAR_MPC__20151209T095117_V20150622T000000'
         '_21000101T000000_B00.kml')
-    if os.path.exists(kml_file) == False:
+    if os.path.exists(kml_file) is False:
         print(
             '\n--------------------------------------------------------------'
             '\nPlease download the ESA Sentinel-2 kml file!'
@@ -195,7 +195,7 @@ if options.tile != None and options.sentinel != 'S2':
     sys.exit(-1)
 
 # set data source (apihub vs dhus -- more could be added)
-if options.hub == None:
+if options.hub is None:
     huburl = 'https://scihub.copernicus.eu/apihub/'
 elif options.hub == 'dhus':
     huburl = 'https://scihub.copernicus.eu/dhus/'
@@ -204,11 +204,11 @@ elif options.hub == 'dhus':
 #     huburl = 'https://data.sentinel.zamg.ac.at/api/'
 
 # build in checks for valid commands ::: spatial aspect
-if options.tile == None or options.tile == '?':
-    if options.location == None:
-        if options.lat == None or options.lon == None:
-            if (options.latmin == None or options.lonmin == None
-                    or options.latmax == None or options.lonmax == None):
+if options.tile is None or options.tile == '?':
+    if options.location is None:
+        if options.lat is None or options.lon is None:
+            if (options.latmin is None or options.lonmin is None
+                    or options.latmax is None or options.lonmax is None):
                 # explain problem and give example
                 print (
                     '\nPlease provide at least one point/rectangle/location!'
@@ -222,8 +222,8 @@ if options.tile == None or options.tile == '?':
             else:
                 geom = 'rectangle'
         else:
-            if (options.latmin == None and options.lonmin == None
-                    and options.latmax == None and options.lonmax == None):
+            if (options.latmin is None and options.lonmin is None
+                    and options.latmax is None and options.lonmax is None):
                 geom = 'point'
             else:
                 print(
@@ -235,9 +235,9 @@ if options.tile == None or options.tile == '?':
                 )
                 sys.exit(-1)
     else:
-        if (options.latmin == None and options.lonmin == None
-                and options.latmax == None and options.lonmax == None
-                and options.lat == None or options.lon == None):
+        if (options.latmin is None and options.lonmin is None
+                and options.latmax is None and options.lonmax is None
+                and options.lat is None or options.lon is None):
             geom = 'location'
         else:
             print(
@@ -274,7 +274,7 @@ elif geom == 'location':
     query_geom = '{}'.format(options.location)
 
 # add orbit, if defined (default: NONE)
-if options.orbit == None:
+if options.orbit is None:
     query_orb = query_geom
 else:
     query_orb = '({}) AND (relativeorbitnumber:{})'.format(
@@ -441,7 +441,7 @@ question = ('Number of scenes found: {}'
 root = Tk().withdraw()
 # content of window
 messagebox = tkMessageBox.askyesno('Sentinel Downloader', question)
-if messagebox:
+if messagebox and options.tile is None:
    	# download all whole scenes matching the query
     for entry in range(len(entries)):
         # create download command for the entry
