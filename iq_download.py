@@ -18,7 +18,6 @@
 ### - incorporate automatic unzipping (for pre-processing)
 ### - learn more about python GUI modules: Tkinter and pyGTK
 ### - switch optparse to argparse
-
 ### - update building of query string using append or join
 
 #! /usr/bin/env python
@@ -45,7 +44,7 @@ class OptionParser (optparse.OptionParser):
 
 ################################################################################
 
-# function check's for existance of ESA kml file
+# function checks for existance of ESA kml file
 def check_kml():
     if os.path.exists('S2A_OPER_GIP_TILPAR_MPC__20151209T095117'
             '_V20150622T000000_21000101T000000_B00.kml') == False:
@@ -58,20 +57,18 @@ def check_kml():
 # function returns center coordinates of tile, if the tile exists
 ## this will be changed to polygon coordintes instead of points
 def tile_point(tile):
-
     print '\n------------------------------------------------------------------'
     print 'Hold on while we check the kml for the tile\'s center point!'
     kml_file = ('S2A_OPER_GIP_TILPAR_MPC__20151209T095117_V20150622T000000'
         '_21000101T000000_B00.kml')
 
     tree = etree.parse(kml_file)
-
     # get all placemarks
     placemarks = tree.findall('.//{http://www.opengis.net/kml/2.2}Placemark')
 
-    # establish empty list to fill, or not
+    # initialize empty list to fill, or not
     coords = []
-    # cycle through the attributes within each placemark
+    # iterate through the attributes within each placemark
     for attributes in placemarks:
         for subAttribute in attributes:
             # iterate through the names of each placemark
@@ -94,7 +91,7 @@ def tile_point(tile):
 
 # function returns tiles incldued in a package/file
 def return_tiles(uuid_element, filename):
-    # create link to search for tile/granule data at ESA APIHub
+    # create link to search for tile/granule data
     granule_link = (huburl + "odata/v1/Products"
         "('{}')/Nodes('{}')/Nodes('GRANULE')/Nodes").format(
         uuid_element, filename)
@@ -150,6 +147,11 @@ else:
             help='Try other hubs if apihub is not working', default=None)
 
     # location related commands
+    parser.add_option('-t', '--tile', dest='tile', action='store', \
+            type='string', help='Sentinel-2 Tile number', default=None)
+    parser.add_option('-l', '--location', dest='location', action='store', \
+            type='string', help='Town name (pick one which is not too '
+            'frequent to avoid confusions)', default=None)
     parser.add_option('--lat', dest='lat', action='store', type='float', \
             help='Latitude in decimal degrees', default=None)
     parser.add_option('--lon', dest='lon', action='store', type='float', \
@@ -162,11 +164,6 @@ else:
             help='Min longitude in decimal degrees', default=None)
     parser.add_option('--lonmax', dest='lonmax', action='store', type='float', \
             help='Max longitude in decimal degrees', default=None)
-    parser.add_option('-l', '--location', dest='location', action='store', \
-            type='string', help='Town name (pick one which is not too '
-            'frequent to avoid confusions)', default=None)
-    parser.add_option('-t', '--tile', dest='tile', action='store', \
-            type='string', help='Sentinel-2 Tile number', default=None)
 
     # other Sentinel file related command parameters
     parser.add_option('-s', '--sentinel', dest='sentinel', action='store', \
@@ -196,7 +193,6 @@ else:
     #         action='store', type='string', help='end ingestion date, \
     #         fmt("2015-12-23")', default=None)
 
-
     (options, args) = parser.parse_args()
 
 # tile query check
@@ -219,7 +215,7 @@ if options.tile == None or options.tile == '?':
         if options.lat == None or options.lon == None:
             if (options.latmin == None or options.lonmin == None
                     or options.latmax == None or options.lonmax == None):
-                # Explain problem and give example
+                # explain problem and give example
                 print '\nPlease provide at least one point/rectangle/location!'
                 print '\nExamples:'
                 print '\tPoint: python iq_download.py --lat 47.083 --lon 12.842'
@@ -331,7 +327,7 @@ if options.auth != None:
         print 'Error with password file.'
         sys.exit(-2)
 
-# authenticate at Sentinels Scientific Data Hub
+# authenticate at data hub
 else:
     url =  huburl + 'search?q='
     account = raw_input ('Username: ')
@@ -399,14 +395,15 @@ for entry in range(len(entries)):
     # return tile names per entry using function return_tiles if desired
     if options.tile == '?':
         return_tiles(uuid_element, filename)
+    # find cloud cover percentage
     cloud_element = (entries[entry].find('.//*[@name="cloudcoverpercentage"]')
         ).text
     print 'Cloud cover percentage: ' + cloud_element
     print sentinel_link
 
     # return the size
-    size_element = (entries[entry].find('.//*[@name="siz"])').text
-    # parse size to double and add to running total of size
+    size_element = (entries[entry].find('.//*[@name="size"])').text
+    # parse size to float and add to running total of size
     if 'GB' in size_element:
         size_element = size_element.replace(' GB', '')
         size_element = float(size_element)
@@ -434,14 +431,14 @@ for entry in range(len(entries)):
 # turn the total size of scenes found back into text
 total_size = '{0:.2f}'.format(total_size) + ' GB'
 
-# the question to continue based on the number of scenes found
+# question to continue based on the number of scenes found
 question = 'Number of scenes found: ' + str(scenes) + \
     '\nTotal size of scenes: ' + total_size + \
     '\n\nDo you want to download all results?'
 
-# hide the main window
+# hide main window
 root = Tk().withdraw()
-# content of the window
+# content of window
 messagebox = tkMessageBox.askyesno('Sentinel Downloader', question)
 if messagebox == True:
    	# download all whole scenes matching the query
