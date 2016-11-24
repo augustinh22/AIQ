@@ -9,17 +9,6 @@
 #
 #-------------------------------------------------------------------------------
 
-### To-do List
-### - add tile *download* funcitonality, with check of 5 digits
-### - update kml/tile check to do polygons and not just the center point
-### - add additional password/user option that hides input
-### - change download to be able to select packages rather than downloading all?
-### - figure out how to check unzipped files (long file name problem)
-### - incorporate automatic unzipping (for pre-processing)
-### - learn more about python GUI modules: Tkinter and pyGTK
-### - switch optparse to argparse
-### - update building of query string using append or join
-
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
