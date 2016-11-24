@@ -23,7 +23,7 @@ from Tkinter import *
 import requests  # Follow PEP8 on formatting imports.
 
 ################################################################################
-class OptionParser (optparse.OptionParser):
+class OptionParser(optparse.OptionParser):
 
     def check_required(self, opt):
         option = self.get_option(opt)
@@ -117,7 +117,7 @@ def return_tiles(uuid_element, filename):
 #------------------------------------------------------------------------------#
 if len(sys.argv) == 1:
     prog = os.path.basename(sys.argv[0])
-    print ('\n        {0} [options]'
+    print('\n        {0} [options]'
         '\n        Help: {1} --help'
         '\n        or: {1} -h'
         '\nexample python {0} --lat 43.6 --lon 1.44\n').format(
@@ -210,7 +210,7 @@ if options.tile is None or options.tile == '?':
             if (options.latmin is None or options.lonmin is None
                     or options.latmax is None or options.lonmax is None):
                 # Explain problem and give example.
-                print (
+                print(
                     '\nPlease provide at least one point/rectangle/location!'
                     '\nExamples:'
                     '\n\tPoint: python iq_download.py --lat 47.083 --lon 12.842'
@@ -306,7 +306,7 @@ query_time = ('{} AND (beginPosition:[{}T00:00:00.000Z TO {}T23:59:59.999Z] '
 
 # Add cloud cover query.
 if options.max_cloud != None:
-    query = '{} AND  (cloudcoverpercentage:[0.0 TO {}])'.format(
+    query = '{} AND (cloudcoverpercentage:[0.0 TO {}])'.format(
         query_time, options.max_cloud / 100)
 else:
     query = query_time
