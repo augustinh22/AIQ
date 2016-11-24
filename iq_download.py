@@ -14,12 +14,13 @@
 
 import os
 import sys
-import requests
 import optparse
 import tkMessageBox
 import xml.etree.ElementTree as etree
 from datetime import date
 from Tkinter import *
+
+import requests # Follow PEP8 on formatting imports
 
 ################################################################################
 class OptionParser (optparse.OptionParser):
@@ -35,16 +36,19 @@ class OptionParser (optparse.OptionParser):
 
 # function checks for existance of ESA kml file
 def check_kml():
-    if os.path.exists('S2A_OPER_GIP_TILPAR_MPC__20151209T095117'
-            '_V20150622T000000_21000101T000000_B00.kml') == False:
-        print '\n--------------------------------------------------------------'
-        print 'Please download the ESA Sentinel-2 kml file!'
-        print 'See README.md for details.'
-        print '--------------------------------------------------------------\n'
+    kml_file = ('S2A_OPER_GIP_TILPAR_MPC__20151209T095117_V20150622T000000'
+        '_21000101T000000_B00.kml')
+    if os.path.exists(kml_file) == False:
+        print(
+            '\n--------------------------------------------------------------'
+            '\nPlease download the ESA Sentinel-2 kml file!'
+            '\nSee README.md for details.'
+            '\n--------------------------------------------------------------\n'
+        )
         sys.exit(-1)
 
 # function returns center coordinates of tile, if the tile exists
-## this will be changed to polygon coordintes instead of points
+## this will be changed to polygon coordinates instead of points
 def tile_point(tile):
     print '\n------------------------------------------------------------------'
     print 'Hold on while we check the kml for the tile\'s center point!'
@@ -81,9 +85,9 @@ def tile_point(tile):
 # function returns tiles incldued in a package/file
 def return_tiles(uuid_element, filename):
     # create link to search for tile/granule data
-    granule_link = (huburl + "odata/v1/Products"
+    granule_link = ("{}odata/v1/Products"
         "('{}')/Nodes('{}')/Nodes('GRANULE')/Nodes").format(
-        uuid_element, filename)
+        huburl, uuid_element, filename)
 
     # GET request from hub and essentially parse it
     response = session.get(granule_link, stream=True)
@@ -100,11 +104,11 @@ def return_tiles(uuid_element, filename):
         granule_dir_name = (granule_entries[granule_entry].find(
             '{http://www.w3.org/2005/Atom}title')).text
         granule = granule_dir_name[50:55]
-        granules = granules + ' ' + granule
+        granules += ' {}'.format(granule)
 
     # print the number of tiles and their names
-    print '# of Tiles: ' + str(len(granule_entries))
-    print 'Tiles:' + granules
+    print '# of Tiles: {}'.format(str(len(granule_entries)))
+    print 'Tiles:{}'.format(granules)
 
 ################################################################################
 
@@ -113,59 +117,60 @@ def return_tiles(uuid_element, filename):
 #------------------------------------------------------------------------------#
 if len(sys.argv) == 1:
     prog = os.path.basename(sys.argv[0])
-    print '\n        ' + sys.argv[0] + ' [options]'
-    print '        Help: ', prog, ' --help'
-    print '        or: ', prog, ' -h'
-    print 'example python ' + sys.argv[0] + ' --lat 43.6 --lon 1.44\n'
+    print ('\n        {0} [options]'
+        '\n        Help: {1} --help'
+        '\n        or: {1} -h'
+        '\nexample python {0} --lat 43.6 --lon 1.44\n').format(
+        sys.argv[0], prog)
     sys.exit(-1)
 else:
     usage = 'usage: %prog [options] '
     parser = OptionParser(usage=usage)
 
     # authorization and directory related commands
-    parser.add_option('-a', '--auth', dest='auth', action='store', \
+    parser.add_option('-a', '--auth', dest='auth', action='store',
             type='string', help='Sentinels Scientific Data Hub account and '
             'password file, if available')
-    parser.add_option('-w', '--write_dir', dest='write_dir', action='store', \
-            type='string', help='Path where products should be downloaded', \
+    parser.add_option('-w', '--write_dir', dest='write_dir', action='store',
+            type='string', help='Path where products should be downloaded',
             default='')
-    parser.add_option('-r', dest='MaxRecords', action='store', type='int', \
-            help='Maximum number of records to download (default=100)', \
+    parser.add_option('-r', dest='MaxRecords', action='store', type='int',
+            help='Maximum number of records to download (default=100)',
             default=100)
-    parser.add_option('--hub', dest='hub', action='store_true',  \
+    parser.add_option('--hub', dest='hub', action='store_true',
             help='Try other hubs if apihub is not working', default=None)
 
     # location related commands
-    parser.add_option('-t', '--tile', dest='tile', action='store', \
+    parser.add_option('-t', '--tile', dest='tile', action='store',
             type='string', help='Sentinel-2 Tile number', default=None)
-    parser.add_option('-l', '--location', dest='location', action='store', \
+    parser.add_option('-l', '--location', dest='location', action='store',
             type='string', help='Town name (pick one which is not too '
             'frequent to avoid confusions)', default=None)
-    parser.add_option('--lat', dest='lat', action='store', type='float', \
+    parser.add_option('--lat', dest='lat', action='store', type='float',
             help='Latitude in decimal degrees', default=None)
-    parser.add_option('--lon', dest='lon', action='store', type='float', \
+    parser.add_option('--lon', dest='lon', action='store', type='float',
             help='Longitude in decimal degrees', default=None)
-    parser.add_option('--latmin', dest='latmin', action='store', type='float', \
+    parser.add_option('--latmin', dest='latmin', action='store', type='float',
             help='Min latitude in decimal degrees', default=None)
-    parser.add_option('--latmax', dest='latmax', action='store', type='float', \
+    parser.add_option('--latmax', dest='latmax', action='store', type='float',
             help='Max latitude in decimal degrees', default=None)
-    parser.add_option('--lonmin', dest='lonmin', action='store', type='float', \
+    parser.add_option('--lonmin', dest='lonmin', action='store', type='float',
             help='Min longitude in decimal degrees', default=None)
-    parser.add_option('--lonmax', dest='lonmax', action='store', type='float', \
+    parser.add_option('--lonmax', dest='lonmax', action='store', type='float',
             help='Max longitude in decimal degrees', default=None)
 
     # other Sentinel file related command parameters
-    parser.add_option('-s', '--sentinel', dest='sentinel', action='store', \
-            type='string', help='Sentinel mission considered (e.g. S1 or S2)', \
+    parser.add_option('-s', '--sentinel', dest='sentinel', action='store',
+            type='string', help='Sentinel mission considered (e.g. S1 or S2)',
             default='S2')
-    parser.add_option('-d', '--start_date', dest='start_date', action='store', \
+    parser.add_option('-d', '--start_date', dest='start_date', action='store',
             type='string', help='Start date, fmt("2015-12-22")', default=None)
-    parser.add_option('-f', '--end_date', dest='end_date', action='store', \
+    parser.add_option('-f', '--end_date', dest='end_date', action='store',
             type='string', help='End date, fmt("2015-12-23")', default=None)
-    parser.add_option('-c', '--max_cloud', dest='max_cloud', action='store', \
+    parser.add_option('-c', '--max_cloud', dest='max_cloud', action='store',
             type='float', help='Only search for products up to a certain '
             'cloud percentage (e.g. 50 for 50%)', default=None)
-    parser.add_option('-o', '--orbit', dest='orbit', action='store', \
+    parser.add_option('-o', '--orbit', dest='orbit', action='store',
             type='int', help='Orbit path number', default=None)
 
 # currently unused commands that could be built into the script at a later date
@@ -205,12 +210,14 @@ if options.tile == None or options.tile == '?':
             if (options.latmin == None or options.lonmin == None
                     or options.latmax == None or options.lonmax == None):
                 # explain problem and give example
-                print '\nPlease provide at least one point/rectangle/location!'
-                print '\nExamples:'
-                print '\tPoint: python iq_download.py --lat 47.083 --lon 12.842'
-                print '\tPolygon: python iq_download.py --latmin 46 ' \
+                print (
+                    '\nPlease provide at least one point/rectangle/location!'
+                    '\nExamples:'
+                    '\n\tPoint: python iq_download.py --lat 47.083 --lon 12.842'
+                    '\n\tPolygon: python iq_download.py --latmin 46 '
                     '--latmax 48 --lonmin 12 --lonmax 14'
-                print '\tLocation: python iq_download.py -l Vienna\n'
+                    '\n\tLocation: python iq_download.py -l Vienna\n'
+                )
                 sys.exit(-1)
             else:
                 geom = 'rectangle'
@@ -219,11 +226,13 @@ if options.tile == None or options.tile == '?':
                     and options.latmax == None and options.lonmax == None):
                 geom = 'point'
             else:
-                print '\nPlease choose either point or rectangle, but not both!'
-                print '\nExamples:'
-                print '\tPoint: python iq_download.py --lat 47.083 --lon 12.842'
-                print '\tPolygon: python iq_download.py --latmin 46 ' \
-                    '--latmax 48 --lonmin 12 --lonmax 14\n'
+                print(
+                    '\nPlease choose either point or rectangle, but not both!'
+                    '\nExamples:'
+                    '\n\tPoint: python iq_download.py --lat 47.083 --lon 12.842'
+                    '\n\tPolygon: python iq_download.py --latmin 46 '
+                    '--latmax 48 --lonmin 12 --lonmax 14'
+                )
                 sys.exit(-1)
     else:
         if (options.latmin == None and options.lonmin == None
@@ -231,12 +240,14 @@ if options.tile == None or options.tile == '?':
                 and options.lat == None or options.lon == None):
             geom = 'location'
         else:
-            print '\nPlease choose location and coordinates, but not both!\n'
-            print '\nExamples:'
-            print '\tPoint: python iq_download.py --lat 47.083 --lon 12.842'
-            print '\tPolygon: python iq_download.py --latmin 46 --latmax 48 ' \
-                '--lonmin 12 --lonmax 14'
-            print '\tLocation: python iq_download.py -l Vienna\n'
+            print(
+                '\nPlease choose location and coordinates, but not both!\n'
+                '\nExamples:'
+                '\n\tPoint: python iq_download.py --lat 47.083 --lon 12.842'
+                '\n\tPolygon: python iq_download.py --latmin 46 '
+                '--latmax 48 --lonmin 12 --lonmax 14'
+                '\n\tLocation: python iq_download.py -l Vienna\n'
+            )
             sys.exit(-1)
 else:
     # quits if kml file not there
@@ -245,7 +256,7 @@ else:
     coords = tile_point(options.tile)
     options.lon = coords[0]
     options.lat = coords[1]
-    print 'The center point is: ' + options.lat + ', ' + options.lon
+    print 'The center point is: {}, {}'.format(options.lat, options.lon)
     geom = 'point'
 
 # create spatial parts of the query ::: point, rectangle or location name
@@ -307,7 +318,7 @@ else:
 if options.auth != None:
     parser.check_required('-a')
     try:
-        f = file(options.auth)
+        f = file(options.auth) # should this be done with a "with" function?
         (account,passwd) = f.readline().split(' ')
         if passwd.endswith('\n'):
             passwd=passwd[:-1]
@@ -318,9 +329,9 @@ if options.auth != None:
 
 # authenticate at data hub
 else:
-    url =  huburl + 'search?q='
-    account = raw_input ('Username: ')
-    passwd = raw_input ('Password: ')
+    url = '{}search?q='.format(huburl)
+    account = raw_input('Username: ')
+    passwd = raw_input('Password: ')
 
     # start session/authorization using requests module
     session = requests.Session()
@@ -335,7 +346,7 @@ if os.path.exists('query_results.xml'):
     os.remove('query_results.xml')
 
 # set query variables used throughout the script
-url_search = huburl + 'search?q='
+url_search = '{}search?q='.format(huburl)
 wg = 'aria2c --check-certificate=false'
 auth = '--http-user="{}" --http-passwd="{}"'.format(account, passwd)
 search_output = ' --continue -o query_results.xml'
@@ -358,7 +369,7 @@ tree = etree.parse('query_results.xml')
 entries = tree.findall('{http://www.w3.org/2005/Atom}entry')
 
 # save the number of scenes to a variable
-scenes = len(entries)
+scenes = str(len(entries))
 
 # initialize variable to return total size
 total_size = 0
@@ -367,7 +378,8 @@ for entry in range(len(entries)):
     # the UUID element creates the path to the file
     uuid_element = (entries[entry].find('{http://www.w3.org/2005/Atom}'
         'id')).text
-    sentinel_link = (huburl + "odata/v1/Products('" + uuid_element + "')/$value")
+    sentinel_link = ("{}odata/v1/Products('{}')/$value").format(
+        huburl, uuid_element)
 
     # the title element contains the corresponding file name
     title_element = (entries[entry].find('{http://www.w3.org/2005/Atom}'
@@ -378,7 +390,7 @@ for entry in range(len(entries)):
 
     # print each entry's info
     print "\n------------------------------------------------------------------"
-    print 'Scene ', entry + 1, 'of ', len(entries)
+    print 'Scene {} of {}'.format(entry + 1, len(entries))
     print title_element
     print summary_element
     # return tile names per entry using function return_tiles if desired
@@ -387,11 +399,11 @@ for entry in range(len(entries)):
     # find cloud cover percentage
     cloud_element = (entries[entry].find('.//*[@name="cloudcoverpercentage"]')
         ).text
-    print 'Cloud cover percentage: ' + cloud_element
+    print 'Cloud cover percentage: {}'.format(cloud_element)
     print sentinel_link
 
     # return the size
-    size_element = (entries[entry].find('.//*[@name="size"])').text
+    size_element = (entries[entry].find('.//*[@name="size"]')).text
     # parse size to float and add to running total of size
     if 'GB' in size_element:
         size_element = size_element.replace(' GB', '')
@@ -404,7 +416,7 @@ for entry in range(len(entries)):
         total_size += size_element
 
     # check if file was already downloaded
-    zipfile = title_element + '.zip'
+    zipfile = '{}.zip'.format(title_element)
     if os.path.exists(zipfile):
         print zipfile, ' has already been downloaded!',
      # do not download the product if it was already downloaded and unzipped
@@ -418,25 +430,25 @@ for entry in range(len(entries)):
 #------------------------------------------------------------------------------#
 
 # turn the total size of scenes found back into text
-total_size = '{0:.2f}'.format(total_size) + ' GB'
+total_size = '{0:.2f} GB'.format(total_size)
 
 # question to continue based on the number of scenes found
-question = 'Number of scenes found: ' + str(scenes) + \
-    '\nTotal size of scenes: ' + total_size + \
-    '\n\nDo you want to download all results?'
+question = ('Number of scenes found: {}'
+    '\nTotal size of scenes: {}'
+    '\n\nDo you want to download all results?').format(scenes, total_size)
 
 # hide main window
 root = Tk().withdraw()
 # content of window
 messagebox = tkMessageBox.askyesno('Sentinel Downloader', question)
-if messagebox == True:
+if messagebox:
    	# download all whole scenes matching the query
     for entry in range(len(entries)):
         # create download command for the entry
         uuid_element = (entries[entry].find('{http://www.w3.org/2005/Atom}'
             'id')).text
-        sentinel_link = (huburl + "odata/v1/Products('"
-            + uuid_element + "')/$value")
+        sentinel_link = ("{}odata/v1/Products('{}')/$value").format(
+            huburl, uuid_element)
         title_element = (entries[entry].find('{http://www.w3.org/2005/Atom}'
             'title')).text
 
@@ -451,7 +463,7 @@ if messagebox == True:
 
         # execute download
         os.system(command_aria)
-        print 'Downloaded Scene #' + str(entry + 1)
+        print 'Downloaded Scene #{}'.format(str(entry + 1))
 
     print '\n------------------------------------------------------------------'
     print 'Downloading complete!'
