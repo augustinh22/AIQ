@@ -190,7 +190,7 @@ else:
     (options, args) = parser.parse_args()
 
 # Add tile query check.
-if options.tile not None and options.sentinel != 'S2':
+if options.tile != None and options.sentinel != 'S2':
     print 'The tile option (-t) can only be used for Sentinel-2!'
     sys.exit(-1)
 
@@ -290,12 +290,12 @@ else:
     query_slc = query_orb
 
 # Add dates of capture.
-if options.start_date not None:
+if options.start_date != None:
     start_date = options.start_date
 else:
     start_date = '2015-06-13'  # Sentinel-2 launch date
 
-if options.end_date not None:
+if options.end_date != None:
     end_date = options.end_date
 else:
     end_date = date.today().isoformat()
@@ -305,7 +305,7 @@ query_time = ('{} AND (beginPosition:[{}T00:00:00.000Z TO {}T23:59:59.999Z] '
     query_slc, start_date, end_date, start_date, end_date)
 
 # Add cloud cover query.
-if options.max_cloud not None:
+if options.max_cloud != None:
     query = '{} AND (cloudcoverpercentage:[0.0 TO {}])'.format(
         query_time, options.max_cloud / 100)
 else:
@@ -316,7 +316,7 @@ else:
 #------------------------------------------------------------------------------#
 # Use this part if you want to have your password and username saved in a
 # textfile, with the file name as the command.
-if options.auth not None:
+if options.auth != None:
     parser.check_required('-a')
     try:
         f = file(options.auth)  # Should this be done with a "with" function?
