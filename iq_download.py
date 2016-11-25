@@ -106,9 +106,7 @@ def return_tiles(uuid_element, filename):
         granule = granule_dir_name[50:55]
         granules += ' {}'.format(granule)
 
-    # Print the number of tiles and their names.
-    print '# of Tiles: {}'.format(str(len(granule_entries)))
-    print 'Tiles:{}'.format(granules)
+    return(granule_entries, granules)
 
 ################################################################################
 
@@ -265,7 +263,7 @@ else:
 # not registered by the data hub, so they seem to need to be done this way.
 if geom == 'point':
     query_geom = '(footprint:"\""Intersects({} {})"\"")'.format(
-        options.lat, options.lon)
+        options.lon, options.lat)
 elif geom == 'rectangle':
     query_geom = ('(footprint:"\""Intersects(POLYGON(({lonmin} {latmin}, '
         '{lonmax} {latmin}, {lonmax} {latmax}, {lonmin} {latmax}, '
@@ -397,7 +395,11 @@ for entry in range(len(entries)):
     print summary_element
     # Return tile names per entry using function return_tiles if desired
     if options.tile == '?':
-        return_tiles(uuid_element, filename)
+        found_tiles = return_tiles(uuid_element, filename)
+        # Print the number of tiles and their names.
+        print '# of Tiles: {}'.format(str(len(found_tiles[0])))
+        print 'Tiles:{}'.format(found_tiles[1])
+
     # Find cloud cover percentage
     cloud_element = (entries[entry].find('.//*[@name="cloudcoverpercentage"]')
         ).text
@@ -434,16 +436,25 @@ for entry in range(len(entries)):
 # Turn the total size of scenes found back into text.
 total_size = '{0:.2f} GB'.format(total_size)
 
+if options.tile is None:
+    question_tile = 'Do you want to download all results?'
+elif options.tile != None:
+    question_tile = ('Do you want to download only {} tiles selected'
+        'from the results?').format(options.tile)
+
 # Create question to continue based on the number of scenes found.
 question = ('Number of scenes found: {}'
     '\nTotal size of scenes: {}'
-    '\n\nDo you want to download all results?').format(scenes, total_size)
+    '\n\n{}').format(scenes, total_size, question_tile)
 
 # Hide the main window.
 root = Tk().withdraw()
 # Create the content of the window.
 messagebox = tkMessageBox.askyesno('Sentinel Downloader', question)
-if messagebox and options.tile is None:
+
+# If you want to download all entries and did not search for a specific tile,
+# then downloading will begin.
+if messagebox and (options.tile is None or options.tile == '?'):
    	# Download all whole scenes matching the query.
     for entry in range(len(entries)):
         # Create download command for the entry.
@@ -453,6 +464,7 @@ if messagebox and options.tile is None:
             huburl, uuid_element)
         title_element = (entries[entry].find('{http://www.w3.org/2005/Atom}'
             'title')).text
+        zipfile = '{}.zip'.format(title_element)
 
         # If write_dir is defined, save there, otherwise save to folder where
         # the python script is located.
@@ -471,6 +483,57 @@ if messagebox and options.tile is None:
     print 'Downloading complete!'
     print '------------------------------------------------------------------\n'
 
+# If you want to download a tile that you searched for, then it will
+# create the proper file struction mimicing a complete download and fill it
+# with data specific to the tile you want.
+elif messagebox and options.tile != None and options.tile != '?':
+   	# Download all whole scenes matching the query.
+    for entry in range(len(entries)):
+        # Create download command for the entry.
+        uuid_element = (entries[entry].find('{http://www.w3.org/2005/Atom}'
+            'id')).text
+        filename = (entries[entry].find('.//*[@name="filename"]')).text
+
+        # Find tiles in entry, returning the number[0] and names[1]
+        included_tiles = return_tiles(uuid_element, filename)
+
+        # If the tile you want is in the entry, then it will create the
+        # necessary file structure and fill it.
+        if options.tile in included_tiles[1]:
+            # If write directory not defined, change to point for the Purpose
+            # of creating all the necessary subdirectories where the script is.
+            if options.write_dir == '':
+                options.write_dir = '.'
+            # Create product directory
+            product_dir_name = '{}/{}'.format(options.write_dir, filename)
+            if not(os.path.exists(product_dir_name)):
+                os.mkdir(product_dir_name)
+
+            # Create granule directory
+            granule_dir = '{}/{}'.format(product_dir_name, 'GRANULE')
+            if not(os.path.exists(granule_dir)):
+                os.mkdir(granule_dir)
+
+            # Create tile directory, but ought to be entire granule name and
+            # not just the tile name.
+            tile_dir_name = '{}/{}'.format(granule_dir, options.tile)
+            if not(os.path.exists(tile_dir_name)):
+                os.mkdir(tile_dir_name)
+
+            # Download the product header file
+            # Download INSPIRE.xml
+            # Download manifest.safe
+            # Download HTML
+            # Download AUX_DATA
+            # Download DATASTRIP
+            # Download GRANULE files
+
+            print 'Downloaded tile {} from scene #{}'.format(
+                options.tile, str(entry + 1))
+        else:
+            print 'Tile not in this entry.'
+
+# You decided not to download this time in the message box.
 else:
     print '\n------------------------------------------------------------------'
     print 'Nothing downloaded, but xml file saved!'
