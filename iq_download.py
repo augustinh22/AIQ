@@ -106,9 +106,7 @@ def return_tiles(uuid_element, filename):
         granule = granule_dir_name[50:55]
         granules += ' {}'.format(granule)
 
-    # Print the number of tiles and their names.
-    print '# of Tiles: {}'.format(str(len(granule_entries)))
-    print 'Tiles:{}'.format(granules)
+    return(granule_entries, granules)
 
 ################################################################################
 
@@ -264,7 +262,7 @@ else:
 # not registered by the data hub, so they seem to need to be done this way.
 if geom == 'point':
     query_geom = '(footprint:"\""Intersects({} {})"\"")'.format(
-        options.lat, options.lon)
+        options.lon, options.lat)
 elif geom == 'rectangle':
     query_geom = ('(footprint:"\""Intersects(POLYGON(({lonmin} {latmin}, '
         '{lonmax} {latmin}, {lonmax} {latmax}, {lonmin} {latmax}, '
@@ -396,7 +394,11 @@ for entry in range(len(entries)):
     print summary_element
     # Return tile names per entry using function return_tiles if desired
     if options.tile == '?':
-        return_tiles(uuid_element, filename)
+        found_tiles = return_tiles(uuid_element, filename)
+        # Print the number of tiles and their names.
+        print '# of Tiles: {}'.format(str(len(found_tiles[0])))
+        print 'Tiles:{}'.format(found_tiles[1])
+
     # Find cloud cover percentage
     cloud_element = (entries[entry].find('.//*[@name="cloudcoverpercentage"]')
         ).text
@@ -448,7 +450,10 @@ question = ('Number of scenes found: {}'
 root = Tk().withdraw()
 # Create the content of the window.
 messagebox = tkMessageBox.askyesno('Sentinel Downloader', question)
-if messagebox and options.tile is None:
+
+# If you want to download all entries and did not search for a specific tile,
+# then downloading will begin.
+if messagebox and (options.tile is None or options.tile == '?'):
    	# Download all whole scenes matching the query.
     for entry in range(len(entries)):
         # Create download command for the entry.
@@ -476,50 +481,89 @@ if messagebox and options.tile is None:
     print '\n------------------------------------------------------------------'
     print 'Downloading complete!'
     print '------------------------------------------------------------------\n'
-elif messagebox and options.tile != None:
+
+# If you want to download a tile that you searched for, then it will
+# create the proper file struction mimicing a complete download and fill it
+# with data specific to the tile you want.
+elif messagebox and options.tile != None and options.tile != '?':
    	# Download all whole scenes matching the query.
     for entry in range(len(entries)):
         # Create download command for the entry.
         uuid_element = (entries[entry].find('{http://www.w3.org/2005/Atom}'
             'id')).text
         filename = (entries[entry].find('.//*[@name="filename"]')).text
-        # Create link to search for tile/granule data.
-        granule_link = ("{}odata/v1/Products"
-            "('{}')/Nodes('{}')/Nodes('GRANULE')/Nodes").format(
-            huburl, uuid_element, filename)
-        # Create GET request from hub and essentially parse it.
-        response = session.get(granule_link, stream=True)
-        granule_tree = etree.fromstring(response.content)
-        # Search for all entires (i.e. tiles)
-        granule_entries = granule_tree.findall('{http://www.w3.org/2005/Atom}entry')
 
-        # Go through each tile appending each name to string.
-        for granule_entry in range(len(granule_entries)):
-            # UUID element creates the path to the file.
-            granule_dir_name = (granule_entries[granule_entry].find(
-                '{http://www.w3.org/2005/Atom}title')).text
-            granule = granule_dir_name[50:55]
-            if granule == options.tile:
-                # Create product directory
-                # Create tile directory
-                # Download HTML
-                # Download AUX_DATA
-                # Download DATASTRIP
-                # Download GRANULE files
-                # If write_dir is defined, save there, otherwise save to folder where
-                # the python script is located.
-                if options.write_dir != '':
-                    command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
-                        options.write_dir, wg_opt, zipfile, sentinel_link)
-                else:
-                    command_aria = '{} {} {}{}{} "{}"'.format(wg, auth, wg_opt,
-                        options.write_dir, zipfile, sentinel_link)
+        # Find tiles in entry, returning the number[0] and names[1]
+        included_tiles = return_tiles(uuid_element, filename)
 
-                # Execute download.
-                os.system(command_aria)
-                print 'Downloaded Scene #{}'.format(str(entry + 1))
-            else:
-                print 'Tile not in this entry.'
+        # If the tile you want is in the entry, then it will create the
+        # necessary file structure and fill it.
+        if options.tile in included_tiles[1]:
+            # If write directory not defined, change to point for the Purpose
+            # of creating all the necessary subdirectories where the script is.
+            if options.write_dir == '':
+                options.write_dir = '.'
+            # Create product directory
+            product_dir_name = '{}/{}'.format(options.write_dir, filename)
+            if not(os.path.exists(product_dir_name)):
+                os.mkdir(product_dir_name)
+
+            # Create granule directory
+            granule_dir = '{}/{}'.format(product_dir_name, 'GRANULE')
+            if not(os.path.exists(granule_dir)):
+                os.mkdir(granule_dir)
+
+            # Create tile directory
+            tile_dir_name = '{}/{}'.format(granule_dir, options.tile)
+            if not(os.path.exists(tile_dir_name)):
+                os.mkdir(tile_dir_name)
+
+            # # Download the product header file
+            # print '############################################### header'
+            #
+            # command_aria='%s %s %s%s "%s"'%(wg,auth,wg_opt,product_dir_name+'/'+xml,url_header+"/"+value)
+            # print command_aria
+            # os.system(commande_wget)
+            # while os.path.getsize(product_dir_name+'/'+xml)==0 : #in case of "bad gateway error"
+            #     os.system(commande_wget)
+            # #download INSPIRE.xml
+            # url_inspire=link.replace(value,"Nodes('%s')/Nodes('INSPIRE.xml')/"%(filename))
+            # commande_wget='%s %s %s%s "%s"'%(wg,auth,wg_opt,product_dir_name+'/'+"INSPIRE.xml",url_inspire+"/"+value)
+            #
+            # print commande_wget
+            # os.system(commande_wget)
+            # while os.path.getsize(product_dir_name+'/'+"INSPIRE.xml")==0 : #in case of "bad gateway error"
+            #     os.system(commande_wget)
+            #
+            # #download manifest.safe
+            # url_manifest=link.replace(value,"Nodes('%s')/Nodes('manifest.safe')/"%(filename))
+            # commande_wget='%s %s %s%s "%s"'%(wg,auth,wg_opt,product_dir_name+'/'+"manifest.safe",url_manifest+"/"+value)
+            # print commande_wget
+            # os.system(commande_wget)
+            # while os.path.getsize(product_dir_name+'/'+"manifest.safe")==0 : #in case of "bad gateway error"
+            #     os.system(commande_wget)
+            #
+            # # Download HTML
+            # # Download AUX_DATA
+            # # Download DATASTRIP
+            # # Download GRANULE files
+            # # If write_dir is defined, save there, otherwise save to folder where
+            # # the python script is located.
+            # if options.write_dir != '':
+            #     command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
+            #         options.write_dir, wg_opt, zipfile, sentinel_link)
+            # else:
+            #     command_aria = '{} {} {}{}{} "{}"'.format(wg, auth, wg_opt,
+            #         options.write_dir, zipfile, sentinel_link)
+            #
+            # # Execute download.
+            # os.system(command_aria)
+            print 'Downloaded tile {} from scene #{}'.format(
+                options.tile, str(entry + 1))
+        else:
+            print 'Tile not in this entry.'
+
+# You decided not to download this time in the message box.
 else:
     print '\n------------------------------------------------------------------'
     print 'Nothing downloaded, but xml file saved!'
