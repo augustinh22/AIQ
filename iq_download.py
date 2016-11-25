@@ -190,7 +190,7 @@ else:
     (options, args) = parser.parse_args()
 
 # Add tile query check.
-if options.tile not None and options.sentinel != 'S2':
+if options.tile != None and options.sentinel != 'S2':
     print 'The tile option (-t) can only be used for Sentinel-2!'
     sys.exit(-1)
 
@@ -290,12 +290,12 @@ else:
     query_slc = query_orb
 
 # Add dates of capture.
-if options.start_date not None:
+if options.start_date != None:
     start_date = options.start_date
 else:
     start_date = '2015-06-13'  # Sentinel-2 launch date
 
-if options.end_date not None:
+if options.end_date != None:
     end_date = options.end_date
 else:
     end_date = date.today().isoformat()
@@ -305,7 +305,7 @@ query_time = ('{} AND (beginPosition:[{}T00:00:00.000Z TO {}T23:59:59.999Z] '
     query_slc, start_date, end_date, start_date, end_date)
 
 # Add cloud cover query.
-if options.max_cloud not None:
+if options.max_cloud != None:
     query = '{} AND (cloudcoverpercentage:[0.0 TO {}])'.format(
         query_time, options.max_cloud / 100)
 else:
@@ -316,7 +316,7 @@ else:
 #------------------------------------------------------------------------------#
 # Use this part if you want to have your password and username saved in a
 # textfile, with the file name as the command.
-if options.auth not None:
+if options.auth != None:
     parser.check_required('-a')
     try:
         f = file(options.auth)  # Should this be done with a "with" function?
@@ -433,10 +433,16 @@ for entry in range(len(entries)):
 # Turn the total size of scenes found back into text.
 total_size = '{0:.2f} GB'.format(total_size)
 
+if options.tile is None:
+    question_tile = 'Do you want to download all results?'
+elif options.tile != None:
+    question_tile = ('Do you want to download only {} tiles selected'
+        'from the results?').format(options.tile)
+
 # Create question to continue based on the number of scenes found.
 question = ('Number of scenes found: {}'
     '\nTotal size of scenes: {}'
-    '\n\nDo you want to download all results?').format(scenes, total_size)
+    '\n\n{}').format(scenes, total_size, question_tile)
 
 # Hide the main window.
 root = Tk().withdraw()
@@ -452,6 +458,7 @@ if messagebox and options.tile is None:
             huburl, uuid_element)
         title_element = (entries[entry].find('{http://www.w3.org/2005/Atom}'
             'title')).text
+        zipfile = '{}.zip'.format(title_element)
 
         # If write_dir is defined, save there, otherwise save to folder where
         # the python script is located.
@@ -469,7 +476,50 @@ if messagebox and options.tile is None:
     print '\n------------------------------------------------------------------'
     print 'Downloading complete!'
     print '------------------------------------------------------------------\n'
+elif messagebox and options.tile != None:
+   	# Download all whole scenes matching the query.
+    for entry in range(len(entries)):
+        # Create download command for the entry.
+        uuid_element = (entries[entry].find('{http://www.w3.org/2005/Atom}'
+            'id')).text
+        filename = (entries[entry].find('.//*[@name="filename"]')).text
+        # Create link to search for tile/granule data.
+        granule_link = ("{}odata/v1/Products"
+            "('{}')/Nodes('{}')/Nodes('GRANULE')/Nodes").format(
+            huburl, uuid_element, filename)
+        # Create GET request from hub and essentially parse it.
+        response = session.get(granule_link, stream=True)
+        granule_tree = etree.fromstring(response.content)
+        # Search for all entires (i.e. tiles)
+        granule_entries = granule_tree.findall('{http://www.w3.org/2005/Atom}entry')
 
+        # Go through each tile appending each name to string.
+        for granule_entry in range(len(granule_entries)):
+            # UUID element creates the path to the file.
+            granule_dir_name = (granule_entries[granule_entry].find(
+                '{http://www.w3.org/2005/Atom}title')).text
+            granule = granule_dir_name[50:55]
+            if granule == options.tile:
+                # Create product directory
+                # Create tile directory
+                # Download HTML
+                # Download AUX_DATA
+                # Download DATASTRIP
+                # Download GRANULE files
+                # If write_dir is defined, save there, otherwise save to folder where
+                # the python script is located.
+                if options.write_dir != '':
+                    command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
+                        options.write_dir, wg_opt, zipfile, sentinel_link)
+                else:
+                    command_aria = '{} {} {}{}{} "{}"'.format(wg, auth, wg_opt,
+                        options.write_dir, zipfile, sentinel_link)
+
+                # Execute download.
+                os.system(command_aria)
+                print 'Downloaded Scene #{}'.format(str(entry + 1))
+            else:
+                print 'Tile not in this entry.'
 else:
     print '\n------------------------------------------------------------------'
     print 'Nothing downloaded, but xml file saved!'
