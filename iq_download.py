@@ -135,7 +135,7 @@ else:
     parser.add_option('-r', dest='MaxRecords', action='store', type='int',
             help='Maximum number of records to download (default=100)',
             default=100)
-    parser.add_option('--hub', dest='hub', action='store_true',
+    parser.add_option('--hub', dest='hub', action='store',
             help='Try other hubs if apihub is not working', default=None)
 
     # Location related commands
@@ -197,6 +197,7 @@ if options.hub is None:
     huburl = 'https://scihub.copernicus.eu/apihub/'
 elif options.hub == 'dhus':
     huburl = 'https://scihub.copernicus.eu/dhus/'
+    options.MaxRecords = '10'
 # # Untested
 # elif options.hub == 'zamg':
 #     huburl = 'https://data.sentinel.zamg.ac.at/api/'
