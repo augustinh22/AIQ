@@ -255,7 +255,7 @@ else:
     coords = tile_point(options.tile)
     options.lon = coords[0]
     options.lat = coords[1]
-    print 'The center point is: {}, {}'.format(options.lat, options.lon)
+    print 'Center point: {} lat, {} lon'.format(options.lat, options.lon)
     geom = 'point'
 
 # Create spatial parts of the query ::: point, rectangle or location name
