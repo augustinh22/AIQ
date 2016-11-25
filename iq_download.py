@@ -514,51 +514,20 @@ elif messagebox and options.tile != None and options.tile != '?':
             if not(os.path.exists(granule_dir)):
                 os.mkdir(granule_dir)
 
-            # Create tile directory
+            # Create tile directory, but ought to be entire granule name and
+            # not just the tile name.
             tile_dir_name = '{}/{}'.format(granule_dir, options.tile)
             if not(os.path.exists(tile_dir_name)):
                 os.mkdir(tile_dir_name)
 
-            # # Download the product header file
-            # print '############################################### header'
-            #
-            # command_aria='%s %s %s%s "%s"'%(wg,auth,wg_opt,product_dir_name+'/'+xml,url_header+"/"+value)
-            # print command_aria
-            # os.system(commande_wget)
-            # while os.path.getsize(product_dir_name+'/'+xml)==0 : #in case of "bad gateway error"
-            #     os.system(commande_wget)
-            # #download INSPIRE.xml
-            # url_inspire=link.replace(value,"Nodes('%s')/Nodes('INSPIRE.xml')/"%(filename))
-            # commande_wget='%s %s %s%s "%s"'%(wg,auth,wg_opt,product_dir_name+'/'+"INSPIRE.xml",url_inspire+"/"+value)
-            #
-            # print commande_wget
-            # os.system(commande_wget)
-            # while os.path.getsize(product_dir_name+'/'+"INSPIRE.xml")==0 : #in case of "bad gateway error"
-            #     os.system(commande_wget)
-            #
-            # #download manifest.safe
-            # url_manifest=link.replace(value,"Nodes('%s')/Nodes('manifest.safe')/"%(filename))
-            # commande_wget='%s %s %s%s "%s"'%(wg,auth,wg_opt,product_dir_name+'/'+"manifest.safe",url_manifest+"/"+value)
-            # print commande_wget
-            # os.system(commande_wget)
-            # while os.path.getsize(product_dir_name+'/'+"manifest.safe")==0 : #in case of "bad gateway error"
-            #     os.system(commande_wget)
-            #
-            # # Download HTML
-            # # Download AUX_DATA
-            # # Download DATASTRIP
-            # # Download GRANULE files
-            # # If write_dir is defined, save there, otherwise save to folder where
-            # # the python script is located.
-            # if options.write_dir != '':
-            #     command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
-            #         options.write_dir, wg_opt, zipfile, sentinel_link)
-            # else:
-            #     command_aria = '{} {} {}{}{} "{}"'.format(wg, auth, wg_opt,
-            #         options.write_dir, zipfile, sentinel_link)
-            #
-            # # Execute download.
-            # os.system(command_aria)
+            # Download the product header file
+            # Download INSPIRE.xml
+            # Download manifest.safe
+            # Download HTML
+            # Download AUX_DATA
+            # Download DATASTRIP
+            # Download GRANULE files
+
             print 'Downloaded tile {} from scene #{}'.format(
                 options.tile, str(entry + 1))
         else:
