@@ -493,45 +493,67 @@ elif messagebox and options.tile != None and options.tile != '?':
         uuid_element = (entries[entry].find('{http://www.w3.org/2005/Atom}'
             'id')).text
         filename = (entries[entry].find('.//*[@name="filename"]')).text
-
-        # Find tiles in entry, returning the number[0] and names[1]
+        sentinel_link = ("{}odata/v1/Products('{}')/Nodes('{}')/Nodes").format(
+            huburl, uuid_element, filename)
+        # Find tiles in entry, returning the number[0] and tile names[1]
         included_tiles = return_tiles(uuid_element, filename)
 
         # If the tile you want is in the entry, then it will create the
         # necessary file structure and fill it.
         if options.tile in included_tiles[1]:
+            print 'Downloading from scene #{}'.format(str(entry + 1))
             # If write directory not defined, change to point for the Purpose
             # of creating all the necessary subdirectories where the script is.
             if options.write_dir == '':
                 options.write_dir = '.'
             # Create product directory
-            product_dir_name = '{}/{}'.format(options.write_dir, filename)
+            product_dir_name = '{}/{}/'.format(options.write_dir, filename)
             if not(os.path.exists(product_dir_name)):
                 os.mkdir(product_dir_name)
 
             # Create granule directory
-            granule_dir = '{}/{}'.format(product_dir_name, 'GRANULE')
+            granule_dir = '{}/{}/'.format(product_dir_name, 'GRANULE')
             if not(os.path.exists(granule_dir)):
                 os.mkdir(granule_dir)
 
-            # Create tile directory, but ought to be entire granule name and
+            # Create tile directory, but ought to be entire file name and
             # not just the tile name.
-            tile_dir_name = '{}/{}'.format(granule_dir, options.tile)
+            tile_dir_name = '{}/{}/'.format(granule_dir, options.tile)
             if not(os.path.exists(tile_dir_name)):
                 os.mkdir(tile_dir_name)
 
-            # Download the product header file
+            # # Download the product header file
+            # header_file = ''
+            # header_link = 'https://scihub.copernicus.eu/apihub/odata/v1/Products('a432ef26-d2fa-4dff-804d-909c685a87ce')/Nodes('S2A_OPER_PRD_MSIL1C_PDMC_20161122T194914_R122_V20161122T100322_20161122T100322.SAFE')/Nodes('S2A_OPER_MTD_SAFL1C_PDMC_20161122T194914_R122_V20161122T100322_20161122T100322.xml')/$value'
+            # command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
+            #     product_dir_name, wg_opt, header_file, sentinel_link)
+
             # Download INSPIRE.xml
+            inspire_file = 'INSPIRE.xml'
+            inspire_link = "{}('{}')/$value".format(
+                sentinel_link, inspire_file)
+            command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
+                product_dir_name, wg_opt, inspire_file, inspire_link)
+            os.system(command_aria)
+
             # Download manifest.safe
+            manifest_file = 'manifest.safe'
+            manifest_link = "{}('{}')/$value".format(
+                sentinel_link, manifest_file)
+            command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
+                product_dir_name, wg_opt, manifest_file, manifest_link)
+            os.system(command_aria)
+
             # Download HTML
             # Download AUX_DATA
             # Download DATASTRIP
             # Download GRANULE files
 
-            print 'Downloaded tile {} from scene #{}'.format(
+            print 'Downloaded tile {} from scene #{}\n'.format(
                 options.tile, str(entry + 1))
         else:
-            print 'Tile not in this entry.'
+            print '\nTile {} not in scene #{}\n'.format(
+                options.tile, str(entry + 1))
 
 # You decided not to download this time in the message box.
 else:
