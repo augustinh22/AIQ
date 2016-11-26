@@ -54,11 +54,10 @@ def tile_point(tile):
     print 'Hold on while we check the kml for the tile\'s center point!'
     kml_file = ('S2A_OPER_GIP_TILPAR_MPC__20151209T095117_V20150622T000000'
         '_21000101T000000_B00.kml')
-
+    # Create element tree of all tiles in the kml file
     tree = etree.parse(kml_file)
-    # Get all placemarks.
+    # Get all placemarks (i.e. tiles)
     placemarks = tree.findall('.//{http://www.opengis.net/kml/2.2}Placemark')
-
     # Initialize empty list to fill, or not.
     coords = []
     # Iterate through the attributes within each placemark.
@@ -82,22 +81,20 @@ def tile_point(tile):
         print 'Tile not found. Try again.'
         sys.exit(-1)
 
-# Function returns tiles incldued in a package/file.
-def return_tiles(uuid_element, filename):
+# Function returns tiles incldued in the GRANULE folder of a product, including
+# the entire file name of one desired tile, if specified.
+def return_tiles(uuid_element, filename, tile=''):
     # Create link to search for tile/granule data.
     granule_link = ("{}odata/v1/Products"
         "('{}')/Nodes('{}')/Nodes('GRANULE')/Nodes").format(
         huburl, uuid_element, filename)
-
     # Create GET request from hub and essentially parse it.
     response = session.get(granule_link, stream=True)
     granule_tree = etree.fromstring(response.content)
     # Search for all entires (i.e. tiles)
     granule_entries = granule_tree.findall('{http://www.w3.org/2005/Atom}entry')
-
     # Empty string to fill with all tiles in the file
     granules = ''
-
     # Go through each tile appending each name to string.
     for granule_entry in range(len(granule_entries)):
         # UUID element creates the path to the file.
@@ -105,8 +102,48 @@ def return_tiles(uuid_element, filename):
             '{http://www.w3.org/2005/Atom}title')).text
         granule = granule_dir_name[50:55]
         granules += ' {}'.format(granule)
+        # If one tile is given as an optional arg, return entire tile file name.
+        if tile != '':
+            if tile in granule_dir_name:
+                granule_file = granule_dir_name
+        else:
+            granule_file = ''
+    # Return the number of granules and their names, or just the individual
+    # tile file name.
+    if not granule_file:
+        return(granule_entries, granules)
+    else:
+        return(granule_file)
 
-    return(granule_entries, granules)
+# Function returns name of header xml incldued in a product.
+def return_header(uuid_element, filename):
+    # Create link to search for tile/granule data.
+    safe_link = ("{}odata/v1/Products"
+        "('{}')/Nodes('{}')/Nodes").format(
+        huburl, uuid_element, filename)
+    # Create GET request from hub and essentially parse it.
+    response = session.get(safe_link, stream=True)
+    safe_tree = etree.fromstring(response.content)
+    # Search for all entires
+    safe_entries = safe_tree.findall('{http://www.w3.org/2005/Atom}entry')
+    # Go through each entry in the safe folder and return header xml name
+    for safe_entry in range(len(safe_entries)):
+        # UUID element creates the path to the file.
+        safe_name = (safe_entries[safe_entry].find(
+            '{http://www.w3.org/2005/Atom}title')).text
+        if 'SAFL1C' in safe_name:
+            header_xml = safe_name
+            return header_xml
+    if not header_xml:
+        print 'Header xml could not be located!'
+        # Maybe change to throw some sort of exception?
+
+def make_dir(location, filename):
+    # Create product directory
+    dir_name = '{}/{}'.format(location, filename)
+    if not(os.path.exists(dir_name)):
+        os.mkdir(dir_name)
+    return dir_name
 
 ################################################################################
 
@@ -197,6 +234,7 @@ if options.hub is None:
     huburl = 'https://scihub.copernicus.eu/apihub/'
 elif options.hub == 'dhus':
     huburl = 'https://scihub.copernicus.eu/dhus/'
+    # The data hub had a limit of 10 records.
     options.MaxRecords = '10'
 # # Untested
 # elif options.hub == 'zamg':
@@ -493,45 +531,77 @@ elif messagebox and options.tile != None and options.tile != '?':
         uuid_element = (entries[entry].find('{http://www.w3.org/2005/Atom}'
             'id')).text
         filename = (entries[entry].find('.//*[@name="filename"]')).text
-
-        # Find tiles in entry, returning the number[0] and names[1]
+        sentinel_link = ("{}odata/v1/Products('{}')/Nodes('{}')/Nodes").format(
+            huburl, uuid_element, filename)
+        # Find tiles in entry, returning the number[0] and tile names[1]
         included_tiles = return_tiles(uuid_element, filename)
 
         # If the tile you want is in the entry, then it will create the
         # necessary file structure and fill it.
         if options.tile in included_tiles[1]:
+        # File structire--------------------------------------------------
             # If write directory not defined, change to point for the Purpose
             # of creating all the necessary subdirectories where the script is.
             if options.write_dir == '':
                 options.write_dir = '.'
             # Create product directory
-            product_dir_name = '{}/{}'.format(options.write_dir, filename)
-            if not(os.path.exists(product_dir_name)):
-                os.mkdir(product_dir_name)
-
+            product_dir_name = make_dir(options.write_dir, filename)
             # Create granule directory
-            granule_dir = '{}/{}'.format(product_dir_name, 'GRANULE')
-            if not(os.path.exists(granule_dir)):
-                os.mkdir(granule_dir)
+            granule_dir = make_dir(product_dir_name, 'GRANULE')
+            # Create tile directory
+            tile_file = return_tiles(uuid_element, filename, options.tile)
+            tile_dir = make_dir(granule_dir, tile_file)
+            # Create tile/AUX_DATA
+            GRAN_AUX_dir = make_dir(tile_dir, 'AUX_DATA')
+            # Create tile/IMG_DATA
+            GRAN_IMG_dir = make_dir(tile_dir, 'IMG_DATA')
+            # Create tile/QI_DATA
+            GRAN_QI_dir = make_dir(tile_dir, 'QI_DATA')
 
-            # Create tile directory, but ought to be entire granule name and
-            # not just the tile name.
-            tile_dir_name = '{}/{}'.format(granule_dir, options.tile)
-            if not(os.path.exists(tile_dir_name)):
-                os.mkdir(tile_dir_name)
-
-            # Download the product header file
+        # Downloads--------------------------------------------------
+            print 'Downloading from scene #{}'.format(str(entry + 1))
+            # Download the product header file after finding the name
+            header_file = return_header(uuid_element, filename)
+            header_link = "{}('{}')/$value".format(
+                sentinel_link, header_file)
+            command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
+                product_dir_name, wg_opt, header_file, sentinel_link)
+            os.system(command_aria)
             # Download INSPIRE.xml
+            inspire_file = 'INSPIRE.xml'
+            inspire_link = "{}('{}')/$value".format(
+                sentinel_link, inspire_file)
+            command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
+                product_dir_name, wg_opt, inspire_file, inspire_link)
+            os.system(command_aria)
             # Download manifest.safe
-            # Download HTML
-            # Download AUX_DATA
-            # Download DATASTRIP
-            # Download GRANULE files
+            manifest_file = 'manifest.safe'
+            manifest_link = "{}('{}')/$value".format(
+                sentinel_link, manifest_file)
+            command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
+                product_dir_name, wg_opt, manifest_file, manifest_link)
+            os.system(command_aria)
 
-            print 'Downloaded tile {} from scene #{}'.format(
+            ### Download contents of GRANULE folder:
+            tile_folder_link = ("{}odata/v1/Products"
+                "('{}')/Nodes('{}')/Nodes('GRANULE')/Nodes('{}')/Nodes").format(
+                huburl, uuid_element, filename, tile_file)
+            print '\n\nThis is where you want to go: {}\n\n'.format(
+                tile_folder_link)
+            # Download AUX_DATA Folder contents
+            # Download IMG_DATA Folder contents
+            # Download QI_DATA Folder contents
+            # Download tile xml file
+
+            print 'Downloaded tile {} from scene #{}\n'.format(
                 options.tile, str(entry + 1))
         else:
-            print 'Tile not in this entry.'
+            print '\nTile {} not in scene #{}\n'.format(
+                options.tile, str(entry + 1))
+
+    print '\n------------------------------------------------------------------'
+    print 'Downloading complete!'
+    print '------------------------------------------------------------------\n'
 
 # You decided not to download this time in the message box.
 else:
