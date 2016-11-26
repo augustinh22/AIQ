@@ -132,10 +132,6 @@ def return_header(uuid_element, filename):
             print 'Header xml could not be located!'
             # Throw some sort of exception?
 
-def bad_gateway_check(file_name, command_aria):
-    while os.path.getsize(file_name) == 0: #in case of "bad gateway error"
-        os.system(command_aria)
-
 ################################################################################
 
 #------------------------------------------------------------------------------#
@@ -546,7 +542,6 @@ elif messagebox and options.tile != None and options.tile != '?':
             command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
                 product_dir_name, wg_opt, header_file, sentinel_link)
             os.system(command_aria)
-            bad_gateway_check(header_file, command_aria)
 
             # Download INSPIRE.xml
             inspire_file = 'INSPIRE.xml'
@@ -555,7 +550,6 @@ elif messagebox and options.tile != None and options.tile != '?':
             command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
                 product_dir_name, wg_opt, inspire_file, inspire_link)
             os.system(command_aria)
-            bad_gateway_check(inspire_file, command_aria)
 
             # Download manifest.safe
             manifest_file = 'manifest.safe'
@@ -564,7 +558,6 @@ elif messagebox and options.tile != None and options.tile != '?':
             command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
                 product_dir_name, wg_opt, manifest_file, manifest_link)
             os.system(command_aria)
-            bad_gateway_check(manifest_file, command_aria)
 
             # Create granule directory
             granule_dir = '{}/{}'.format(product_dir_name, 'GRANULE')
