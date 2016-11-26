@@ -127,10 +127,11 @@ def return_header(uuid_element, filename):
         safe_name = (safe_entries[safe_entry].find(
             '{http://www.w3.org/2005/Atom}title')).text
         if 'SAFL1C' in safe_name:
-            return safe_name
-        else:
-            print 'Header xml could not be located!'
-            # Throw some sort of exception?
+            header_xml = safe_name
+            return header_xml
+    if not header_xml:
+        print 'Header xml could not be located!'
+        # Throw some sort of exception?
 
 ################################################################################
 
