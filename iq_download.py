@@ -108,6 +108,30 @@ def return_tiles(uuid_element, filename):
 
     return(granule_entries, granules)
 
+# Function returns tiles incldued in a package/file.
+def return_header(uuid_element, filename):
+    # Create link to search for tile/granule data.
+    safe_link = ("{}odata/v1/Products"
+        "('{}')/Nodes('{}')/Nodes").format(
+        huburl, uuid_element, filename)
+
+    # Create GET request from hub and essentially parse it.
+    response = session.get(safe_link, stream=True)
+    safe_tree = etree.fromstring(response.content)
+    # Search for all entires (i.e. tiles)
+    safe_entries = safe_tree.findall('{http://www.w3.org/2005/Atom}entry')
+
+    # Go through each entry in the safe folder and return header xml name
+    for safe_entry in range(len(safe_entries)):
+        # UUID element creates the path to the file.
+        safe_name = (safe_entries[safe_entry].find(
+            '{http://www.w3.org/2005/Atom}title')).text
+        if 'SAFL1C' in safe_name:
+            return safe_name
+        else:
+            print 'Header xml could not be located!'
+            # Throw some sort of exception?
+
 ################################################################################
 
 #------------------------------------------------------------------------------#
@@ -507,26 +531,17 @@ elif messagebox and options.tile != None and options.tile != '?':
             if options.write_dir == '':
                 options.write_dir = '.'
             # Create product directory
-            product_dir_name = '{}/{}/'.format(options.write_dir, filename)
+            product_dir_name = '{}/{}'.format(options.write_dir, filename)
             if not(os.path.exists(product_dir_name)):
                 os.mkdir(product_dir_name)
 
-            # Create granule directory
-            granule_dir = '{}/{}/'.format(product_dir_name, 'GRANULE')
-            if not(os.path.exists(granule_dir)):
-                os.mkdir(granule_dir)
-
-            # Create tile directory, but ought to be entire file name and
-            # not just the tile name.
-            tile_dir_name = '{}/{}/'.format(granule_dir, options.tile)
-            if not(os.path.exists(tile_dir_name)):
-                os.mkdir(tile_dir_name)
-
-            # # Download the product header file
-            # header_file = ''
-            # header_link = 'https://scihub.copernicus.eu/apihub/odata/v1/Products('a432ef26-d2fa-4dff-804d-909c685a87ce')/Nodes('S2A_OPER_PRD_MSIL1C_PDMC_20161122T194914_R122_V20161122T100322_20161122T100322.SAFE')/Nodes('S2A_OPER_MTD_SAFL1C_PDMC_20161122T194914_R122_V20161122T100322_20161122T100322.xml')/$value'
-            # command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
-            #     product_dir_name, wg_opt, header_file, sentinel_link)
+            # Download the product header file after finding the name
+            header_file = return_header(uuid_element, filename)
+            header_link = "{}('{}')/$value".format(
+                sentinel_link, header_file)
+            command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
+                product_dir_name, wg_opt, header_file, sentinel_link)
+            os.system(command_aria)
 
             # Download INSPIRE.xml
             inspire_file = 'INSPIRE.xml'
@@ -543,6 +558,17 @@ elif messagebox and options.tile != None and options.tile != '?':
             command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
                 product_dir_name, wg_opt, manifest_file, manifest_link)
             os.system(command_aria)
+
+            # Create granule directory
+            granule_dir = '{}/{}'.format(product_dir_name, 'GRANULE')
+            if not(os.path.exists(granule_dir)):
+                os.mkdir(granule_dir)
+
+            # Create tile directory, but ought to be entire file name and
+            # not just the tile name.
+            tile_dir_name = '{}/{}'.format(granule_dir, options.tile)
+            if not(os.path.exists(tile_dir_name)):
+                os.mkdir(tile_dir_name)
 
             # Download HTML
             # Download AUX_DATA
