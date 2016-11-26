@@ -227,6 +227,7 @@ if options.hub is None:
     huburl = 'https://scihub.copernicus.eu/apihub/'
 elif options.hub == 'dhus':
     huburl = 'https://scihub.copernicus.eu/dhus/'
+    # The data hub had a limit of 10 records.
     options.MaxRecords = '10'
 # # Untested
 # elif options.hub == 'zamg':
@@ -531,7 +532,7 @@ elif messagebox and options.tile != None and options.tile != '?':
         # If the tile you want is in the entry, then it will create the
         # necessary file structure and fill it.
         if options.tile in included_tiles[1]:
-            print 'Downloading from scene #{}'.format(str(entry + 1))
+        # File structire--------------------------------------------------
             # If write directory not defined, change to point for the Purpose
             # of creating all the necessary subdirectories where the script is.
             if options.write_dir == '':
@@ -540,7 +541,18 @@ elif messagebox and options.tile != None and options.tile != '?':
             product_dir_name = '{}/{}'.format(options.write_dir, filename)
             if not(os.path.exists(product_dir_name)):
                 os.mkdir(product_dir_name)
+            # Create granule directory
+            granule_dir = '{}/{}'.format(product_dir_name, 'GRANULE')
+            if not(os.path.exists(granule_dir)):
+                os.mkdir(granule_dir)
+            # Create tile directory
+            tile_file = return_tiles(uuid_element, filename, options.tile)
+            tile_dir_name = '{}/{}'.format(granule_dir, tile_file)
+            if not(os.path.exists(tile_dir_name)):
+                os.mkdir(tile_dir_name)
 
+        # Downloads--------------------------------------------------
+            print 'Downloading from scene #{}'.format(str(entry + 1))
             # Download the product header file after finding the name
             header_file = return_header(uuid_element, filename)
             header_link = "{}('{}')/$value".format(
@@ -548,7 +560,6 @@ elif messagebox and options.tile != None and options.tile != '?':
             command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
                 product_dir_name, wg_opt, header_file, sentinel_link)
             os.system(command_aria)
-
             # Download INSPIRE.xml
             inspire_file = 'INSPIRE.xml'
             inspire_link = "{}('{}')/$value".format(
@@ -556,7 +567,6 @@ elif messagebox and options.tile != None and options.tile != '?':
             command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
                 product_dir_name, wg_opt, inspire_file, inspire_link)
             os.system(command_aria)
-
             # Download manifest.safe
             manifest_file = 'manifest.safe'
             manifest_link = "{}('{}')/$value".format(
@@ -565,29 +575,26 @@ elif messagebox and options.tile != None and options.tile != '?':
                 product_dir_name, wg_opt, manifest_file, manifest_link)
             os.system(command_aria)
 
-            # Create granule directory
-            granule_dir = '{}/{}'.format(product_dir_name, 'GRANULE')
-            if not(os.path.exists(granule_dir)):
-                os.mkdir(granule_dir)
-
-            # Create tile directory
-            # Return entire file name of the desired tile, already known
-            # to be included.
-            tile_file = return_tiles(uuid_element, filename, options.tile)
-            tile_dir_name = '{}/{}'.format(granule_dir, tile_file)
-            if not(os.path.exists(tile_dir_name)):
-                os.mkdir(tile_dir_name)
-
-            # Download HTML
-            # Download AUX_DATA
-            # Download DATASTRIP
-            # Download GRANULE files
+            ### Download contents of GRANULE folder:
+            tile_folder_link = ("{}odata/v1/Products"
+                "('{}')/Nodes('{}')/Nodes('GRANULE')/Nodes('{}')/Nodes").format(
+                huburl, uuid_element, filename, tile_file)
+            print '\n\nThis is where you want to go: {}\n\n'.format(
+                tile_folder_link)
+            # Download AUX_DATA Folder (create and fill)
+            # Download IMG_DATA Folder (create and fill)
+            # Download QI_DATA Folder (create and fill)
+            # Download tile xml file
 
             print 'Downloaded tile {} from scene #{}\n'.format(
                 options.tile, str(entry + 1))
         else:
             print '\nTile {} not in scene #{}\n'.format(
                 options.tile, str(entry + 1))
+
+    print '\n------------------------------------------------------------------'
+    print 'Downloading complete!'
+    print '------------------------------------------------------------------\n'
 
 # You decided not to download this time in the message box.
 else:
