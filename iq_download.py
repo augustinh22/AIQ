@@ -81,8 +81,9 @@ def tile_point(tile):
         print 'Tile not found. Try again.'
         sys.exit(-1)
 
-# Function returns tiles incldued in a package/file.
-def return_tiles(uuid_element, filename):
+# Function returns tiles incldued in the GRANULE folder of a product, including
+# the entire file name of one desired tile, if specified.
+def return_tiles(uuid_element, filename, tile=''):
     # Create link to search for tile/granule data.
     granule_link = ("{}odata/v1/Products"
         "('{}')/Nodes('{}')/Nodes('GRANULE')/Nodes").format(
@@ -101,10 +102,20 @@ def return_tiles(uuid_element, filename):
             '{http://www.w3.org/2005/Atom}title')).text
         granule = granule_dir_name[50:55]
         granules += ' {}'.format(granule)
-    # Return the number of granules and their names
-    return(granule_entries, granules)
+        # If one tile is given as an optional arg, return entire tile file name.
+        if tile != '':
+            if tile in granule_dir_name:
+                granule_file = granule_dir_name
+        else:
+            granule_file = ''
+    # Return the number of granules and their names, or just the individual
+    # tile file name.
+    if not granule_file:
+        return(granule_entries, granules)
+    else:
+        return(granule_file)
 
-# Function returns name of header xml incldued in a package/file.
+# Function returns name of header xml incldued in a product.
 def return_header(uuid_element, filename):
     # Create link to search for tile/granule data.
     safe_link = ("{}odata/v1/Products"
@@ -559,9 +570,11 @@ elif messagebox and options.tile != None and options.tile != '?':
             if not(os.path.exists(granule_dir)):
                 os.mkdir(granule_dir)
 
-            # Create tile directory, but ought to be entire file name and
-            # not just the tile name.
-            tile_dir_name = '{}/{}'.format(granule_dir, options.tile)
+            # Create tile directory
+            # Return entire file name of the desired tile, already known
+            # to be included.
+            tile_file = return_tiles(uuid_element, filename, options.tile)
+            tile_dir_name = '{}/{}'.format(granule_dir, tile_file)
             if not(os.path.exists(tile_dir_name)):
                 os.mkdir(tile_dir_name)
 
