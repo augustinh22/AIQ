@@ -54,11 +54,10 @@ def tile_point(tile):
     print 'Hold on while we check the kml for the tile\'s center point!'
     kml_file = ('S2A_OPER_GIP_TILPAR_MPC__20151209T095117_V20150622T000000'
         '_21000101T000000_B00.kml')
-
+    # Create element tree of all tiles in the kml file
     tree = etree.parse(kml_file)
-    # Get all placemarks.
+    # Get all placemarks (i.e. tiles)
     placemarks = tree.findall('.//{http://www.opengis.net/kml/2.2}Placemark')
-
     # Initialize empty list to fill, or not.
     coords = []
     # Iterate through the attributes within each placemark.
@@ -88,16 +87,13 @@ def return_tiles(uuid_element, filename):
     granule_link = ("{}odata/v1/Products"
         "('{}')/Nodes('{}')/Nodes('GRANULE')/Nodes").format(
         huburl, uuid_element, filename)
-
     # Create GET request from hub and essentially parse it.
     response = session.get(granule_link, stream=True)
     granule_tree = etree.fromstring(response.content)
     # Search for all entires (i.e. tiles)
     granule_entries = granule_tree.findall('{http://www.w3.org/2005/Atom}entry')
-
     # Empty string to fill with all tiles in the file
     granules = ''
-
     # Go through each tile appending each name to string.
     for granule_entry in range(len(granule_entries)):
         # UUID element creates the path to the file.
@@ -105,22 +101,20 @@ def return_tiles(uuid_element, filename):
             '{http://www.w3.org/2005/Atom}title')).text
         granule = granule_dir_name[50:55]
         granules += ' {}'.format(granule)
-
+    # Return the number of granules and their names
     return(granule_entries, granules)
 
-# Function returns tiles incldued in a package/file.
+# Function returns name of header xml incldued in a package/file.
 def return_header(uuid_element, filename):
     # Create link to search for tile/granule data.
     safe_link = ("{}odata/v1/Products"
         "('{}')/Nodes('{}')/Nodes").format(
         huburl, uuid_element, filename)
-
     # Create GET request from hub and essentially parse it.
     response = session.get(safe_link, stream=True)
     safe_tree = etree.fromstring(response.content)
-    # Search for all entires (i.e. tiles)
+    # Search for all entires
     safe_entries = safe_tree.findall('{http://www.w3.org/2005/Atom}entry')
-
     # Go through each entry in the safe folder and return header xml name
     for safe_entry in range(len(safe_entries)):
         # UUID element creates the path to the file.
@@ -131,7 +125,7 @@ def return_header(uuid_element, filename):
             return header_xml
     if not header_xml:
         print 'Header xml could not be located!'
-        # Throw some sort of exception?
+        # Maybe change to throw some sort of exception?
 
 ################################################################################
 
