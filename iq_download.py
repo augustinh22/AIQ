@@ -138,6 +138,13 @@ def return_header(uuid_element, filename):
         print 'Header xml could not be located!'
         # Maybe change to throw some sort of exception?
 
+def make_dir(location, filename):
+    # Create product directory
+    dir_name = '{}/{}'.format(location, filename)
+    if not(os.path.exists(dir_name)):
+        os.mkdir(dir_name)
+    return dir_name
+
 ################################################################################
 
 #------------------------------------------------------------------------------#
@@ -538,18 +545,18 @@ elif messagebox and options.tile != None and options.tile != '?':
             if options.write_dir == '':
                 options.write_dir = '.'
             # Create product directory
-            product_dir_name = '{}/{}'.format(options.write_dir, filename)
-            if not(os.path.exists(product_dir_name)):
-                os.mkdir(product_dir_name)
+            product_dir_name = make_dir(options.write_dir, filename)
             # Create granule directory
-            granule_dir = '{}/{}'.format(product_dir_name, 'GRANULE')
-            if not(os.path.exists(granule_dir)):
-                os.mkdir(granule_dir)
+            granule_dir = make_dir(product_dir_name, 'GRANULE')
             # Create tile directory
             tile_file = return_tiles(uuid_element, filename, options.tile)
-            tile_dir_name = '{}/{}'.format(granule_dir, tile_file)
-            if not(os.path.exists(tile_dir_name)):
-                os.mkdir(tile_dir_name)
+            tile_dir = make_dir(granule_dir, tile_file)
+            # Create tile/AUX_DATA
+            GRAN_AUX_dir = make_dir(tile_dir, 'AUX_DATA')
+            # Create tile/IMG_DATA
+            GRAN_IMG_dir = make_dir(tile_dir, 'IMG_DATA')
+            # Create tile/QI_DATA
+            GRAN_QI_dir = make_dir(tile_dir, 'QI_DATA')
 
         # Downloads--------------------------------------------------
             print 'Downloading from scene #{}'.format(str(entry + 1))
@@ -581,9 +588,9 @@ elif messagebox and options.tile != None and options.tile != '?':
                 huburl, uuid_element, filename, tile_file)
             print '\n\nThis is where you want to go: {}\n\n'.format(
                 tile_folder_link)
-            # Download AUX_DATA Folder (create and fill)
-            # Download IMG_DATA Folder (create and fill)
-            # Download QI_DATA Folder (create and fill)
+            # Download AUX_DATA Folder contents
+            # Download IMG_DATA Folder contents
+            # Download QI_DATA Folder contents
             # Download tile xml file
 
             print 'Downloaded tile {} from scene #{}\n'.format(
