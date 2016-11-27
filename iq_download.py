@@ -109,7 +109,7 @@ def return_tiles(uuid_element, filename, tile=''):
         else:
             granule_file = ''
     # Return the number of granules and their names, or just the individual
-    # tile file name.
+    # tile file name if a specific tile was asked for.
     if not granule_file:
         return(granule_entries, granules)
     else:
@@ -138,12 +138,65 @@ def return_header(uuid_element, filename):
         print 'Header xml could not be located!'
         # Maybe change to throw some sort of exception?
 
+# Creates a directory in another directory if it doesn't already exist
 def make_dir(location, filename):
     # Create product directory
     dir_name = '{}/{}'.format(location, filename)
     if not(os.path.exists(dir_name)):
         os.mkdir(dir_name)
     return dir_name
+
+# Function creates structure for tile specific download (tile inside GRANULE
+# folder), and fills it.
+def get_tile_files(uuid_element, filename, tile_file, tile_dir):
+    tile_folder_link = ("{}odata/v1/Products"
+        "('{}')/Nodes('{}')/Nodes('GRANULE')/Nodes('{}')/Nodes").format(
+        huburl, uuid_element, filename, tile_file)
+    response = session.get(tile_folder_link, stream=True)
+    tile_folder_tree = etree.fromstring(response.content)
+    # Search for all entires
+    tile_folder_entries = (tile_folder_tree.findall(
+        '{http://www.w3.org/2005/Atom}entry'))
+    # Go through each entry
+    for tile_folder_entry in range(len(tile_folder_entries)):
+        tile_entry_title = (tile_folder_entries[tile_folder_entry].find(
+            '{http://www.w3.org/2005/Atom}title')).text
+        print '\n\n\n\n\nDownloading: {}'.format(tile_entry_title)
+        tile_entry_id = (tile_folder_entries[tile_folder_entry].find(
+            '{http://www.w3.org/2005/Atom}id')).text
+        # Download xml file
+        if '.xml' in tile_entry_title:
+            tile_xml_file = tile_entry_title
+            tile_xml_link = "{}/$value".format(tile_entry_id)
+            command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
+                tile_dir, wg_opt, tile_xml_file, tile_xml_link)
+            os.system(command_aria)
+        else:
+            # Create folder for files and go get them
+            inside_folder_dir = make_dir(tile_dir, tile_entry_title)
+            get_inside_files(inside_folder_dir, tile_entry_id)
+
+# Function goes one deeper in the element tree and downloads contents to
+# specified folder
+def get_inside_files(inside_folder_dir, tile_entry_id):
+    # Get xml link
+    inside_folder_link = "{}/Nodes".format(tile_entry_id)
+    resp = session.get(inside_folder_link, stream=True)
+    inside_folder_tree = etree.fromstring(resp.content)
+    # Search for all entires
+    inside_folder_entries = (inside_folder_tree.findall(
+        '{http://www.w3.org/2005/Atom}entry'))
+    # Download each entry saving in the defined directory
+    for inside_folder_entry in range(len(inside_folder_entries)):
+        inside_entry_title = (inside_folder_entries[inside_folder_entry].find(
+            '{http://www.w3.org/2005/Atom}title')).text
+        inside_entry_id = (inside_folder_entries[inside_folder_entry].find(
+            '{http://www.w3.org/2005/Atom}id')).text
+        inside_entry_file = inside_entry_title
+        inside_entry_link = "{}/$value".format(inside_entry_id)
+        command_aria = '{} {} --dir {} {}{} "{}"'.format( wg, auth,
+            inside_folder_dir, wg_opt, inside_entry_file, inside_entry_link)
+        os.system(command_aria)
 
 ################################################################################
 
@@ -168,7 +221,7 @@ else:
             'password file, if available')
     parser.add_option('-w', '--write_dir', dest='write_dir', action='store',
             type='string', help='Path where products should be downloaded',
-            default='')
+            default='C:/S2')
     parser.add_option('-r', dest='MaxRecords', action='store', type='int',
             help='Maximum number of records to download (default=100)',
             default=100)
@@ -474,7 +527,7 @@ for entry in range(len(entries)):
 # Turn the total size of scenes found back into text.
 total_size = '{0:.2f} GB'.format(total_size)
 
-if options.tile is None:
+if options.tile is None or options.tile == '?':
     question_tile = 'Do you want to download all results?'
 elif options.tile != None:
     question_tile = ('Do you want to download only {} tiles selected'
@@ -504,14 +557,9 @@ if messagebox and (options.tile is None or options.tile == '?'):
             'title')).text
         zipfile = '{}.zip'.format(title_element)
 
-        # If write_dir is defined, save there, otherwise save to folder where
-        # the python script is located.
-        if options.write_dir != '':
-            command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
-                options.write_dir, wg_opt, zipfile, sentinel_link)
-        else:
-            command_aria = '{} {} {}{}{} "{}"'.format(wg, auth, wg_opt,
-                options.write_dir, zipfile, sentinel_link)
+        # Save to defined directory (default = C:/S2)
+        command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
+            options.write_dir, wg_opt, zipfile, sentinel_link)
 
         # Execute download.
         os.system(command_aria)
@@ -525,6 +573,9 @@ if messagebox and (options.tile is None or options.tile == '?'):
 # create the proper file struction mimicing a complete download and fill it
 # with data specific to the tile you want.
 elif messagebox and options.tile != None and options.tile != '?':
+    # Create download directory if not already existing (default = C:/S2)
+    if not(os.path.exists(options.write_dir)):
+            os.mkdir(options.write_dir)
    	# Download all whole scenes matching the query.
     for entry in range(len(entries)):
         # Create download command for the entry.
@@ -540,23 +591,12 @@ elif messagebox and options.tile != None and options.tile != '?':
         # necessary file structure and fill it.
         if options.tile in included_tiles[1]:
         # File structire--------------------------------------------------
-            # If write directory not defined, change to point for the Purpose
-            # of creating all the necessary subdirectories where the script is.
-            if options.write_dir == '':
-                options.write_dir = '.'
-            # Create product directory
             product_dir_name = make_dir(options.write_dir, filename)
-            # Create granule directory
+            # Create GRANULE directory in product directory
             granule_dir = make_dir(product_dir_name, 'GRANULE')
-            # Create tile directory
+            # Create tile directory in GRANULE directory based on tile file name
             tile_file = return_tiles(uuid_element, filename, options.tile)
             tile_dir = make_dir(granule_dir, tile_file)
-            # Create tile/AUX_DATA
-            GRAN_AUX_dir = make_dir(tile_dir, 'AUX_DATA')
-            # Create tile/IMG_DATA
-            GRAN_IMG_dir = make_dir(tile_dir, 'IMG_DATA')
-            # Create tile/QI_DATA
-            GRAN_QI_dir = make_dir(tile_dir, 'QI_DATA')
 
         # Downloads--------------------------------------------------
             print 'Downloading from scene #{}'.format(str(entry + 1))
@@ -565,7 +605,7 @@ elif messagebox and options.tile != None and options.tile != '?':
             header_link = "{}('{}')/$value".format(
                 sentinel_link, header_file)
             command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
-                product_dir_name, wg_opt, header_file, sentinel_link)
+                product_dir_name, wg_opt, header_file, header_link)
             os.system(command_aria)
             # Download INSPIRE.xml
             inspire_file = 'INSPIRE.xml'
@@ -582,16 +622,9 @@ elif messagebox and options.tile != None and options.tile != '?':
                 product_dir_name, wg_opt, manifest_file, manifest_link)
             os.system(command_aria)
 
-            ### Download contents of GRANULE folder:
-            tile_folder_link = ("{}odata/v1/Products"
-                "('{}')/Nodes('{}')/Nodes('GRANULE')/Nodes('{}')/Nodes").format(
-                huburl, uuid_element, filename, tile_file)
-            print '\n\nThis is where you want to go: {}\n\n'.format(
-                tile_folder_link)
-            # Download AUX_DATA Folder contents
-            # Download IMG_DATA Folder contents
-            # Download QI_DATA Folder contents
-            # Download tile xml file
+            # Download tile xml file and create AUX_DATA, IMG_DATA and QI_DATA
+            # folders in the tile folder and download their contents.
+            get_tile_files(uuid_element, filename, tile_file, tile_dir)
 
             print 'Downloaded tile {} from scene #{}\n'.format(
                 options.tile, str(entry + 1))
