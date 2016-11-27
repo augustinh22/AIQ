@@ -109,7 +109,7 @@ def return_tiles(uuid_element, filename, tile=''):
         else:
             granule_file = ''
     # Return the number of granules and their names, or just the individual
-    # tile file name.
+    # tile file name if a specific tile was asked for.
     if not granule_file:
         return(granule_entries, granules)
     else:
@@ -146,6 +146,8 @@ def make_dir(location, filename):
         os.mkdir(dir_name)
     return dir_name
 
+# Function creates structure for tile specific download (tile inside GRANULE
+# folder), and fills it.
 def get_tile_files(uuid_element, filename, tile_file, tile_dir):
     tile_folder_link = ("{}odata/v1/Products"
         "('{}')/Nodes('{}')/Nodes('GRANULE')/Nodes('{}')/Nodes").format(
@@ -153,14 +155,15 @@ def get_tile_files(uuid_element, filename, tile_file, tile_dir):
     response = session.get(tile_folder_link, stream=True)
     tile_folder_tree = etree.fromstring(response.content)
     # Search for all entires
-    tile_folder_entries = tile_folder_tree.findall('{http://www.w3.org/2005/Atom}entry')
+    tile_folder_entries = (tile_folder_tree.findall(
+        '{http://www.w3.org/2005/Atom}entry'))
     # Go through each entry
     for tile_folder_entry in range(len(tile_folder_entries)):
-        print '\nTile entry: {}'.format(tile_folder_entry + 1)
-        tile_entry_title = tile_folder_entries[tile_folder_entry].find('{http://www.w3.org/2005/Atom}title').text
-        print '\nTitle: {}'.format(tile_entry_title)
-        tile_entry_id = tile_folder_entries[tile_folder_entry].find('{http://www.w3.org/2005/Atom}id').text
-        print '\nID: {}\n'.format(tile_entry_id)
+        tile_entry_title = (tile_folder_entries[tile_folder_entry].find(
+            '{http://www.w3.org/2005/Atom}title')).text
+        print '\n\n\n\n\nDownloading: {}'.format(tile_entry_title)
+        tile_entry_id = (tile_folder_entries[tile_folder_entry].find(
+            '{http://www.w3.org/2005/Atom}id')).text
         # Download xml file
         if '.xml' in tile_entry_title:
             tile_xml_file = tile_entry_title
@@ -173,15 +176,22 @@ def get_tile_files(uuid_element, filename, tile_file, tile_dir):
             inside_folder_dir = make_dir(tile_dir, tile_entry_title)
             get_inside_files(inside_folder_dir, tile_entry_id)
 
+# Function goes one deeper in the element tree and downloads contents to
+# specified folder
 def get_inside_files(inside_folder_dir, tile_entry_id):
+    # Get xml link
     inside_folder_link = "{}/Nodes".format(tile_entry_id)
     resp = session.get(inside_folder_link, stream=True)
     inside_folder_tree = etree.fromstring(resp.content)
     # Search for all entires
-    inside_folder_entries = inside_folder_tree.findall('{http://www.w3.org/2005/Atom}entry')
+    inside_folder_entries = (inside_folder_tree.findall(
+        '{http://www.w3.org/2005/Atom}entry'))
+    # Download each entry saving in the defined directory
     for inside_folder_entry in range(len(inside_folder_entries)):
-        inside_entry_title = inside_folder_entries[inside_folder_entry].find('{http://www.w3.org/2005/Atom}title').text
-        inside_entry_id = inside_folder_entries[inside_folder_entry].find('{http://www.w3.org/2005/Atom}id').text
+        inside_entry_title = (inside_folder_entries[inside_folder_entry].find(
+            '{http://www.w3.org/2005/Atom}title')).text
+        inside_entry_id = (inside_folder_entries[inside_folder_entry].find(
+            '{http://www.w3.org/2005/Atom}id')).text
         inside_entry_file = inside_entry_title
         inside_entry_link = "{}/$value".format(inside_entry_id)
         command_aria = '{} {} --dir {} {}{} "{}"'.format( wg, auth,
@@ -547,14 +557,9 @@ if messagebox and (options.tile is None or options.tile == '?'):
             'title')).text
         zipfile = '{}.zip'.format(title_element)
 
-        # If write_dir is defined, save there, otherwise save to folder where
-        # the python script is located.
-        if options.write_dir != '':
-            command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
-                options.write_dir, wg_opt, zipfile, sentinel_link)
-        else:
-            command_aria = '{} {} {}{}{} "{}"'.format(wg, auth, wg_opt,
-                options.write_dir, zipfile, sentinel_link)
+        # Save to defined directory (default = C:/S2)
+        command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
+            options.write_dir, wg_opt, zipfile, sentinel_link)
 
         # Execute download.
         os.system(command_aria)
@@ -587,9 +592,9 @@ elif messagebox and options.tile != None and options.tile != '?':
         if options.tile in included_tiles[1]:
         # File structire--------------------------------------------------
             product_dir_name = make_dir(options.write_dir, filename)
-            # Create granule directory
+            # Create GRANULE directory in product directory
             granule_dir = make_dir(product_dir_name, 'GRANULE')
-            # Create tile directory
+            # Create tile directory in GRANULE directory based on tile file name
             tile_file = return_tiles(uuid_element, filename, options.tile)
             tile_dir = make_dir(granule_dir, tile_file)
 
