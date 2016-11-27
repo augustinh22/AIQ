@@ -85,11 +85,11 @@ def tile_point(tile):
 # the entire file name of one desired tile, if specified.
 def return_tiles(uuid_element, filename, tile=''):
     # Create link to search for tile/granule data.
-    granule_node = ("{}odata/v1/Products"
+    granule_link = ("{}odata/v1/Products"
         "('{}')/Nodes('{}')/Nodes('GRANULE')/Nodes").format(
         huburl, uuid_element, filename)
     # Create GET request from hub and essentially parse it.
-    response = session.get(granule_node, stream=True)
+    response = session.get(granule_link, stream=True)
     granule_tree = etree.fromstring(response.content)
     # Search for all entires (i.e. tiles)
     granule_entries = granule_tree.findall('{http://www.w3.org/2005/Atom}entry')
@@ -118,11 +118,11 @@ def return_tiles(uuid_element, filename, tile=''):
 # Function returns name of header xml incldued in a product.
 def return_header(uuid_element, filename):
     # Create link to search for tile/granule data.
-    filename_node = ("{}odata/v1/Products"
+    safe_link = ("{}odata/v1/Products"
         "('{}')/Nodes('{}')/Nodes").format(
         huburl, uuid_element, filename)
     # Create GET request from hub and essentially parse it.
-    response = session.get(filename_node, stream=True)
+    response = session.get(safe_link, stream=True)
     safe_tree = etree.fromstring(response.content)
     # Search for all entires
     safe_entries = safe_tree.findall('{http://www.w3.org/2005/Atom}entry')
@@ -161,10 +161,9 @@ def get_tile_files(uuid_element, filename, tile_file, tile_dir):
     for tile_folder_entry in range(len(tile_folder_entries)):
         tile_entry_title = (tile_folder_entries[tile_folder_entry].find(
             '{http://www.w3.org/2005/Atom}title')).text
+        print '\n\n\n\n\nDownloading: {}'.format(tile_entry_title)
         tile_entry_id = (tile_folder_entries[tile_folder_entry].find(
             '{http://www.w3.org/2005/Atom}id')).text
-        print '\n\n\n\n\nDownloading: {}'.format(tile_entry_title)
-
         # Download xml file
         if '.xml' in tile_entry_title:
             tile_xml_file = tile_entry_title
@@ -181,8 +180,8 @@ def get_tile_files(uuid_element, filename, tile_file, tile_dir):
 # specified folder
 def get_inside_files(inside_folder_dir, tile_entry_id):
     # Get xml link
-    inside_folder_node = "{}/Nodes".format(tile_entry_id)
-    resp = session.get(inside_folder_node, stream=True)
+    inside_folder_link = "{}/Nodes".format(tile_entry_id)
+    resp = session.get(inside_folder_link, stream=True)
     inside_folder_tree = etree.fromstring(resp.content)
     # Search for all entires
     inside_folder_entries = (inside_folder_tree.findall(
@@ -470,7 +469,7 @@ for entry in range(len(entries)):
     # The UUID element is the key ingredient for creating the path to the file.
     uuid_element = (entries[entry].find('{http://www.w3.org/2005/Atom}'
         'id')).text
-    product_link = ("{}odata/v1/Products('{}')/$value").format(
+    sentinel_link = ("{}odata/v1/Products('{}')/$value").format(
         huburl, uuid_element)
 
     # The title element contains the corresponding file name.
@@ -496,7 +495,7 @@ for entry in range(len(entries)):
     cloud_element = (entries[entry].find('.//*[@name="cloudcoverpercentage"]')
         ).text
     print 'Cloud cover percentage: {}'.format(cloud_element)
-    print product_link
+    print sentinel_link
 
     # Return the size of the entry.
     size_element = (entries[entry].find('.//*[@name="size"]')).text
@@ -552,7 +551,7 @@ if messagebox and (options.tile is None or options.tile == '?'):
         # Create download command for the entry.
         uuid_element = (entries[entry].find('{http://www.w3.org/2005/Atom}'
             'id')).text
-        product_link = ("{}odata/v1/Products('{}')/$value").format(
+        sentinel_link = ("{}odata/v1/Products('{}')/$value").format(
             huburl, uuid_element)
         title_element = (entries[entry].find('{http://www.w3.org/2005/Atom}'
             'title')).text
@@ -560,7 +559,7 @@ if messagebox and (options.tile is None or options.tile == '?'):
 
         # Save to defined directory (default = C:/S2)
         command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
-            options.write_dir, wg_opt, zipfile, product_link)
+            options.write_dir, wg_opt, zipfile, sentinel_link)
 
         # Execute download.
         os.system(command_aria)
@@ -583,7 +582,7 @@ elif messagebox and options.tile != None and options.tile != '?':
         uuid_element = (entries[entry].find('{http://www.w3.org/2005/Atom}'
             'id')).text
         filename = (entries[entry].find('.//*[@name="filename"]')).text
-        filename_node = ("{}odata/v1/Products('{}')/Nodes('{}')/Nodes").format(
+        sentinel_link = ("{}odata/v1/Products('{}')/Nodes('{}')/Nodes").format(
             huburl, uuid_element, filename)
         # Find tiles in entry, returning the number[0] and tile names[1]
         included_tiles = return_tiles(uuid_element, filename)
@@ -604,21 +603,21 @@ elif messagebox and options.tile != None and options.tile != '?':
             # Download the product header file after finding the name
             header_file = return_header(uuid_element, filename)
             header_link = "{}('{}')/$value".format(
-                filename_node, header_file)
+                sentinel_link, header_file)
             command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
                 product_dir_name, wg_opt, header_file, header_link)
             os.system(command_aria)
             # Download INSPIRE.xml
             inspire_file = 'INSPIRE.xml'
             inspire_link = "{}('{}')/$value".format(
-                filename_node, inspire_file)
+                sentinel_link, inspire_file)
             command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
                 product_dir_name, wg_opt, inspire_file, inspire_link)
             os.system(command_aria)
             # Download manifest.safe
             manifest_file = 'manifest.safe'
             manifest_link = "{}('{}')/$value".format(
-                filename_node, manifest_file)
+                sentinel_link, manifest_file)
             command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
                 product_dir_name, wg_opt, manifest_file, manifest_link)
             os.system(command_aria)
