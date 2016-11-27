@@ -605,7 +605,7 @@ elif messagebox and options.tile != None and options.tile != '?':
             header_link = "{}('{}')/$value".format(
                 sentinel_link, header_file)
             command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
-                product_dir_name, wg_opt, header_file, sentinel_link)
+                product_dir_name, wg_opt, header_file, header_link)
             os.system(command_aria)
             # Download INSPIRE.xml
             inspire_file = 'INSPIRE.xml'
