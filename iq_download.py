@@ -48,7 +48,6 @@ def check_kml():
         sys.exit(-1)
 
 # Function returns center coordinates of tile, if the tile exists.
-## This will be changed to polygon coordinates instead of points.
 def tile_point(tile):
     print '\n------------------------------------------------------------------'
     print 'Hold on while we check the kml for the tile\'s center point!'
@@ -58,7 +57,6 @@ def tile_point(tile):
     tree = etree.parse(kml_file)
     # Get all placemarks (i.e. tiles)
     placemarks = tree.findall('.//{http://www.opengis.net/kml/2.2}Placemark')
-    # Initialize empty list to fill, or not.
     coords = []
     # Iterate through the attributes within each placemark.
     for attributes in placemarks:
@@ -78,6 +76,46 @@ def tile_point(tile):
                     return coords
     # If list is still empty after loop the tile was not found,
     if not coords:
+        print 'Tile not found. Try again.'
+        sys.exit(-1)
+
+# Function returns polygon points of a tile from the kml
+def tile_poly(tile):
+    print '\n------------------------------------------------------------------'
+    print 'Hold on while we check the kml for the tile\'s polygon coordinates!'
+    kml_file = ('S2A_OPER_GIP_TILPAR_MPC__20151209T095117_V20150622T000000'
+        '_21000101T000000_B00.kml')
+    # Create element tree of all tiles in the kml file
+    tree = etree.parse(kml_file)
+    # Get all placemarks (i.e. tiles)
+    placemarks = tree.findall('.//{http://www.opengis.net/kml/2.2}Placemark')
+    poly = []
+    # Iterate through the attributes within each placemark.
+    for attributes in placemarks:
+        for subAttribute in attributes:
+            # Iterate through the names of each placemark.
+            name = attributes.find('.//{http://www.opengis.net/kml/2.2}name')
+            # If the name is the same as the defined tile, get coordinates.
+            if name.text == tile:
+            # Find the polygon tag
+                points = attributes.find('.//{http://www.opengis.net/kml/2.2}'
+                    'Polygon')
+                # Have to go in deeper, thanks to etree.
+                for unit in points:
+                    xyz = attributes.find('.//{http://www.opengis.net/kml/2.2}'
+                        'coordinates').text
+                    xyz = xyz.strip('\t\n\r')
+                    poly = (xyz).split(' ')
+                    # ['longitude,latitude,vertical', ... ]
+                    point1 = poly[0].split(',')
+                    point2 = poly[1].split(',')
+                    point3 = poly[2].split(',')
+                    point4 = poly[3].split(',')
+                    point5 = poly[4].split(',')
+                    return point1, point2, point3, point4, point5
+                # find the center point tag
+                # save the center point values as a list
+    if not poly:
         print 'Tile not found. Try again.'
         sys.exit(-1)
 
@@ -342,12 +380,18 @@ if options.tile is None or options.tile == '?':
 else:
     # Quits if the kml file is not there.
     check_kml()
-    # Quits if the tile doesn't exist, otherwise returns center coordinates.
-    coords = tile_point(options.tile)
-    options.lon = coords[0]
-    options.lat = coords[1]
-    print 'Center point: {} lat, {} lon'.format(options.lat, options.lon)
-    geom = 'point'
+    # Quits if the tile doesn't exist, otherwise returns polygon coordinates.
+    point1, point2, point3, point4, point5 = tile_poly(options.tile)
+    # If the polygon's not square get the center coordinate...
+    if point1 != point5:
+        # Quits if the tile doesn't exist, otherwise returns center coordinates.
+        coords = tile_point(options.tile)
+        options.lon = coords[0]
+        options.lat = coords[1]
+        print 'Center point: {} lat, {} lon'.format(options.lat, options.lon)
+        geom = 'point'
+    else:
+        geom = 'tile'
 
 # Create spatial parts of the query ::: point, rectangle or location name
 # Beware of the quotation marks. For some reason the double quotes alone are
@@ -363,6 +407,15 @@ elif geom == 'rectangle':
         lonmax = options.lonmax)
 elif geom == 'location':
     query_geom = '{}'.format(options.location)
+elif geom == 'tile':
+    point1 = '{} {}'.format(point1[0], point1[1])
+    point2 = '{} {}'.format(point2[0], point2[1])
+    point3 = '{} {}'.format(point3[0], point3[1])
+    point4 = '{} {}'.format(point4[0], point4[1])
+    del point5
+    query_geom = ('(footprint:"\""Intersects(POLYGON(({0}, {1}, {2}, {3}, {0})'
+        '))"\"")').format(point1, point2, point3, point4)
+    print query_geom
 
 # Add orbit, if defined (default: NONE).
 if options.orbit is None:
