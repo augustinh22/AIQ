@@ -5,7 +5,7 @@ the University of Salzburg's M.Sc program in Applied Geoinformatics.
 * Set Python 2.7 to $PATH
  * system properties --> environment variables
  * Add path to the directory containing python to the Path variable
-  * e.g. C:\Python27\ArcGIS10.4
+  * e.g. C:\Python27
  * Now you can run Python from the command line!
 * Install aria2 downloading agent
  * Go to: https://aria2.github.io/
