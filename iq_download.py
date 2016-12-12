@@ -46,13 +46,14 @@ def check_kml():
             '\n--------------------------------------------------------------\n'
         )
         sys.exit(-1)
+    return kml_file
 
-# Function returns center coordinates of tile, if the tile exists.
-def tile_point(tile):
+# Function returns polygon or point coordinates for a tile from the kml
+def tile_coords(tile, form):
+    # Check for kml file.
+    kml_file = check_kml()
     print '\n------------------------------------------------------------------'
-    print 'Hold on while we check the kml for the tile\'s center point!'
-    kml_file = ('S2A_OPER_GIP_TILPAR_MPC__20151209T095117_V20150622T000000'
-        '_21000101T000000_B00.kml')
+    print 'Hold on while we check the kml for the tile\'s coordinates!'
     # Create element tree of all tiles in the kml file
     tree = etree.parse(kml_file)
     # Get all placemarks (i.e. tiles)
@@ -64,7 +65,27 @@ def tile_point(tile):
             # Iterate through the names of each placemark.
             name = attributes.find('.//{http://www.opengis.net/kml/2.2}name')
             # If the name is the same as the defined tile, get coordinates.
-            if name.text == tile:
+            if name.text == tile and form == 'polygon':
+            # Find the polygon tag
+                points = attributes.find('.//{http://www.opengis.net/kml/2.2}'
+                    'Polygon')
+                # Have to go in deeper, thanks to etree.
+                for unit in points:
+                    xyz = attributes.find('.//{http://www.opengis.net/kml/2.2}'
+                        'coordinates').text
+                    xyz = xyz.strip('\t\n\r')
+                    coords = (xyz).split(' ')
+                    # ['longitude,latitude,vertical', ... ]
+                    point1 = coords[0].split(',')
+                    point2 = coords[1].split(',')
+                    point3 = coords[2].split(',')
+                    point4 = coords[3].split(',')
+                    point5 = coords[4].split(',')
+                    return point1, point2, point3, point4, point5
+                    # Assuming not empty, quit searching.
+                    if coords:
+                        break
+            elif name.text == tile and form == 'point':
                 # Find the center point tag.
                 points = attributes.find('.//{http://www.opengis.net/kml/2.2}'
                     'Point')
@@ -74,48 +95,10 @@ def tile_point(tile):
                     coords = (unit.text).split(',')
                     # ['longitude', 'latitude', 'vertical']
                     return coords
-    # If list is still empty after loop the tile was not found,
+                    # Assuming not empty, quit searching.
+                    if coords:
+                        break
     if not coords:
-        print 'Tile not found. Try again.'
-        sys.exit(-1)
-
-# Function returns polygon points of a tile from the kml
-def tile_poly(tile):
-    print '\n------------------------------------------------------------------'
-    print 'Hold on while we check the kml for the tile\'s polygon coordinates!'
-    kml_file = ('S2A_OPER_GIP_TILPAR_MPC__20151209T095117_V20150622T000000'
-        '_21000101T000000_B00.kml')
-    # Create element tree of all tiles in the kml file
-    tree = etree.parse(kml_file)
-    # Get all placemarks (i.e. tiles)
-    placemarks = tree.findall('.//{http://www.opengis.net/kml/2.2}Placemark')
-    poly = []
-    # Iterate through the attributes within each placemark.
-    for attributes in placemarks:
-        for subAttribute in attributes:
-            # Iterate through the names of each placemark.
-            name = attributes.find('.//{http://www.opengis.net/kml/2.2}name')
-            # If the name is the same as the defined tile, get coordinates.
-            if name.text == tile:
-            # Find the polygon tag
-                points = attributes.find('.//{http://www.opengis.net/kml/2.2}'
-                    'Polygon')
-                # Have to go in deeper, thanks to etree.
-                for unit in points:
-                    xyz = attributes.find('.//{http://www.opengis.net/kml/2.2}'
-                        'coordinates').text
-                    xyz = xyz.strip('\t\n\r')
-                    poly = (xyz).split(' ')
-                    # ['longitude,latitude,vertical', ... ]
-                    point1 = poly[0].split(',')
-                    point2 = poly[1].split(',')
-                    point3 = poly[2].split(',')
-                    point4 = poly[3].split(',')
-                    point5 = poly[4].split(',')
-                    return point1, point2, point3, point4, point5
-                # find the center point tag
-                # save the center point values as a list
-    if not poly:
         print 'Tile not found. Try again.'
         sys.exit(-1)
 
@@ -378,14 +361,13 @@ if options.tile is None or options.tile == '?':
             )
             sys.exit(-1)
 else:
-    # Quits if the kml file is not there.
-    check_kml()
-    # Quits if the tile doesn't exist, otherwise returns polygon coordinates.
-    point1, point2, point3, point4, point5 = tile_poly(options.tile)
+    # Returns polygon coordinates. Quits if the tile or kml file do not exist.
+    point1, point2, point3, point4, point5 = tile_coords(
+        options.tile, 'polygon')
     # If the polygon's not square get the center coordinate...
     if point1 != point5:
         # Quits if the tile doesn't exist, otherwise returns center coordinates.
-        coords = tile_point(options.tile)
+        coords = tile_coords(options.tile, 'point')
         options.lon = coords[0]
         options.lat = coords[1]
         print 'Center point: {} lat, {} lon'.format(options.lat, options.lon)
