@@ -450,7 +450,7 @@ query_time = ('{} AND (beginPosition:[{}T00:00:00.000Z TO {}T23:59:59.999Z] '
 # Add cloud cover query.
 if options.max_cloud != None:
     query = '{} AND (cloudcoverpercentage:[0.0 TO {}])'.format(
-        query_time, options.max_cloud / 100)
+        query_time, options.max_cloud)
 else:
     query = query_time
 
