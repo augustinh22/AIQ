@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Name:        Sentinel2 "Conversion"
+# Name:        Sentinel2 'Conversion'
 # Purpose:     This script uses numpy, gdal and scipy to convert all bands to
 #              8-bit, resample bands 11 and 12 to 10m pixels and build a 6-band
 #              .dat stack. It also creates a single band .dat file
@@ -28,29 +28,29 @@ gdal.AllRegister()
 ### file name creation (e.g. ..._calrefbyt_lndstlk) also needs to be
 ### implemented.
 
-IMG_DATA = "./"
+IMG_DATA = './'
 
 tile_bands = []
 for tile_band in os.listdir(IMG_DATA):
-    if tile_band.endswith(".jp2"):
+    if tile_band.endswith('.jp2'):
         tile_bands.append(tile_band)
 tile_bands.sort
 print tile_bands
 
 # Create the folder for processed data if it doesn't exist.
-PROC_DATA = "{}/PROC_DATA".format(IMG_DATA)
+PROC_DATA = '{}/PROC_DATA'.format(IMG_DATA)
 if not(os.path.exists(PROC_DATA)):
     os.mkdir(PROC_DATA)
 
-print "------------------------------------------------------------------"
-print "Hold on to your hat. This may take ~10 minutes per S2 tile folder."
-print "------------------------------------------------------------------"
+print '------------------------------------------------------------------'
+print 'Hold on to your hat. This may take ~10 minutes per S2 tile folder.'
+print '------------------------------------------------------------------'
 
 # Create file to save stack to -- there is probably a better way to do this!!
 # Also create fake thermal band file.
 for band in tile_bands:
     # Get a band with 10m pixel size to get georeferencing, etc. metadata.
-    if band.endswith("_B02.jp2"):
+    if band.endswith('_B02.jp2'):
 
         # Open the B02 image.
         img = gdal.Open(band)
@@ -73,22 +73,22 @@ for band in tile_bands:
         print img_rows, img_cols
 
         # Open output format driver, see gdal_translate --formats for list.
-        format = "ENVI"
+        format = 'ENVI'
         driver = gdal.GetDriverByName(format)
 
         # Test stacked band file path.
-        filepath = "{}/test_stack.dat".format(PROC_DATA)
+        filepath = '{}/test_calrefbyt_lndstlk.dat'.format(PROC_DATA)
 
-        # Print driver for stacked layers.
+        # Print driver for stacked layers (6 bands, 8-bit unsigned).
         outDs = driver.Create(filepath, img_cols, img_rows, 6, gdal.GDT_Byte)
         if outDs is None:
             print 'Could not create test file.'
             sys.exit(1)
 
         # Test thermal band path.
-        filepath = "{}/test_therm.dat".format(PROC_DATA)
+        filepath = '{}/test_caltembyt_lndstlk.dat'.format(PROC_DATA)
 
-        # Print driver for fake thermal band.
+        # Print driver for fake thermal band (1 band, 8-bit unsigned).
         thermDs = driver.Create(filepath, img_cols, img_rows, 1, gdal.GDT_Byte)
         if thermDs is None:
             print 'Could not create test file.'
@@ -122,7 +122,7 @@ for band in tile_bands:
 iteration = 1
 
 for band in tile_bands:
-    if band.endswith(("_B02.jp2","_B03.jp2","_B04.jp2","_B08.jp2")):
+    if band.endswith(('_B02.jp2','_B03.jp2','_B04.jp2','_B08.jp2')):
         # Open the image
         img = gdal.Open(band)
         band_id = band[-6:-4]
@@ -130,7 +130,7 @@ for band in tile_bands:
             print 'Could not open band #{}'.format(band_id)
             sys.exit(1)
 
-        # read in the data and get info about it
+        # Read in the data and get info about it.
         img_band = img.GetRasterBand(1)
         img_rows = img.RasterYSize
         img_cols = img.RasterXSize
@@ -138,10 +138,10 @@ for band in tile_bands:
 
         # Read image as array using GDAL.
         img_array = img_band.ReadAsArray(0,0, img_cols, img_rows)
-        print "Original array: \n{}".format(img_array)
-        print "Original shape: {}".format(img_array.shape)
-        print "Original max: {}".format(numpy.amax(img_array))
-        print "Original min: {}".format(numpy.amin(img_array))
+        print 'Original array: \n{}'.format(img_array)
+        print 'Original shape: {}'.format(img_array.shape)
+        print 'Original max: {}'.format(numpy.amax(img_array))
+        print 'Original min: {}'.format(numpy.amin(img_array))
 
         # Adjust outliers.
         outData = img_array / 10000.0
@@ -151,17 +151,18 @@ for band in tile_bands:
                     outData[i,j] = 1
                 elif outData[i,j] < 0:
                     outData[i,j] = 0
+                else:
+                    outData[i,j] = outData[i,j]
 
         # Convert to 8-bit.
-        outData = (numpy.absolute(outData * 255.0) + 0.5).astype(int)
+        outData = ((numpy.absolute(outData) * 255.0) + 0.5).astype(int)
 
         # Write the data to the designated band.
         outBand = outDs.GetRasterBand(iteration)
         outBand.WriteArray(outData, 0, 0)
 
-        # Flush data to disk, set the NoData value and calculate stats.
+        # Flush data to disk.
         outBand.FlushCache()
-        outBand.SetNoDataValue(-99)
 
         # Clean up.
         del band_id
@@ -170,9 +171,9 @@ for band in tile_bands:
         img = None
 
         # On we go...
-        iteration +=1
+        iteration += 1
 
-    if band.endswith(("_B11.jp2","_B12.jp2")):
+    if band.endswith(('_B11.jp2','_B12.jp2')):
         # Open the image
         img = gdal.Open(band)
         band_id = band[-6:-4]
@@ -180,7 +181,7 @@ for band in tile_bands:
             print 'Could not open band #{}'.format(band_id)
             sys.exit(1)
 
-        # read in the data and get info about it
+        # Read in the data and get info about it.
         img_band = img.GetRasterBand(1)
         img_rows = img.RasterYSize
         img_cols = img.RasterXSize
@@ -188,10 +189,10 @@ for band in tile_bands:
 
         # Read image as array
         img_array = img_band.ReadAsArray(0,0, img_cols, img_rows)
-        print "Original array: \n{}".format(img_array)
-        print "Original shape: {}".format(img_array.shape)
-        print "Original max: {}".format(numpy.amax(img_array))
-        print "Original Min: {}".format(numpy.amin(img_array))
+        print 'Original array: \n{}'.format(img_array)
+        print 'Original shape: {}'.format(img_array.shape)
+        print 'Original max: {}'.format(numpy.amax(img_array))
+        print 'Original min: {}'.format(numpy.amin(img_array))
 
         # Adjust outliers.
         outData = img_array / 10000.0
@@ -201,22 +202,23 @@ for band in tile_bands:
                     outData[i,j] = 1
                 elif outData[i,j] < 0:
                     outData[i,j] = 0
+                else:
+                    outData[i,j] = outData[i,j]
 
         ## Resampling to zoom factor of 2, since original pixel size is 20m.
         print 'Resample by a factor of 2 with nearest interpolation.'
         outData = scipy.ndimage.zoom(outData, 2, order=0)
-        print "Resampled Size: {}".format(outData.shape)
+        print 'Resampled Size: {}'.format(outData.shape)
 
         # Convert to 8-bit.
-        outData = (numpy.absolute(outData * 255.0) + 0.5).astype(int)
+        outData = ((numpy.absolute(outData) * 255.0) + 0.5).astype(int)
 
         # Write the data to the designated band.
         outBand = outDs.GetRasterBand(iteration)
         outBand.WriteArray(outData, 0, 0)
 
-        # Flush data to disk, set the NoData value and calculate stats
+        # Flush data to disk.
         outBand.FlushCache()
-        outBand.SetNoDataValue(-99)
 
         # Clean up.
         del band_id
@@ -225,7 +227,7 @@ for band in tile_bands:
         img = None
 
         # On we go...
-        iteration +=1
+        iteration += 1
 
 # Georeference the stacked .dat file and set the projection.
 outDs.SetGeoTransform(transform)
