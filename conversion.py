@@ -32,7 +32,7 @@ gdal.AllRegister()
 
 imgFolders = []
 
-for dirpath, dirnames, filenames in os.walk('C:\\S2a', topdown=True):
+for dirpath, dirnames, filenames in os.walk('C:/tempS2', topdown=True):
     for dirname in dirnames:
         if dirname == 'IMG_DATA':
             imgFolders.append(os.path.join(dirpath, dirname))
