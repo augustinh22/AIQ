@@ -242,7 +242,7 @@ else:
             'password file, if available')
     parser.add_option('-w', '--write_dir', dest='write_dir', action='store',
             type='string', help='Path where products should be downloaded',
-            default='C:/S2')
+            default='C:/tempS2')
     parser.add_option('-r', dest='MaxRecords', action='store', type='int',
             help='Maximum number of records to download (default=100)',
             default=100)
