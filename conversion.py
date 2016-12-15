@@ -32,7 +32,7 @@ IMG_DATA = './'
 
 tile_bands = []
 for tile_band in os.listdir(IMG_DATA):
-    if tile_band.endswith('.jp2'):
+    if tile_band.endswith('.jp2') and tile_band.startswith('S2A'):
         tile_bands.append(tile_band)
 tile_bands.sort
 print tile_bands
@@ -151,8 +151,6 @@ for band in tile_bands:
                     outData[i,j] = 1
                 elif outData[i,j] < 0:
                     outData[i,j] = 0
-                else:
-                    outData[i,j] = outData[i,j]
 
         # Convert to 8-bit.
         outData = ((numpy.absolute(outData) * 255.0) + 0.5).astype(int)
@@ -161,10 +159,12 @@ for band in tile_bands:
         outBand = outDs.GetRasterBand(iteration)
         outBand.WriteArray(outData, 0, 0)
 
-        # Flush data to disk.
+        # Flush data to disk, set the NoData value and calculate stats
         outBand.FlushCache()
+        outBand.SetNoDataValue(-99)
 
         # Clean up.
+        del img_band
         del band_id
         del img_array
         del outData
@@ -202,8 +202,6 @@ for band in tile_bands:
                     outData[i,j] = 1
                 elif outData[i,j] < 0:
                     outData[i,j] = 0
-                else:
-                    outData[i,j] = outData[i,j]
 
         ## Resampling to zoom factor of 2, since original pixel size is 20m.
         print 'Resample by a factor of 2 with nearest interpolation.'
@@ -217,10 +215,12 @@ for band in tile_bands:
         outBand = outDs.GetRasterBand(iteration)
         outBand.WriteArray(outData, 0, 0)
 
-        # Flush data to disk.
+        # Flush data to disk, set the NoData value and calculate stats
         outBand.FlushCache()
+        outBand.SetNoDataValue(-99)
 
         # Clean up.
+        del img_band
         del band_id
         del img_array
         del outData
