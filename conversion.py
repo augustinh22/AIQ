@@ -17,34 +17,46 @@
 import os
 import sys
 import datetime
+import tkMessageBox
+import Tkinter
 
 import gdal
 import numpy
 import scipy.ndimage
 
-# Register all of the GDAL drivers
-gdal.AllRegister()
-
-### Here we'll add some walking to get to each IMG_DATA folder. What follows is
-### roughly what ought to happen within each IMG_DATA folder. Dynamic
-### file name creation (e.g. ..._calrefbyt_lndstlk) also needs to be
-### implemented.
-
+# Create empty list for IMG_DATA folder paths
 imgFolders = []
 
 for dirpath, dirnames, filenames in os.walk('C:/tempS2', topdown=True):
     for dirname in dirnames:
         if dirname == 'IMG_DATA':
             imgFolders.append(os.path.join(dirpath, dirname))
+## print imgFolders
+
+# Create question to continue based on the number of scenes found.
+question = ('Number of tiles found: {}'
+    '\n\nDo you want to process all folders?').format(len(imgFolders))
+
+# Hide the main window.
+root = Tkinter.Tk().withdraw()
+# Create the content of the window.
+messagebox = tkMessageBox.askyesno('Sentinel for SIAM', question)
+
+if not messagebox:
+    print 'No folders processed.'
+    sys.exit(1)
 
 start_time = datetime.datetime.now()
 
-print '------------------------------------------------------------------'
+print '=================================================================='
 print 'Hold on to your hat. This may take ~10 minutes per S2 tile folder.'
 print 'Number of IMG_DATA folders found: {}'.format(len(imgFolders))
 print 'Estimated time: {} minutes'.format(int(len(imgFolders)) * 10)
 print 'Start time: {}'.format(start_time.time())
-print '------------------------------------------------------------------'
+print '==================================================================\n\n'
+
+# Register all of the GDAL drivers
+gdal.AllRegister()
 
 for imgFolder in imgFolders:
 
@@ -56,7 +68,7 @@ for imgFolder in imgFolders:
                 tile_bands.append(os.path.join(dirpath, filename))
 
     tile_bands.sort
-    print tile_bands
+    ## print tile_bands
 
     # Create the folder for processed data if it doesn't exist.
     PROC_DATA = '{}PROC_DATA'.format(imgFolder[:-8])
@@ -70,19 +82,24 @@ for imgFolder in imgFolders:
         if band.endswith('_B02.jp2'):
 
             # Open the B02 image.
-            img = gdal.Open(band)
+            img = gdal.Open(band, GA_ReadOnly)
             band_id = band[-6:-4]
+            tile_id = band[-13:-8]
             if img is None:
                 print 'Could not open band #{}'.format(band_id)
                 sys.exit(1)
 
-            # Get raster georeference info from B02 for stacked output file.
+            print '------------------------------------------------------------'
+            print 'Processing tile {}\n\n'.format(tile_id)
+
+
+            # Get raster georeference info from B02 for output .dat files.
             projection = img.GetProjection()
             transform = img.GetGeoTransform()
-            # xOrigin = transform[0]
-            # yOrigin = transform[3]
-            # pixelWidth = transform[1]
-            # pixelHeight = transform[5]
+            ## xOrigin = transform[0]
+            ## yOrigin = transform[3]
+            ## pixelWidth = transform[1]
+            ## pixelHeight = transform[5]
 
             # Establish size of raster from B02 for stacked output file.
             img_rows = img.RasterYSize
@@ -102,6 +119,11 @@ for imgFolder in imgFolders:
             if outDs is None:
                 print 'Could not create test file.'
                 sys.exit(1)
+            # Georeference the stacked .dat file and set the projection.
+            outDs.SetGeoTransform(transform)
+            outDs.SetProjection(projection)
+
+            print 'Creating fake thermal band for {}'.format(tile_id)
 
             # Test thermal band path.
             filepath = '{}/{}caltembyt_lndstlk.dat'.format(
@@ -113,12 +135,15 @@ for imgFolder in imgFolders:
             if thermDs is None:
                 print 'Could not create test file.'
                 sys.exit(1)
+            # Georeference the fake thermal band and set the projection.
+            thermDs.SetGeoTransform(transform)
+            thermDs.SetProjection(projection)
 
             # Create constant array with a value of 110.
             therm_array = numpy.ones((img_rows, img_cols)).astype(int)
             therm_array = therm_array * 110
-            print therm_array
-            print therm_array.shape
+            ## print therm_array
+            ## print therm_array.shape
 
             # Write the data to the designated band.
             outBand = thermDs.GetRasterBand(1)
@@ -128,9 +153,9 @@ for imgFolder in imgFolders:
             outBand.FlushCache()
             outBand.SetNoDataValue(-99)
 
-            # Georeference the image and set the projection.
-            thermDs.SetGeoTransform(transform)
-            thermDs.SetProjection(projection)
+            print 'Elapsed time: {}'.format(
+                datetime.datetime.now() - start_time)
+            print 'Fake thermal band created.\n\n'
 
             # Clean up.
             del band_id
@@ -142,15 +167,18 @@ for imgFolder in imgFolders:
 
     # Keep track of which band in the stacked file we are writing to.
     iteration = 1
+    print 'Creating 6 band stack for {}\n'.format(tile_id)
 
     for band in tile_bands:
         if band.endswith(('_B02.jp2','_B03.jp2','_B04.jp2','_B08.jp2')):
             # Open the image
-            img = gdal.Open(band)
+            img = gdal.Open(band, GA_ReadOnly)
             band_id = band[-6:-4]
             if img is None:
                 print 'Could not open band #{}'.format(band_id)
                 sys.exit(1)
+
+            print 'Processing band #{}'.format(band_id)
 
             # Read in the data and get info about it.
             img_band = img.GetRasterBand(1)
@@ -159,10 +187,10 @@ for imgFolder in imgFolders:
 
             # Read image as array using GDAL.
             img_array = img_band.ReadAsArray(0,0, img_cols, img_rows)
-            print 'Original array: \n{}'.format(img_array)
+            ## print 'Original array: \n{}'.format(img_array)
             print 'Original shape: {}'.format(img_array.shape)
-            print 'Original max: {}'.format(numpy.amax(img_array))
-            print 'Original min: {}'.format(numpy.amin(img_array))
+            ## print 'Original max: {}'.format(numpy.amax(img_array))
+            ## print 'Original min: {}'.format(numpy.amin(img_array))
 
             # Adjust outliers.
             outData = img_array / 10000.0
@@ -184,6 +212,10 @@ for imgFolder in imgFolders:
             outBand.FlushCache()
             outBand.SetNoDataValue(-99)
 
+            print 'Elapsed time: {}'.format(
+                datetime.datetime.now() - start_time)
+            print 'Band #{} completed.\n'.format(band_id)
+
             # Clean up.
             del img_band
             del band_id
@@ -197,25 +229,25 @@ for imgFolder in imgFolders:
 
         if band.endswith(('_B11.jp2','_B12.jp2')):
             # Open the image
-            img = gdal.Open(band)
+            img = gdal.Open(band, GA_ReadOnly)
             band_id = band[-6:-4]
             if img is None:
                 print 'Could not open band #{}'.format(band_id)
                 sys.exit(1)
+
             print 'Processing band #{}'.format(band_id)
-            print ''
 
             # Read in the data and get info about it.
             img_band = img.GetRasterBand(1)
             img_rows = img.RasterYSize
             img_cols = img.RasterXSize
 
-            # Read image as array
+            # Read image as array.
             img_array = img_band.ReadAsArray(0,0, img_cols, img_rows)
-            print 'Original array: \n{}'.format(img_array)
+            ## print 'Original array: \n{}'.format(img_array)
             print 'Original shape: {}'.format(img_array.shape)
-            print 'Original max: {}'.format(numpy.amax(img_array))
-            print 'Original min: {}'.format(numpy.amin(img_array))
+            ## print 'Original max: {}'.format(numpy.amax(img_array))
+            ## print 'Original min: {}'.format(numpy.amin(img_array))
 
             # Adjust outliers.
             outData = img_array / 10000.0
@@ -242,6 +274,10 @@ for imgFolder in imgFolders:
             outBand.FlushCache()
             outBand.SetNoDataValue(-99)
 
+            print 'Elapsed time: {}'.format(
+                datetime.datetime.now() - start_time)
+            print 'Band #{} completed.\n'.format(band_id)
+
             # Clean up.
             del img_band
             del band_id
@@ -253,11 +289,11 @@ for imgFolder in imgFolders:
             # On we go...
             iteration += 1
 
-    # Georeference the stacked .dat file and set the projection.
-    outDs.SetGeoTransform(transform)
-    outDs.SetProjection(projection)
+    print 'Tile {} processed and stacked.'.format(tile_id)
+    print '------------------------------------------------------------\n\n\n'
 
     # Clean up.
+    del tile_id
     outDs = None
 
 
