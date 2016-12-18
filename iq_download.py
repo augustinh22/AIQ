@@ -18,7 +18,7 @@ import optparse
 import tkMessageBox
 import xml.etree.ElementTree as etree
 from datetime import date
-from Tkinter import *
+import Tkinter
 
 import requests  # Follow PEP8 on formatting imports.
 
@@ -574,7 +574,7 @@ question = ('Number of scenes found: {}'
     '\n\n{}').format(scenes, total_size, question_tile)
 
 # Hide the main window.
-root = Tk().withdraw()
+Tkinter.Tk().withdraw()
 # Create the content of the window.
 messagebox = tkMessageBox.askyesno('Sentinel Downloader', question)
 
