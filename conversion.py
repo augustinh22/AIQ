@@ -317,6 +317,11 @@ for imgFolder in imgFolders:
     del tile_id
     outDs = None
 
+print '\n\n=================================================================='
+print 'Done processing.'
+print 'End time: {}'.format(datetime.datetime.now().time())
+print 'Total elapsed time: {}'.format(datetime.datetime.now() - start_time)
+print '==================================================================\n\n'
 
 #------------------------------------------------------------------------------#
 # A bit of confused configuration for Windows (GDAL, etc.) -- not finished     #
