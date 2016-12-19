@@ -53,8 +53,9 @@
 import os
 import sys
 import datetime
-import tkMessageBox
 import Tkinter
+import tkMessageBox
+import xml.etree.ElementTree as etree
 
 import gdal
 import numpy
@@ -96,13 +97,37 @@ gdal.AllRegister()
 
 for imgFolder in imgFolders:
 
-    tile_bands = []
+    metadata_path = []
+    for file in os.listdir(imgFolder[:-9]):
+        if file.startswith('S2A') and file.endswith('.xml'):
+            metadata_path.append(os.path.join(imgFolder[:-9], file))
+    if len(metadata_path) > 1:
+        print 'Make sure only the original metadata exists in the tile folder.'
+        sys.exit()
 
+    # Parse the metadata xml-file. There should only be one path.
+    tree = etree.parse(metadata_path[0])
+
+    # Get metadata values from the General_Info element.
+    General_Info = tree.find('{https://psd-12.sentinel2.eo.esa.int/'
+        'PSD/S2_PDI_Level-1C_Tile_Metadata.xsd}General_Info')
+    ## TILE_ID = General_Info.find('TILE_ID').text
+    ## DATASTRIP_ID = General_Info.find('DATASTRIP_ID').text
+    SENSING_TIME = General_Info.find('SENSING_TIME').text
+
+    # Get metadata values from the Geometric_Info element.
+    Geometric_Info = tree.find('{https://psd-12.sentinel2.eo.esa.int/'
+        'PSD/S2_PDI_Level-1C_Tile_Metadata.xsd}Geometric_Info')
+    HORIZONTAL_CS_NAME = Geometric_Info.find('Tile_Geocoding').find(
+        'HORIZONTAL_CS_NAME').text
+    HORIZONTAL_CS_CODE = Geometric_Info.find('Tile_Geocoding').find(
+        'HORIZONTAL_CS_CODE').text
+
+    tile_bands = []
     for dirpath, dirnames, filenames in os.walk(imgFolder, topdown=True):
         for filename in filenames:
             if filename.startswith('S2A') and filename.endswith('.jp2'):
                 tile_bands.append(os.path.join(dirpath, filename))
-
     tile_bands.sort
     ## print tile_bands
 
@@ -126,7 +151,10 @@ for imgFolder in imgFolders:
                 sys.exit(1)
 
             print '------------------------------------------------------------'
-            print 'Processing tile {}\n\n'.format(tile_id)
+            print 'Processing tile {} sensed at {}'.format(
+                tile_id, SENSING_TIME)
+            print 'Coordinate system: {}, {}\n\n'.format(
+                HORIZONTAL_CS_NAME, HORIZONTAL_CS_CODE)
 
 
             # Get raster georeference info from B02 for output .dat files.
@@ -159,7 +187,7 @@ for imgFolder in imgFolders:
             outDs.SetGeoTransform(transform)
             outDs.SetProjection(projection)
 
-            print 'Creating fake thermal band for {}'.format(tile_id)
+            print 'Creating fake thermal band for {}\n'.format(tile_id)
 
             # Test thermal band path.
             filepath = '{}/{}caltembyt_lndstlk.dat'.format(
@@ -280,6 +308,12 @@ for imgFolder in imgFolders:
     print '------------------------------------------------------------\n\n\n'
 
     # Clean up.
+    del metadata_path
+    del tree
+    del SENSING_TIME
+    del HORIZONTAL_CS_NAME
+    del HORIZONTAL_CS_CODE
+    del tile_bands
     del tile_id
     outDs = None
 
