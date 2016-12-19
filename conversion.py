@@ -181,11 +181,12 @@ for imgFolder in imgFolders:
             ## print therm_array
             ## print therm_array.shape
 
-            # Write the data to the designated band.
+            # Write the data to the designated band and calculate stats.
             outBand = thermDs.GetRasterBand(1)
             outBand.WriteArray(therm_array, 0, 0)
+            outBand.ComputeStatistics(0)
 
-            # Flush data to disk, set the NoData value and calculate stats.
+            # Flush data to disk and set the NoData value.
             outBand.FlushCache()
             outBand.SetNoDataValue(-99)
 
@@ -240,11 +241,12 @@ for imgFolder in imgFolders:
             # Convert to 8-bit.
             outData = ((numpy.absolute(outData) * 255.0) + 0.5).astype(int)
 
-            # Write the data to the designated band.
+            # Write the data to the designated band and calculate stats.
             outBand = outDs.GetRasterBand(iteration)
             outBand.WriteArray(outData, 0, 0)
+            outBand.ComputeStatistics(0)
 
-            # Flush data to disk, set the NoData value and calculate stats.
+            # Flush data to disk and set the NoData value.
             outBand.FlushCache()
             outBand.SetNoDataValue(-99)
 
@@ -302,11 +304,12 @@ for imgFolder in imgFolders:
             # Convert to 8-bit.
             outData = ((numpy.absolute(outData) * 255.0) + 0.5).astype(int)
 
-            # Write the data to the designated band.
+            # Write the data to the designated band and calculate stats.
             outBand = outDs.GetRasterBand(iteration)
             outBand.WriteArray(outData, 0, 0)
+            outBand.ComputeStatistics(0)
 
-            # Flush data to disk, set the NoData value and calculate stats
+            # Flush data to disk and set the NoData value.
             outBand.FlushCache()
             outBand.SetNoDataValue(-99)
 
