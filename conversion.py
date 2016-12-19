@@ -118,7 +118,7 @@ for imgFolder in imgFolders:
         if band.endswith('_B02.jp2'):
 
             # Open the B02 image.
-            img = gdal.Open(band, GA_ReadOnly)
+            img = gdal.Open(band, gdal.GA_ReadOnly)
             band_id = band[-6:-4]
             tile_id = band[-13:-8]
             if img is None:
@@ -147,7 +147,7 @@ for imgFolder in imgFolders:
 
             # Test stacked band file path.
             filepath = '{}/{}calrefbyt_lndstlk.dat'.format(
-                PROC_DATA, os.path.basename(band)[:-3])
+                PROC_DATA, os.path.basename(band)[:-7])
 
             # Print driver for stacked layers (6 bands, 8-bit unsigned).
             outDs = driver.Create(filepath, img_cols, img_rows, 6,
@@ -163,7 +163,7 @@ for imgFolder in imgFolders:
 
             # Test thermal band path.
             filepath = '{}/{}caltembyt_lndstlk.dat'.format(
-                PROC_DATA, os.path.basename(band)[:-3])
+                PROC_DATA, os.path.basename(band)[:-7])
 
             # Print driver for fake thermal band (1 band, 8-bit unsigned).
             thermDs = driver.Create(filepath, img_cols, img_rows, 1,
@@ -184,7 +184,9 @@ for imgFolder in imgFolders:
             # Write the data to the designated band and calculate stats.
             outBand = thermDs.GetRasterBand(1)
             outBand.WriteArray(therm_array, 0, 0)
-            outBand.ComputeStatistics(0)
+            # Must be tested.
+            ## outBand.ComputeStatistics()
+            ## outBand.SetStatistics()
 
             # Flush data to disk and set the NoData value.
             outBand.FlushCache()
@@ -207,9 +209,10 @@ for imgFolder in imgFolders:
     print 'Creating 6 band stack for tile {}\n'.format(tile_id)
 
     for band in tile_bands:
-        if band.endswith(('_B02.jp2','_B03.jp2','_B04.jp2','_B08.jp2')):
+        if band.endswith(('_B02.jp2','_B03.jp2','_B04.jp2','_B08.jp2',
+                '_B11.jp2','_B12.jp2')):
             # Open the image
-            img = gdal.Open(band, GA_ReadOnly)
+            img = gdal.Open(band, gdal.GA_ReadOnly)
             band_id = band[-6:-4]
             if img is None:
                 print 'Could not open band #{}'.format(band_id)
@@ -238,68 +241,11 @@ for imgFolder in imgFolders:
                     elif outData[i,j] < 0:
                         outData[i,j] = 0
 
-            # Convert to 8-bit.
-            outData = ((numpy.absolute(outData) * 255.0) + 0.5).astype(int)
-
-            # Write the data to the designated band and calculate stats.
-            outBand = outDs.GetRasterBand(iteration)
-            outBand.WriteArray(outData, 0, 0)
-            outBand.ComputeStatistics(0)
-
-            # Flush data to disk and set the NoData value.
-            outBand.FlushCache()
-            outBand.SetNoDataValue(-99)
-
-            print 'Elapsed time: {}'.format(
-                datetime.datetime.now() - start_time)
-            print 'Band #{} completed.\n'.format(band_id)
-
-            # Clean up.
-            del img_band
-            del band_id
-            del img_array
-            del outData
-            del outBand
-            img = None
-
-            # On we go...
-            iteration += 1
-
-        if band.endswith(('_B11.jp2','_B12.jp2')):
-            # Open the image
-            img = gdal.Open(band, GA_ReadOnly)
-            band_id = band[-6:-4]
-            if img is None:
-                print 'Could not open band #{}'.format(band_id)
-                sys.exit(1)
-
-            print 'Processing band #{}'.format(band_id)
-
-            # Read in the data and get info about it.
-            img_band = img.GetRasterBand(1)
-            img_rows = img.RasterYSize
-            img_cols = img.RasterXSize
-
-            # Read image as array.
-            img_array = img_band.ReadAsArray(0,0, img_cols, img_rows)
-            ## print 'Original array: \n{}'.format(img_array)
-            print 'Original shape: {}'.format(img_array.shape)
-            ## print 'Original max: {}'.format(numpy.amax(img_array))
-            ## print 'Original min: {}'.format(numpy.amin(img_array))
-
-            # Adjust outliers.
-            outData = img_array / 10000.0
-            for i in range(0, img_rows):
-                for j in range(0, img_cols):
-                    if outData[i,j] > 1:
-                        outData[i,j] = 1
-                    elif outData[i,j] < 0:
-                        outData[i,j] = 0
-
-            ## Resampling to zoom factor of 2, since original pixel size is 20m.
-            print 'Resample by a factor of 2 with nearest interpolation.'
-            outData = scipy.ndimage.zoom(outData, 2, order=0)
-            print 'Resampled size: {}'.format(outData.shape)
+            if band.endswith(('_B11.jp2','_B12.jp2')):
+                ## Resampling to zoom factor of 2 as original pixel size is 20m.
+                print 'Resample by a factor of 2 with nearest interpolation.'
+                outData = scipy.ndimage.zoom(outData, 2, order=0)
+                print 'Resampled size: {}'.format(outData.shape)
 
             # Convert to 8-bit.
             outData = ((numpy.absolute(outData) * 255.0) + 0.5).astype(int)
@@ -307,7 +253,9 @@ for imgFolder in imgFolders:
             # Write the data to the designated band and calculate stats.
             outBand = outDs.GetRasterBand(iteration)
             outBand.WriteArray(outData, 0, 0)
-            outBand.ComputeStatistics(0)
+            # Computing statistics for each band has to be tested.
+            ## outBand.ComputeStatistics()
+            ## outBand.SetStatistics()
 
             # Flush data to disk and set the NoData value.
             outBand.FlushCache()
@@ -340,19 +288,26 @@ for imgFolder in imgFolders:
 # A bit of confused configuration for Windows (GDAL, etc.) -- not finished     #
 #------------------------------------------------------------------------------#
 
-# Download and install MSVC for your version of Windows
-# Download and install GDAL for Windows based on your version of MSVC
+# Download and install MSVC for your version of Windows/Python
+# Download and install GDAL for Windows based on your version of MSVC/Python
+# (Python 2.7 uses 1500 which is MSVC 2008)
 # * http://www.gisinternals.com/release.php
-# * gdal-201-1800-x64-core.msi
+# * gdal-201-1500-x64-core.msi
 # * Set system path environment variable to include GDAL folder
 # * Set system environment variable GDAL_DATA to the gdal-data folder in GDAL
 # Download GDAL Python bindings for Windows
 # * http://www.gisinternals.com/release.php
 # * GDAL-2.1.2.win-amd64-py2.7.msi
-# * Make sure that it binds to the correct installation of Python.
-# * copy the missing bits from the unofficial windows binary wheel interpolation
-#    into gdal in Python if necessary:
+# * Make sure that it binds to the correct installation of Python
+#    (e.g. C:\Python27)
+# * copy the missing files from the unofficial windows binary .whl interpolation
+#    into the GDAL folder in Python if necessary:
 #    (http://www.lfd.uci.edu/~gohlke/pythonlibs/#gdal)
+#       - specifically go to: GDAL-2.1.2-cp27-cp27m-win_amd64.whl\osgeo\
+#       - make sure all .pyd files are included in the original python bindings
+#         installed using the gisinternals installer. If not, copy paste
+#         into e.g. C:\Python27\Lib\site-packages\osgeo
+#         The _gdal_array.pyd file is the most important.
 # Download and install Numpy + MKL and SciPy Python packages for Windows
 # * http://www.lfd.uci.edu/~gohlke/pythonlibs/
 # * pip install .whl
