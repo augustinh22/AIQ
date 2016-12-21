@@ -27,7 +27,7 @@ def show_params():
         print('\nImage type: {} ({})'.format(
             var06.get(), image_type[var06.get()]))
         print 'SIAM path: {}'.format(var00.get())
-        print 'S2 path: {}'.format(S2_Folder.get())
+        print 'S2 path: {}'.format(s2_Folder.get())
         print 'Processing with a binary mask: {}'.format(var03.get())
         print 'Fuzzy classification: {}'.format(var07.get())
         print 'Smoke-plume mask: {}'.format(var09.get())
@@ -62,111 +62,111 @@ buttons = Tkinter.Frame(master)
 buttons.pack(side='bottom')
 
 # Title.
-L1 = Tkinter.Label(title, text="SIAM Batch Creator")
-L1.config(width=30, font=("Courier", 44))
-L1.pack(pady=15)
+label01 = Tkinter.Label(title, text="SIAM Batch Creator")
+label01.config(width=30, font=("Courier", 44))
+label01.pack(pady=15)
 
 # Define SIAM .exe location text entry box.
-L2 = Tkinter.Label(siam_input, text="Insert SIAM .exe path: ")
-L2.pack(pady=15, side='left')
+label02 = Tkinter.Label(siam_input, text="Insert SIAM .exe path: ")
+label02.pack(pady=15, side='left')
 
 var00 = Tkinter.StringVar()
 var00.set(
     r'E:\SIAM\installation\SIAM_License_Executables\SIAM_r88v6_Windows.exe')
-C00 = Tkinter.Entry(siam_input, textvariable=var00, justify='left')
-C00.config(width=40)
-C00.pack(pady=15, side='right')
+var00x = Tkinter.Entry(siam_input, textvariable=var00, justify='left')
+var00x.config(width=40)
+var00x.pack(pady=15, side='right')
 
 # Define S2 root folder text entry box.
-L3 = Tkinter.Label(s2_input, text='Path to folder where Sentinel 2 data '
+label03 = Tkinter.Label(s2_input, text='Path to folder where Sentinel 2 data '
     'are saved: ')
-L3.pack(pady=15, side='left')
+label03.pack(pady=15, side='left')
 
-S2_Folder = Tkinter.StringVar()
-S2_Folder.set(r'C:\tempS2')
-S2 = Tkinter.Entry(s2_input, textvariable=S2_Folder, justify='left')
-S2.config(width=40)
-S2.pack(pady=15, side='right')
+s2_Folder = Tkinter.StringVar()
+s2_Folder.set(r'C:\tempS2')
+s2_Folderx = Tkinter.Entry(s2_input, textvariable=s2_Folder, justify='left')
+s2_Folderx.config(width=40)
+s2_Folderx.pack(pady=15, side='right')
 
 # Create image-type dropdown menu.
-L4 = Tkinter.Label(img_options, text="Select an image type: ")
-L4.pack(side='left')
+label04 = Tkinter.Label(img_options, text="Select an image type: ")
+label04.pack(side='left')
 
 var06 = Tkinter.StringVar()
 image_type = {"LANDSAT_LIKE": 1, "SPOT_LIKE": 2, "AVHRR_LIKE": 3, "VHR_LIKE": 4}
 var06.set('Select one.')
-C06 = Tkinter.OptionMenu(img_options, var06, *image_type.keys())
-C06.config(width=15)
-C06.pack(pady=10, side='right')
+var06x = Tkinter.OptionMenu(img_options, var06, *image_type.keys())
+var06x.config(width=15)
+var06x.pack(pady=10, side='right')
 # image_type[var06.get()] returns the key value
 
 # Create checkboxes for all binary variables.
 var03 = Tkinter.IntVar()
-C03 = Tkinter.Checkbutton(binary, text="Use a binary mask for processing",
+var03x = Tkinter.Checkbutton(binary, text="Use a binary mask for processing",
     variable=var03, justify='left', height=1, width=60)
-C03.pack()
+var03x.pack()
 
 var07 = Tkinter.IntVar()
-C07 = Tkinter.Checkbutton(binary,
+var07x = Tkinter.Checkbutton(binary,
     text="Use fuzzy classification instead of crisp",
     variable=var07, justify='left', height=1, width=60)
-C07.pack()
+var07x.pack()
 
 var09 = Tkinter.IntVar()
-C09 = Tkinter.Checkbutton(binary, text="Smoke-Plume mask",
+var09x = Tkinter.Checkbutton(binary, text="Smoke-Plume mask",
     variable=var09, justify='left', height=1, width=60)
-C09.pack()
+var09x.pack()
 
 var10 = Tkinter.IntVar()
-C10 = Tkinter.Checkbutton(binary, text="Cloud mask",
+var10x = Tkinter.Checkbutton(binary, text="Cloud mask",
     variable=var10, justify='left', height=1, width=60)
-C10.pack()
+var10x.pack()
 
 var11 = Tkinter.IntVar()
-C11 = Tkinter.Checkbutton(binary, text="Burnt area mask",
+var11x = Tkinter.Checkbutton(binary, text="Burnt area mask",
     variable=var11, justify='left', height=1, width=60)
-C11.pack()
+var11x.pack()
 
 var12 = Tkinter.IntVar()
-C12 = Tkinter.Checkbutton(binary, text="Vegetation Binary mask",
+var12x = Tkinter.Checkbutton(binary, text="Vegetation Binary mask",
     variable=var12, justify='left', height=1, width=60)
-C12.pack()
+var12x.pack()
 
 var13 = Tkinter.IntVar()
-C13 = Tkinter.Checkbutton(binary, text="Vegetation Trinary mask",
+var13x = Tkinter.Checkbutton(binary, text="Vegetation Trinary mask",
     variable=var13, justify='left', height=1, width=60)
-C13.pack()
+var13x.pack()
 
 var14 = Tkinter.IntVar()
-C14 = Tkinter.Checkbutton(binary, text="Baresoil Builtup Trinary mask",
+var14x = Tkinter.Checkbutton(binary, text="Baresoil Builtup Trinary mask",
     variable=var14, justify='left', height=1, width=60)
-C14.pack()
+var14x.pack()
 
 var15 = Tkinter.IntVar()
-C15 = Tkinter.Checkbutton(binary, text="Cloud Trinary mask",
+var15x = Tkinter.Checkbutton(binary, text="Cloud Trinary mask",
     variable=var15, justify='left', height=1, width=60)
-C15.pack()
+var15x.pack()
 
 var16 = Tkinter.IntVar()
-C16 = Tkinter.Checkbutton(binary, text="Water Trinary mask",
+var16x = Tkinter.Checkbutton(binary, text="Water Trinary mask",
     variable=var16, justify='left', height=1, width=60)
-C16.pack()
+var16x.pack()
 
 var17 = Tkinter.IntVar()
-C17 = Tkinter.Checkbutton(binary, text="Shadow trinary mask",
+var17x = Tkinter.Checkbutton(binary, text="Shadow trinary mask",
     variable=var17, justify='left', height=1, width=60)
-C17.pack()
+var17x.pack()
 
 var18 = Tkinter.IntVar()
-C18 = Tkinter.Checkbutton(binary, text="Urban area binary mask",
+var18x = Tkinter.Checkbutton(binary, text="Urban area binary mask",
     variable=var18, justify='left', height=1, width=60)
-C18.pack()
+var18x.pack()
 
 # Ability to close GUI and print current state of variables using bottons.
-B1 = Tkinter.Button(buttons, text='Continue', command=master.quit)
-B1.pack()
-B2 = Tkinter.Button(buttons, text='Show', command=show_params)
-B2.pack()
+button01 = Tkinter.Button(buttons, text='Continue', command=master.quit)
+button01.pack()
+button02 = Tkinter.Button(buttons, text='Show', command=show_params)
+button02.pack()
 
 # Not sure what this does.
 Tkinter.mainloop()
@@ -206,7 +206,7 @@ if messagebox:
     batFilename = 'SIAM_multiple_batch_{}.bat'.format(var06_text[:-5])
     print '\n\n'
     print batFilename
-    batch_path = os.path.join(S2_Folder.get(), batFilename)
+    batch_path = os.path.join(s2_Folder.get(), batFilename)
     print batch_path
 
     for procFolder in procFolders:
