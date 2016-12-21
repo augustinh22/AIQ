@@ -14,6 +14,7 @@
 
 import os
 import sys
+import zipfile
 import optparse
 import tkMessageBox
 import xml.etree.ElementTree as etree
@@ -135,6 +136,28 @@ def return_tiles(uuid_element, filename, tile=''):
         return(granule_entries, granules)
     else:
         return(granule_file)
+
+# Function checks if files have aleady been downloaded. If yes, but unzipped,
+# it unzips them and deletes the zipped folder.
+def download_check(write_dir, title_element, filename):
+
+    zfile = '{}.zip'.format(title_element)
+    # Check if file was already downloaded.
+    if os.path.exists(os.path.join(write_dir, title_element)):
+        print '{} already exists in unzipped form!'.format(title_element)
+        return True
+    elif os.path.exists(os.path.join(write_dir, filename)):
+        print '{} already exists in unzipped form!'.format(filename)
+        return True
+    elif os.path.exists(os.path.join(write_dir, zfile)):
+        print '{} has already been downloaded!'.format(zfile)
+        with zipfile.ZipFile(os.path.join(write_dir, zfile)) as z:
+            z.extractall(write_dir)
+            print 'And is now unzipped.'
+            os.remove(os.path.join(write_dir, zfile))
+        return True
+    else:
+        return False
 
 # Function returns name of header xml incldued in a product.
 def return_header(uuid_element, filename):
@@ -283,12 +306,6 @@ else:
             type='int', help='Orbit path number', default=None)
 
 # Currently unused commands that could be built into the script at a later date
-    # parser.add_option('-n', '--no_download', dest='no_download',
-    #        action='store_true', help='Do not download products, just '
-    #        'print aria2 command', default=False)
-    # parser.add_option('-p', '--proxy_passwd', dest='proxy',
-    #        action='store', type='string', help='Proxy account and '
-    #        'password file', default=None)
     # parser.add_option('--id', '--start_ingest_date',
     #         dest='start_ingest_date', action='store', type='string',
     #         help='start ingestion date, fmt("2015-12-22")', default=None)
@@ -437,7 +454,7 @@ else:
     query = query_time
 
 #------------------------------------------------------------------------------#
-#                          Read authentification file                          #
+#                   Authorize ESA API or DataHub Credentials                   #
 #------------------------------------------------------------------------------#
 # Use this part if you want to have your password and username saved in a
 # textfile, with the file name as the command.
@@ -520,11 +537,15 @@ for entry in range(len(entries)):
     print title_element
     print summary_element
     # Return tile names per entry using function return_tiles if desired
-    if options.tile == '?':
+    if options.tile == '?' and filename.startswith('S2A_OPER_'):
         found_tiles = return_tiles(uuid_element, filename)
         # Print the number of tiles and their names.
         print '# of Tiles: {}'.format(str(len(found_tiles[0])))
         print 'Tiles:{}'.format(found_tiles[1])
+    if options.tile == '?' and filename.startswith('S2A_MSIL1C_'):
+        # Print the number of tiles and their names.
+        print '# of Tiles: 1'
+        print 'Tile: {}'.format(filename[-26:-21])
 
     # Find cloud cover percentage
     cloud_element = (entries[entry].find('.//*[@name="cloudcoverpercentage"]')
@@ -546,14 +567,8 @@ for entry in range(len(entries)):
         total_size += size_element
 
     # Check if file was already downloaded.
-    zipfile = '{}.zip'.format(title_element)
-    if os.path.exists(zipfile):
-        print zipfile, ' has already been downloaded!',
-     # Do not download the product if it was already downloaded and unzipped.
-    if os.path.exists(title_element):
-        print title_element, ' already exists in unzipped form!',
+    download_check(options.write_dir, title_element, filename)
 
-        continue
 
 #------------------------------------------------------------------------------#
 #                            Downloader message box                            #
@@ -588,24 +603,36 @@ if messagebox and (options.tile is None or options.tile == '?'):
             'id')).text
         sentinel_link = ("{}odata/v1/Products('{}')/$value").format(
             huburl, uuid_element)
+        filename = (entries[entry].find('.//*[@name="filename"]')).text
         title_element = (entries[entry].find('{http://www.w3.org/2005/Atom}'
             'title')).text
-        zipfile = '{}.zip'.format(title_element)
+        zfile = '{}.zip'.format(title_element)
+
+        # Skip files that have already been downloaded.
+        check = download_check(options.write_dir, title_element, filename)
+        if check is True:
+            continue
 
         # Save to defined directory (default = C:/S2)
         command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
-            options.write_dir, wg_opt, zipfile, sentinel_link)
+            options.write_dir, wg_opt, zfile, sentinel_link)
 
         # Execute download.
         os.system(command_aria)
         print 'Downloaded Scene #{}'.format(str(entry + 1))
+
+        with zipfile.ZipFile(os.path.join(options.write_dir, zfile)) as z:
+            z.extractall(options.write_dir)
+            print 'Unzipped Scene # {}'.format(str(entry + 1))
+            os.remove(os.path.join(options.write_dir, zfile))
+
 
     print '\n------------------------------------------------------------------'
     print 'Downloading complete!'
     print '------------------------------------------------------------------\n'
 
 # If you want to download a tile that you searched for, then it will
-# create the proper file struction mimicing a complete download and fill it
+# create the proper file structure mimicing a complete download and fill it
 # with data specific to the tile you want.
 elif messagebox and options.tile != None and options.tile != '?':
     # Create download directory if not already existing (default = C:/S2)
@@ -617,20 +644,32 @@ elif messagebox and options.tile != None and options.tile != '?':
         uuid_element = (entries[entry].find('{http://www.w3.org/2005/Atom}'
             'id')).text
         filename = (entries[entry].find('.//*[@name="filename"]')).text
+        title_element = (entries[entry].find('{http://www.w3.org/2005/Atom}'
+            'title')).text
         sentinel_link = ("{}odata/v1/Products('{}')/Nodes('{}')/Nodes").format(
             huburl, uuid_element, filename)
-        # Find tiles in entry, returning the number[0] and tile names[1]
-        included_tiles = return_tiles(uuid_element, filename)
+
+        if filename.startswith('S2A_OPER_'):
+            # Find tiles in entry, returning the number[0] and tile names[1]
+            included_tiles = return_tiles(uuid_element, filename)
+        elif filename.startswith('S2A_MSIL1C_'):
+            included_tiles = [filename[-26:-21], filename[-26:-21]]
 
         # If the tile you want is in the entry, then it will create the
         # necessary file structure and fill it.
-        if options.tile in included_tiles[1]:
+        if (options.tile in included_tiles[1]
+                and filename.startswith('S2A_OPER_')):
         # File structire--------------------------------------------------
             product_dir_name = make_dir(options.write_dir, filename)
             # Create GRANULE directory in product directory
             granule_dir = make_dir(product_dir_name, 'GRANULE')
             # Create tile directory in GRANULE directory based on tile file name
             tile_file = return_tiles(uuid_element, filename, options.tile)
+            # If tile folder already exists, then it skips downloading.
+            if os.path.exists(os.path.join(granule_dir, tile_file)):
+                print 'Tile Folder already downloaded.'
+                continue
+
             tile_dir = make_dir(granule_dir, tile_file)
 
         # Downloads--------------------------------------------------
@@ -663,6 +702,33 @@ elif messagebox and options.tile != None and options.tile != '?':
 
             print 'Downloaded tile {} from scene #{}\n'.format(
                 options.tile, str(entry + 1))
+
+        elif (options.tile in included_tiles
+                and filename.startswith('S2A_MSIL1C_')):
+
+            # Create download command for the entry.
+            sentinel_link = ("{}odata/v1/Products('{}')/$value").format(
+                huburl, uuid_element)
+            zfile = '{}.zip'.format(title_element)
+
+            # Skip files that have already been downloaded.
+            check = download_check(options.write_dir, title_element, filename)
+            if check is True:
+                continue
+
+            # Save to defined directory (default = C:/S2)
+            command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
+                options.write_dir, wg_opt, zfile, sentinel_link)
+
+            # Execute download.
+            os.system(command_aria)
+            print 'Downloaded Scene #{}'.format(str(entry + 1))
+
+            with zipfile.ZipFile(os.path.join(options.write_dir, zfile)) as z:
+                z.extractall(options.write_dir)
+                print 'Unzipped Scene # {}'.format(str(entry + 1))
+                os.remove(os.path.join(options.write_dir, zfile))
+
         else:
             print '\nTile {} not in scene #{}\n'.format(
                 options.tile, str(entry + 1))
