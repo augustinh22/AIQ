@@ -108,13 +108,14 @@ var03x = Tkinter.Checkbutton(binary, text="Use a binary mask for processing",
 var03x.pack()
 
 var07 = Tkinter.IntVar()
+var07.set(1)
 var07x = Tkinter.Checkbutton(binary,
-    text="Use fuzzy classification instead of crisp",
+    text="Use crisp classification (default=true)",
     variable=var07, anchor='w', height=1, width=50)
 var07x.pack()
 
 var09 = Tkinter.IntVar()
-var09x = Tkinter.Checkbutton(binary, text="Smoke-Plume mask",
+var09x = Tkinter.Checkbutton(binary, text="Smoke-plume mask",
     variable=var09, anchor='w', height=1, width=50)
 var09x.pack()
 
@@ -129,27 +130,27 @@ var11x = Tkinter.Checkbutton(binary, text="Burnt area mask",
 var11x.pack()
 
 var12 = Tkinter.IntVar()
-var12x = Tkinter.Checkbutton(binary, text="Vegetation Binary mask",
+var12x = Tkinter.Checkbutton(binary, text="Vegetation binary mask",
     variable=var12, anchor='w', height=1, width=50)
 var12x.pack()
 
 var13 = Tkinter.IntVar()
-var13x = Tkinter.Checkbutton(binary, text="Vegetation Trinary mask",
+var13x = Tkinter.Checkbutton(binary, text="Vegetation trinary mask",
     variable=var13, anchor='w', height=1, width=50)
 var13x.pack()
 
 var14 = Tkinter.IntVar()
-var14x = Tkinter.Checkbutton(binary, text="Baresoil Builtup Trinary mask",
+var14x = Tkinter.Checkbutton(binary, text="Baresoil builtup trinary mask",
     variable=var14, anchor='w', height=1, width=50)
 var14x.pack()
 
 var15 = Tkinter.IntVar()
-var15x = Tkinter.Checkbutton(binary, text="Cloud Trinary mask",
+var15x = Tkinter.Checkbutton(binary, text="Cloud trinary mask",
     variable=var15, anchor='w', height=1, width=50)
 var15x.pack()
 
 var16 = Tkinter.IntVar()
-var16x = Tkinter.Checkbutton(binary, text="Water Trinary mask",
+var16x = Tkinter.Checkbutton(binary, text="Water trinary mask",
     variable=var16, anchor='w', height=1, width=50)
 var16x.pack()
 
