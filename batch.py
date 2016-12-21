@@ -59,6 +59,7 @@ img_options.pack()
 binary = Tkinter.Frame(master)
 binary.pack()
 buttons = Tkinter.Frame(master)
+buttons.config(pady=15)
 buttons.pack(side='bottom')
 
 # Title.
@@ -74,7 +75,7 @@ var00 = Tkinter.StringVar()
 var00.set(
     r'E:\SIAM\installation\SIAM_License_Executables\SIAM_r88v6_Windows.exe')
 var00x = Tkinter.Entry(siam_input, textvariable=var00, justify='left')
-var00x.config(width=40)
+var00x.config(width=61)
 var00x.pack(pady=15, side='right')
 
 # Define S2 root folder text entry box.
@@ -96,70 +97,70 @@ var06 = Tkinter.StringVar()
 image_type = {"LANDSAT_LIKE": 1, "SPOT_LIKE": 2, "AVHRR_LIKE": 3, "VHR_LIKE": 4}
 var06.set('Select one.')
 var06x = Tkinter.OptionMenu(img_options, var06, *image_type.keys())
-var06x.config(width=15)
+var06x.config(width=15, anchor='w')
 var06x.pack(pady=10, side='right')
 # image_type[var06.get()] returns the key value
 
 # Create checkboxes for all binary variables.
 var03 = Tkinter.IntVar()
 var03x = Tkinter.Checkbutton(binary, text="Use a binary mask for processing",
-    variable=var03, justify='left', height=1, width=60)
+    variable=var03, anchor='w', height=1, width=50)
 var03x.pack()
 
 var07 = Tkinter.IntVar()
 var07x = Tkinter.Checkbutton(binary,
     text="Use fuzzy classification instead of crisp",
-    variable=var07, justify='left', height=1, width=60)
+    variable=var07, anchor='w', height=1, width=50)
 var07x.pack()
 
 var09 = Tkinter.IntVar()
 var09x = Tkinter.Checkbutton(binary, text="Smoke-Plume mask",
-    variable=var09, justify='left', height=1, width=60)
+    variable=var09, anchor='w', height=1, width=50)
 var09x.pack()
 
 var10 = Tkinter.IntVar()
 var10x = Tkinter.Checkbutton(binary, text="Cloud mask",
-    variable=var10, justify='left', height=1, width=60)
+    variable=var10, anchor='w', height=1, width=50)
 var10x.pack()
 
 var11 = Tkinter.IntVar()
 var11x = Tkinter.Checkbutton(binary, text="Burnt area mask",
-    variable=var11, justify='left', height=1, width=60)
+    variable=var11, anchor='w', height=1, width=50)
 var11x.pack()
 
 var12 = Tkinter.IntVar()
 var12x = Tkinter.Checkbutton(binary, text="Vegetation Binary mask",
-    variable=var12, justify='left', height=1, width=60)
+    variable=var12, anchor='w', height=1, width=50)
 var12x.pack()
 
 var13 = Tkinter.IntVar()
 var13x = Tkinter.Checkbutton(binary, text="Vegetation Trinary mask",
-    variable=var13, justify='left', height=1, width=60)
+    variable=var13, anchor='w', height=1, width=50)
 var13x.pack()
 
 var14 = Tkinter.IntVar()
 var14x = Tkinter.Checkbutton(binary, text="Baresoil Builtup Trinary mask",
-    variable=var14, justify='left', height=1, width=60)
+    variable=var14, anchor='w', height=1, width=50)
 var14x.pack()
 
 var15 = Tkinter.IntVar()
 var15x = Tkinter.Checkbutton(binary, text="Cloud Trinary mask",
-    variable=var15, justify='left', height=1, width=60)
+    variable=var15, anchor='w', height=1, width=50)
 var15x.pack()
 
 var16 = Tkinter.IntVar()
 var16x = Tkinter.Checkbutton(binary, text="Water Trinary mask",
-    variable=var16, justify='left', height=1, width=60)
+    variable=var16, anchor='w', height=1, width=50)
 var16x.pack()
 
 var17 = Tkinter.IntVar()
 var17x = Tkinter.Checkbutton(binary, text="Shadow trinary mask",
-    variable=var17, justify='left', height=1, width=60)
+    variable=var17, anchor='w', height=1, width=50)
 var17x.pack()
 
 var18 = Tkinter.IntVar()
 var18x = Tkinter.Checkbutton(binary, text="Urban area binary mask",
-    variable=var18, justify='left', height=1, width=60)
+    variable=var18, anchor='w', height=1, width=50)
 var18x.pack()
 
 # Ability to close GUI and print current state of variables using bottons.
