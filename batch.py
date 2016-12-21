@@ -177,7 +177,7 @@ Tkinter.mainloop()
 
 procFolders = []
 
-for dirpath, dirnames, filenames in os.walk('C:/tempS2', topdown=True):
+for dirpath, dirnames, filenames in os.walk(s2_Folder.get(), topdown=True):
     for dirname in dirnames:
         if dirname == 'PROC_DATA':
             procFolders.append(os.path.join(dirpath, dirname))
@@ -209,12 +209,28 @@ if messagebox:
     batch_path = os.path.join(s2_Folder.get(), batFilename)
     print batch_path
 
+    # Convert binary variables and image type identifier from GUI to strings.
+    var00 = var00.get()
+    var03 = str(var03.get())
+    var06 = str(image_type[var06.get()])
+    var07 = str(var07.get())
+    var09 = str(var09.get())
+    var10 = str(var10.get())
+    var11 = str(var11.get())
+    var12 = str(var12.get())
+    var13 = str(var13.get())
+    var14 = str(var14.get())
+    var15 = str(var15.get())
+    var16 = str(var16.get())
+    var17 = str(var17.get())
+    var18 = str(var18.get())
+
     for procFolder in procFolders:
 
         var01 = procFolder
 
         # Create the folder for siam data if it doesn't exist.
-        siam_output = '{}siamoutput'.format(procFolder)
+        siam_output = os.path.join(procFolder, 'siamoutput')
         if not(os.path.exists(siam_output)):
             os.mkdir(siam_output)
         var08 = siam_output
@@ -235,17 +251,15 @@ if messagebox:
         calrefbyt = os.path.join(procFolder, var02)
 
         # Open image to calculate rows and columns.
-        img = gdal.Open(calrefbyt, GA_ReadOnly)
+        img = gdal.Open(calrefbyt, gdal.GA_ReadOnly)
         if img is None:
             print '\nCould not open *calrefbyt*.dat'
             print 'Folder: {}\n'.format(procFolder)
             continue
         # Rows.
-        var04 = img.RasterYSize
-        print str(var04)
+        var04 = str(img.RasterYSize)
         # Columns.
-        var05 = img.RastercSize
-        print str(var05)
+        var05 = str(img.RasterXSize)
 
         # Create string to write to batch file.
         batch_entry = ' '.join((var00, var01, var02, var03, var04, var05,
