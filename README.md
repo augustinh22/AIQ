@@ -96,3 +96,4 @@ the University of Salzburg's M.Sc program in Applied Geoinformatics.
   all .dat files created in conversion.py.
   Launching the batchfile automatically will be added.
   
+![Batch GUI](/images/batch_tk.jpg?raw=true "Batch GUI")
