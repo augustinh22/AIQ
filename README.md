@@ -94,4 +94,5 @@ the University of Salzburg's M.Sc program in Applied Geoinformatics.
 * This script runs without any parameters, but requires user input within a GUI
   for creating a SIAM output folder within PROC_DATA and a batch script to process
   all .dat files created in conversion.py.
-  Launching the batchfile automaticall will be added.
+  Launching the batchfile automatically will be added.
+  
