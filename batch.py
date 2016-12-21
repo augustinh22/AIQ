@@ -71,7 +71,8 @@ L2 = Tkinter.Label(siam_input, text="Insert SIAM .exe path: ")
 L2.pack(pady=15, side='left')
 
 var00 = Tkinter.StringVar()
-var00.set(r'E:\SIAM\installation\SIAM_License_Executables\SIAM_r88v6_Windows.exe')
+var00.set(
+    r'E:\SIAM\installation\SIAM_License_Executables\SIAM_r88v6_Windows.exe')
 C00 = Tkinter.Entry(siam_input, textvariable=var00, justify='left')
 C00.config(width=40)
 C00.pack(pady=15, side='right')
@@ -101,51 +102,64 @@ C06.pack(pady=10, side='right')
 
 # Create checkboxes for all binary variables.
 var03 = Tkinter.IntVar()
-C03 = Tkinter.Checkbutton(binary, text="Use a binary mask for processing", variable=var03, justify='left', height=1, width=60)
+C03 = Tkinter.Checkbutton(binary, text="Use a binary mask for processing",
+    variable=var03, justify='left', height=1, width=60)
 C03.pack()
 
 var07 = Tkinter.IntVar()
-C07 = Tkinter.Checkbutton(binary, text="Use fuzzy classification instead of crisp", variable=var07, justify='left', height=1, width=60)
+C07 = Tkinter.Checkbutton(binary,
+    text="Use fuzzy classification instead of crisp",
+    variable=var07, justify='left', height=1, width=60)
 C07.pack()
 
 var09 = Tkinter.IntVar()
-C09 = Tkinter.Checkbutton(binary, text="Smoke-Plume mask", variable=var09, justify='left', height=1, width=60)
+C09 = Tkinter.Checkbutton(binary, text="Smoke-Plume mask",
+    variable=var09, justify='left', height=1, width=60)
 C09.pack()
 
 var10 = Tkinter.IntVar()
-C10 = Tkinter.Checkbutton(binary, text="Cloud mask", variable=var10, justify='left', height=1, width=60)
+C10 = Tkinter.Checkbutton(binary, text="Cloud mask",
+    variable=var10, justify='left', height=1, width=60)
 C10.pack()
 
 var11 = Tkinter.IntVar()
-C11 = Tkinter.Checkbutton(binary, text="Burnt area mask", variable=var11, justify='left', height=1, width=60)
+C11 = Tkinter.Checkbutton(binary, text="Burnt area mask",
+    variable=var11, justify='left', height=1, width=60)
 C11.pack()
 
 var12 = Tkinter.IntVar()
-C12 = Tkinter.Checkbutton(binary, text="Vegetation Binary mask", variable=var12, justify='left', height=1, width=60)
+C12 = Tkinter.Checkbutton(binary, text="Vegetation Binary mask",
+    variable=var12, justify='left', height=1, width=60)
 C12.pack()
 
 var13 = Tkinter.IntVar()
-C13 = Tkinter.Checkbutton(binary, text="Vegetation Trinary mask", variable=var13, justify='left', height=1, width=60)
+C13 = Tkinter.Checkbutton(binary, text="Vegetation Trinary mask",
+    variable=var13, justify='left', height=1, width=60)
 C13.pack()
 
 var14 = Tkinter.IntVar()
-C14 = Tkinter.Checkbutton(binary, text="Baresoil Builtup Trinary mask", variable=var14, justify='left', height=1, width=60)
+C14 = Tkinter.Checkbutton(binary, text="Baresoil Builtup Trinary mask",
+    variable=var14, justify='left', height=1, width=60)
 C14.pack()
 
 var15 = Tkinter.IntVar()
-C15 = Tkinter.Checkbutton(binary, text="Cloud Trinary mask", variable=var15, justify='left', height=1, width=60)
+C15 = Tkinter.Checkbutton(binary, text="Cloud Trinary mask",
+    variable=var15, justify='left', height=1, width=60)
 C15.pack()
 
 var16 = Tkinter.IntVar()
-C16 = Tkinter.Checkbutton(binary, text="Water Trinary mask", variable=var16, justify='left', height=1, width=60)
+C16 = Tkinter.Checkbutton(binary, text="Water Trinary mask",
+    variable=var16, justify='left', height=1, width=60)
 C16.pack()
 
 var17 = Tkinter.IntVar()
-C17 = Tkinter.Checkbutton(binary, text="Shadow trinary mask", variable=var17, justify='left', height=1, width=60)
+C17 = Tkinter.Checkbutton(binary, text="Shadow trinary mask",
+    variable=var17, justify='left', height=1, width=60)
 C17.pack()
 
 var18 = Tkinter.IntVar()
-C18 = Tkinter.Checkbutton(binary, text="Urban area binary mask", variable=var18, justify='left', height=1, width=60)
+C18 = Tkinter.Checkbutton(binary, text="Urban area binary mask",
+    variable=var18, justify='left', height=1, width=60)
 C18.pack()
 
 # Ability to close GUI and print current state of variables using bottons.
@@ -207,8 +221,8 @@ if messagebox:
 
         # Fill var02 variable with the calrefbyt filename.
         for filename in os.listdir(procFolder):
-            if filename.endswith('.dat')
-                    and fnmatch.fnmatch(filename, '*_calrefbyt_*'):
+            if (filename.endswith('.dat')
+                    and fnmatch.fnmatch(filename, '*_calrefbyt_*')):
                 var02 = filename
 
         # Go to next folder if calibrated, stacked raster not yet craeted.
@@ -234,9 +248,9 @@ if messagebox:
         print str(var05)
 
         # Create string to write to batch file.
-        batch_entry = ' '.join((var00, var01, var02, var03, var04, var05, var06,
-            var07, var08, var09, var10, var11, var12, var13, var14, var15, var16,
-            var17, var18))
+        batch_entry = ' '.join((var00, var01, var02, var03, var04, var05,
+            var06, var07, var08, var09, var10, var11, var12, var13, var14,
+            var15, var16, var17, var18))
         with open(batch_path, 'a') as f:
             f.write(batch_entry + '\n')
         # print batch_entry
@@ -246,6 +260,10 @@ if messagebox:
 else:
     print '\nNo SIAM batch file created.\n'
     sys.exit()
+
+#------------------------------------------------------------------------------#
+#                             Launch batch file                                #
+#------------------------------------------------------------------------------#
 
 
 # Excerpt from Tiede's ArcGIS Python Toolbox to launch SIAM
