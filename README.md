@@ -58,7 +58,7 @@ the University of Salzburg's M.Sc program in Applied Geoinformatics.
           If not, copy paste into e.g. C:\Python27\Lib\site-packages\osgeo
           The _gdal_array.pyd_ file is the most important.
 
-# iq_download.py _(currently only works for before 06.12.2016)_:
+# iq_download.py
 ## Example queries
 ### Point
 * python iq_download.py --lat 47.083 --lon 12.842
@@ -75,7 +75,7 @@ the University of Salzburg's M.Sc program in Applied Geoinformatics.
 ### Discover tiles
 * python iq_download.py -l Salzburg -t ? -d 2016-11-10
 
-# conversion.py _(currently only works for before 06.12.2016)_:
+# conversion.py
 * This script runs without any parameters, converting the bands in IMG_DATA folders
   located in the directory structure of C:\tempS2 and saving the results
   in a new folder called PROC_DATA.
