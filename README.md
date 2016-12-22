@@ -4,7 +4,7 @@ the University of Salzburg's M.Sc program in Applied Geoinformatics.
 ## Configuration (for Windows 64-bit and Python 2.7)
 1. If not already installed, install Python 2.7.x
  * Download necessary .msi from https://www.python.org/downloads/
-     * _Note: 32-bit is default. You have to explicitly download 64-bit.
+     * _Note: 32-bit is default. You have to explicitly download 64-bit._
  * Run windows installer (.msi)
 2. Set Python 2.7 installed location to $PATH if not automatically set by installer.
  * system properties --> environment variables
