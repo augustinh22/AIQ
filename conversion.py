@@ -64,7 +64,7 @@ import scipy.ndimage
 # Create empty list for IMG_DATA folder paths
 imgFolders = []
 
-for dirpath, dirnames, filenames in os.walk('C:/tempS2', topdown=True):
+for dirpath, dirnames, filenames in os.walk('C:\\tempS2', topdown=True):
     for dirname in dirnames:
         if dirname == 'IMG_DATA':
             imgFolders.append(os.path.join(dirpath, dirname))
@@ -99,7 +99,8 @@ for imgFolder in imgFolders:
 
     metadata_path = []
     for file in os.listdir(imgFolder[:-9]):
-        if file.startswith('S2A') and file.endswith('.xml'):
+        if (file.startswith('S2A') or file.startswith('MTD')) and file.endswith('.xml'):
+            metadata_file = file
             metadata_path.append(os.path.join(imgFolder[:-9], file))
     if len(metadata_path) > 1:
         print 'Make sure only the original metadata exists in the tile folder.'
@@ -111,7 +112,8 @@ for imgFolder in imgFolders:
     # Get metadata values from the General_Info element.
     General_Info = tree.find('{https://psd-12.sentinel2.eo.esa.int/'
         'PSD/S2_PDI_Level-1C_Tile_Metadata.xsd}General_Info')
-    ## TILE_ID = General_Info.find('TILE_ID').text
+    TILE_ID = General_Info.find('TILE_ID').text
+    tile_id = TILE_ID[-12:-7]
     ## DATASTRIP_ID = General_Info.find('DATASTRIP_ID').text
     SENSING_TIME = General_Info.find('SENSING_TIME').text
 
@@ -124,12 +126,18 @@ for imgFolder in imgFolders:
         'HORIZONTAL_CS_CODE').text
 
     tile_bands = []
-    for dirpath, dirnames, filenames in os.walk(imgFolder, topdown=True):
-        for filename in filenames:
-            if filename.startswith('S2A') and filename.endswith('.jp2'):
-                tile_bands.append(os.path.join(dirpath, filename))
+    if metadata_file.startswith('S2A_OPER'):
+        for dirpath, dirnames, filenames in os.walk(imgFolder, topdown=True):
+            for filename in filenames:
+                if filename.startswith('S2A') and filename.endswith('.jp2'):
+                    tile_bands.append(os.path.join(dirpath, filename))
+        tile_bands.sort
+    elif metadata_file.startswith('M'):
+        for dirpath, dirnames, filenames in os.walk(imgFolder, topdown=True):
+            for filename in filenames:
+                if filename.startswith('T') and filename.endswith('.jp2'):
+                    tile_bands.append(os.path.join(dirpath, filename))
     tile_bands.sort
-    ## print tile_bands
 
     # Create the folder for processed data if it doesn't exist.
     PROC_DATA = '{}PROC_DATA'.format(imgFolder[:-8])
@@ -145,7 +153,6 @@ for imgFolder in imgFolders:
             # Open the B02 image.
             img = gdal.Open(band, gdal.GA_ReadOnly)
             band_id = band[-6:-4]
-            tile_id = band[-13:-8]
             if img is None:
                 print 'Could not open band #{}'.format(band_id)
                 sys.exit(1)
