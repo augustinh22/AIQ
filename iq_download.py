@@ -21,7 +21,7 @@ import xml.etree.ElementTree as etree
 from datetime import date
 import Tkinter
 
-import requests  # Follow PEP8 on formatting imports.
+import requests
 
 ################################################################################
 class OptionParser(optparse.OptionParser):
@@ -152,7 +152,7 @@ def download_check(write_dir, title_element, filename):
     elif os.path.exists(os.path.join(write_dir, zfile)):
         print '{} has already been downloaded!'.format(zfile)
         with zipfile.ZipFile(os.path.join(write_dir, zfile)) as z:
-            z.extractall(write_dir)
+            z.extractall(u'\\\\?\\{}'.format(write_dir))
             print 'And is now unzipped.'
         os.remove(os.path.join(write_dir, zfile))
         return True
@@ -734,8 +734,9 @@ elif messagebox and options.tile != None and options.tile != '?':
 
             # Unzip the downloaded file.
             with zipfile.ZipFile(os.path.join(options.write_dir, zfile)) as z:
-                z.extractall(options.write_dir)
+                z.extractall(u'\\\\?\\{}'.format(options.write_dir))
                 print 'Unzipped Scene # {}'.format(str(entry + 1))
+                
             # Delete the zipped version.
             if (os.path.exists(os.path.join(options.write_dir, filename))
                     and os.path.exists(os.path.join(options.write_dir, zfile)):
