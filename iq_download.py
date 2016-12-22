@@ -154,7 +154,7 @@ def download_check(write_dir, title_element, filename):
         with zipfile.ZipFile(os.path.join(write_dir, zfile)) as z:
             z.extractall(write_dir)
             print 'And is now unzipped.'
-            os.remove(os.path.join(write_dir, zfile))
+        os.remove(os.path.join(write_dir, zfile))
         return True
     else:
         return False
@@ -265,7 +265,7 @@ else:
             'password file, if available')
     parser.add_option('-w', '--write_dir', dest='write_dir', action='store',
             type='string', help='Path where products should be downloaded',
-            default='C:/tempS2')
+            default='C:\\tempS2')
     parser.add_option('-r', dest='MaxRecords', action='store', type='int',
             help='Maximum number of records to download (default=100)',
             default=100)
@@ -330,6 +330,10 @@ elif options.hub == 'dhus':
 # # Untested
 # elif options.hub == 'zamg':
 #     huburl = 'https://data.sentinel.zamg.ac.at/api/'
+
+# Make sure write_dir is formatted properly.
+options.write_dir = (options.write_dir).replace('/', '\\')
+print options.write_dir
 
 # Build in checks for valid commands related to the spatial aspect.
 if options.tile is None or options.tile == '?':
@@ -613,7 +617,7 @@ if messagebox and (options.tile is None or options.tile == '?'):
         if check is True:
             continue
 
-        # Save to defined directory (default = C:/S2)
+        # Save to defined directory (default = C:\\tempS2)
         command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
             options.write_dir, wg_opt, zfile, sentinel_link)
 
@@ -621,9 +625,13 @@ if messagebox and (options.tile is None or options.tile == '?'):
         os.system(command_aria)
         print 'Downloaded Scene #{}'.format(str(entry + 1))
 
+        # Unzip even if path names are really long.
         with zipfile.ZipFile(os.path.join(options.write_dir, zfile)) as z:
-            z.extractall(options.write_dir)
+            z.extractall(u'\\\\?\\{}'.format(options.write_dir))
             print 'Unzipped Scene # {}'.format(str(entry + 1))
+        # If the unzipped and zipped version exist, delete the zipped version.
+        if (os.path.exists(os.path.join(options.write_dir, filename))
+                and os.path.exists(os.path.join(options.write_dir, zfile)):
             os.remove(os.path.join(options.write_dir, zfile))
 
 
@@ -635,7 +643,7 @@ if messagebox and (options.tile is None or options.tile == '?'):
 # create the proper file structure mimicing a complete download and fill it
 # with data specific to the tile you want.
 elif messagebox and options.tile != None and options.tile != '?':
-    # Create download directory if not already existing (default = C:/S2)
+    # Create download directory if not already existing (default = C:\\tempS2)
     if not(os.path.exists(options.write_dir)):
             os.mkdir(options.write_dir)
    	# Download all whole scenes matching the query.
@@ -716,7 +724,7 @@ elif messagebox and options.tile != None and options.tile != '?':
             if check is True:
                 continue
 
-            # Save to defined directory (default = C:/S2)
+            # Save to defined directory (default = C:\\tempS2)
             command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
                 options.write_dir, wg_opt, zfile, sentinel_link)
 
@@ -724,9 +732,13 @@ elif messagebox and options.tile != None and options.tile != '?':
             os.system(command_aria)
             print 'Downloaded Scene #{}'.format(str(entry + 1))
 
+            # Unzip the downloaded file.
             with zipfile.ZipFile(os.path.join(options.write_dir, zfile)) as z:
                 z.extractall(options.write_dir)
                 print 'Unzipped Scene # {}'.format(str(entry + 1))
+            # Delete the zipped version.
+            if (os.path.exists(os.path.join(options.write_dir, filename))
+                    and os.path.exists(os.path.join(options.write_dir, zfile)):
                 os.remove(os.path.join(options.write_dir, zfile))
 
         else:
