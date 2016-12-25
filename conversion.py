@@ -47,6 +47,11 @@
 ##;             the Sentinel-2A/2B bands           2, 3, 4, 8, 11 and 12
 ##;             with spatial resolutions          10, 10, 10, 10, 20, 20.
 
+#------------------------------------------------------------------------------#
+#     See README.md for Windows configuration of Numpy, Scipy, and GDAL        #
+#------------------------------------------------------------------------------#
+
+
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
@@ -216,26 +221,27 @@ for imgFolder in imgFolders:
             ## print therm_array
             ## print therm_array.shape
 
-            # Write the data to the designated band and calculate stats.
+            # Write the data to the designated band.
             outBand = thermDs.GetRasterBand(1)
             outBand.WriteArray(therm_array, 0, 0)
-            # Must be tested.
-            ## outBand.ComputeStatistics()
-            ## outBand.SetStatistics()
 
             # Flush data to disk and set the NoData value.
             outBand.FlushCache()
             outBand.SetNoDataValue(-99)
-
+            # Calculate stats.
+            stats = outBand.ComputeStatistics(outBand)
+            outBand.SetStatistics(stats[0], stats[1], stats[2], stats[3])
+            
+            print 'Fake thermal band created.\n\n'
             print 'Elapsed time: {}'.format(
                 datetime.datetime.now() - start_time)
-            print 'Fake thermal band created.\n\n'
 
             # Clean up.
             del band_id
             del driver
             del therm_array
             del outBand
+            del stats
             thermDs = None
             img = None
 
@@ -288,17 +294,17 @@ for imgFolder in imgFolders:
             # Write the data to the designated band and calculate stats.
             outBand = outDs.GetRasterBand(iteration)
             outBand.WriteArray(outData, 0, 0)
-            # Computing statistics for each band has to be tested.
-            ## outBand.ComputeStatistics()
-            ## outBand.SetStatistics()
 
             # Flush data to disk and set the NoData value.
             outBand.FlushCache()
             outBand.SetNoDataValue(-99)
+            # Calculate stats.
+            stats = outBand.ComputeStatistics(outBand)
+            outBand.SetStatistics(stats[0], stats[1], stats[2], stats[3])
 
+            print 'Band #{} completed.\n'.format(band_id)
             print 'Elapsed time: {}'.format(
                 datetime.datetime.now() - start_time)
-            print 'Band #{} completed.\n'.format(band_id)
 
             # Clean up.
             del img_band
@@ -306,6 +312,7 @@ for imgFolder in imgFolders:
             del img_array
             del outData
             del outBand
+            del stats
             img = None
 
             # On we go...
@@ -329,31 +336,3 @@ print 'Done processing.'
 print 'End time: {}'.format(datetime.datetime.now().time())
 print 'Total elapsed time: {}'.format(datetime.datetime.now() - start_time)
 print '==================================================================\n\n'
-
-#------------------------------------------------------------------------------#
-# A bit of confused configuration for Windows (GDAL, etc.) -- not finished     #
-#------------------------------------------------------------------------------#
-
-# Download and install MSVC for your version of Windows/Python
-# Download and install GDAL for Windows based on your version of MSVC/Python
-# (Python 2.7 uses 1500 which is MSVC 2008)
-# * http://www.gisinternals.com/release.php
-# * gdal-201-1500-x64-core.msi
-# * Set system path environment variable to include GDAL folder
-# * Set system environment variable GDAL_DATA to the gdal-data folder in GDAL
-# Download GDAL Python bindings for Windows
-# * http://www.gisinternals.com/release.php
-# * GDAL-2.1.2.win-amd64-py2.7.msi
-# * Make sure that it binds to the correct installation of Python
-#    (e.g. C:\Python27)
-# * copy the missing files from the unofficial windows binary .whl interpolation
-#    into the GDAL folder in Python if necessary:
-#    (http://www.lfd.uci.edu/~gohlke/pythonlibs/#gdal)
-#       - specifically go to: GDAL-2.1.2-cp27-cp27m-win_amd64.whl\osgeo\
-#       - make sure all .pyd files are included in the original python bindings
-#         installed using the gisinternals installer. If not, copy paste
-#         into e.g. C:\Python27\Lib\site-packages\osgeo
-#         The _gdal_array.pyd file is the most important.
-# Download and install Numpy + MKL and SciPy Python packages for Windows
-# * http://www.lfd.uci.edu/~gohlke/pythonlibs/
-# * pip install .whl
