@@ -315,6 +315,11 @@ else:
 
     (options, args) = parser.parse_args()
 
+
+#------------------------------------------------------------------------------#
+#                               Create query                                   #
+#------------------------------------------------------------------------------#
+
 # Add tile query check.
 if options.tile != None and options.sentinel != 'S2':
     print 'The tile option (-t) can only be used for Sentinel-2!'
@@ -326,14 +331,15 @@ if options.hub is None:
 elif options.hub == 'dhus':
     huburl = 'https://scihub.copernicus.eu/dhus/'
     # The data hub had a limit of 10 records.
-    options.MaxRecords = '10'
+    if int(options.MaxRecords) > 10:
+        options.MaxRecords = '10'
 # # Untested
 # elif options.hub == 'zamg':
 #     huburl = 'https://data.sentinel.zamg.ac.at/api/'
 
 # Make sure write_dir is formatted properly.
 options.write_dir = (options.write_dir).replace('/', '\\')
-print options.write_dir
+print '\nDirectory: {}\n'.format(options.write_dir)
 
 # Build in checks for valid commands related to the spatial aspect.
 if options.tile is None or options.tile == '?':
@@ -584,7 +590,7 @@ total_size = '{0:.2f} GB'.format(total_size)
 if options.tile is None or options.tile == '?':
     question_tile = 'Do you want to download all results?'
 elif options.tile != None:
-    question_tile = ('Do you want to download only {} tiles selected'
+    question_tile = ('Do you want to download only {} tiles selected '
         'from the results?').format(options.tile)
 
 # Create question to continue based on the number of scenes found.
@@ -596,6 +602,11 @@ question = ('Number of scenes found: {}'
 Tkinter.Tk().withdraw()
 # Create the content of the window.
 messagebox = tkMessageBox.askyesno('Sentinel Downloader', question)
+
+
+#------------------------------------------------------------------------------#
+#                                  Download.                                   #
+#------------------------------------------------------------------------------#
 
 # If you want to download all entries and did not search for a specific tile,
 # then downloading will begin.
@@ -631,9 +642,8 @@ if messagebox and (options.tile is None or options.tile == '?'):
             print 'Unzipped Scene # {}'.format(str(entry + 1))
         # If the unzipped and zipped version exist, delete the zipped version.
         if (os.path.exists(os.path.join(options.write_dir, filename))
-                and os.path.exists(os.path.join(options.write_dir, zfile)):
+                and os.path.exists(os.path.join(options.write_dir, zfile))):
             os.remove(os.path.join(options.write_dir, zfile))
-
 
     print '\n------------------------------------------------------------------'
     print 'Downloading complete!'
@@ -641,12 +651,14 @@ if messagebox and (options.tile is None or options.tile == '?'):
 
 # If you want to download a tile that you searched for, then it will
 # create the proper file structure mimicing a complete download and fill it
-# with data specific to the tile you want.
+# with data specific to the tile you want, or, post 06.12.16, simply download
+# complete matching tile packages.
 elif messagebox and options.tile != None and options.tile != '?':
     # Create download directory if not already existing (default = C:\\tempS2)
     if not(os.path.exists(options.write_dir)):
             os.mkdir(options.write_dir)
-   	# Download all whole scenes matching the query.
+
+   	# Search through entries for matching tiles.
     for entry in range(len(entries)):
         # Create download command for the entry.
         uuid_element = (entries[entry].find('{http://www.w3.org/2005/Atom}'
@@ -736,10 +748,10 @@ elif messagebox and options.tile != None and options.tile != '?':
             with zipfile.ZipFile(os.path.join(options.write_dir, zfile)) as z:
                 z.extractall(u'\\\\?\\{}'.format(options.write_dir))
                 print 'Unzipped Scene # {}'.format(str(entry + 1))
-                
+
             # Delete the zipped version.
             if (os.path.exists(os.path.join(options.write_dir, filename))
-                    and os.path.exists(os.path.join(options.write_dir, zfile)):
+                    and os.path.exists(os.path.join(options.write_dir, zfile))):
                 os.remove(os.path.join(options.write_dir, zfile))
 
         else:
