@@ -1,7 +1,8 @@
 #-------------------------------------------------------------------------------
 # Name:        SIAM batch creator
-# Purpose:     This script uses Tkinter to create a GUI for creating one SIAM
-#              batch file.
+# Purpose:     This script uses a Tkinter GUI to create a SIAM
+#              batch file based on SIAM compatible files located in a target
+#              directory.
 #
 # Author:      h.Augustin
 #
@@ -20,27 +21,46 @@ import tkMessageBox
 
 import gdal
 
-def show_params():
-    if var06.get() == 'Select one.':
-        print '\nPlease pick an image type!\n'
-    else:
-        print('\nImage type: {} ({})'.format(
-            var06.get(), image_type[var06.get()]))
-        print 'SIAM path: {}'.format(var00.get())
-        print 'S2 path: {}'.format(s2_Folder.get())
-        print 'Processing with a binary mask: {}'.format(var03.get())
-        print 'Fuzzy classification: {}'.format(var07.get())
-        print 'Smoke-plume mask: {}'.format(var09.get())
-        print 'Cloud mask: {}'.format(var10.get())
-        print 'Burnt area mask: {}'.format(var11.get())
-        print 'Vegetation binary mask: {}'.format(var12.get())
-        print 'Vegetation trinary mask: {}'.format(var13.get())
-        print 'Baresoil built-up trinary mask: {}'.format(var14.get())
-        print 'Cloud trinary mask: {}'.format(var15.get())
-        print 'Water trinary mask: {}'.format(var16.get())
-        print 'Shadow trinary mask: {}'.format(var17.get())
-        print 'Urban area binary mask: {}'.format(var18.get())
+def param_check():
 
+    if var00.get() == '':
+        info = 'Please enter SIAM executable location!'
+        tkMessageBox.showerror('Missing Parameter', info)
+    elif s2_Folder.get() == '':
+        info = 'Please enter root folder!'
+        tkMessageBox.showerror('Missing Parameter', info)
+    elif var06.get() == 'Select one.':
+        info = 'Please select an image type!\n\nSentinel 2 is LANDSAT_LIKE.'
+        tkMessageBox.showerror('Missing Parameter', info)
+    else:
+        master.quit()
+
+
+def show_params():
+
+    if var06.get() == 'Select one.':
+        info = 'Please select an image type!\n\nSentinel 2 is LANDSAT_LIKE.'
+        tkMessageBox.showerror('Missing Parameter', info)
+    else:
+        test = ('S2 path:\n  {}\n\n'
+            'Image type: {} ({})\n'
+            'Processing with a binary mask: {}\n'
+            'Crisp classification: {}\n'
+            'Smoke-plume mask: {}\n'
+            'Cloud mask: {}\n'
+            'Burnt area mask: {}\n'
+            'Vegetation binary mask: {}\n'
+            'Vegetation trinary mask: {}\n'
+            'Baresoil built-up trinary mask: {}\n'
+            'Cloud trinary mask: {}\n'
+            'Water trinary mask: {}\n'
+            'Shadow trinary mask: {}\n'
+            'Urban area binary mask: {}').format(
+            s2_Folder.get(), var06.get(), image_type[var06.get()],
+            var03.get(), var07.get(), var09.get(), var10.get(), var11.get(),
+            var12.get(), var13.get(), var14.get(), var15.get(), var16.get(),
+            var17.get(), var18.get())
+        tkMessageBox.showinfo('Test Parameters', test)
 
 #------------------------------------------------------------------------------#
 #                                     GUI                                      #
@@ -79,8 +99,8 @@ var00x.config(width=61)
 var00x.pack(pady=15, side='right')
 
 # Define S2 root folder text entry box.
-label03 = Tkinter.Label(s2_input, text='Path to folder where Sentinel 2 data '
-    'are saved: ')
+label03 = Tkinter.Label(s2_input, text='Path to folder where Sentinel 2 '
+    'including .dat files for SIAM are saved: ')
 label03.pack(pady=15, side='left')
 
 s2_Folder = Tkinter.StringVar()
@@ -165,12 +185,12 @@ var18x = Tkinter.Checkbutton(binary, text="Urban area binary mask",
 var18x.pack()
 
 # Ability to close GUI and print current state of variables using bottons.
-button01 = Tkinter.Button(buttons, text='Continue', command=master.quit)
+button01 = Tkinter.Button(buttons, text='Continue', command=param_check)
 button01.pack()
-button02 = Tkinter.Button(buttons, text='Show', command=show_params)
+button02 = Tkinter.Button(buttons, text='Test', command=show_params)
 button02.pack()
 
-# Not sure what this does.
+# Creates GUI box where widgets go.
 Tkinter.mainloop()
 
 #------------------------------------------------------------------------------#
@@ -187,15 +207,15 @@ for dirpath, dirnames, filenames in os.walk(s2_Folder.get(), topdown=True):
 # Hide the main window.
 Tkinter.Tk().withdraw()
 
-question = ('Would you like to create a batch file\n to process {} tiles'
-    ' in SIAM?').format(str(len(procFolders)))
+question = ('Would you like to process {} tiles in SIAM?').format(
+    str(len(procFolders)))
 # Create the content of the window.
 messagebox = tkMessageBox.askyesno('SIAM batch creator',
     question)
 
 
 #------------------------------------------------------------------------------#
-#                         Create batch file or quit                            #
+#                  Create batch file and launch SIAM or quit                   #
 #------------------------------------------------------------------------------#
 
 if messagebox:
@@ -203,13 +223,10 @@ if messagebox:
     # register all of the GDAL drivers
     gdal.AllRegister()
 
-    ## Batch file, might need to be saved in PROC_DATA -- here is just the name
+    # Create empty batch file for SIAM.
     var06_text = var06.get()
     batFilename = 'SIAM_multiple_batch_{}.bat'.format(var06_text[:-5])
-    print '\n\n'
-    print batFilename
     batch_path = os.path.join(s2_Folder.get(), batFilename)
-    print batch_path
 
     # Convert binary variables and image type identifier from GUI to strings.
     var00 = var00.get()
@@ -231,7 +248,7 @@ if messagebox:
 
         var01 = procFolder
 
-        # Create the folder for siam data if it doesn't exist.
+        # Create the folder for SIAM output data if it doesn't exist.
         siam_output = os.path.join(procFolder, 'siamoutput')
         if not(os.path.exists(siam_output)):
             os.mkdir(siam_output)
@@ -256,12 +273,10 @@ if messagebox:
         img = gdal.Open(calrefbyt, gdal.GA_ReadOnly)
         if img is None:
             print '\nCould not open *calrefbyt*.dat'
-            print 'Folder: {}\n'.format(procFolder)
+            print 'Folder not processed: {}\n'.format(procFolder)
             continue
-        # Rows.
-        var04 = str(img.RasterYSize)
-        # Columns.
-        var05 = str(img.RasterXSize)
+        var04 = str(img.RasterYSize)  # Rows.
+        var05 = str(img.RasterXSize)  # Columns.
 
         # Create string to write to batch file.
         batch_entry = ' '.join((var00, var01, var02, var03, var04, var05,
@@ -269,25 +284,24 @@ if messagebox:
             var15, var16, var17, var18))
         with open(batch_path, 'a') as f:
             f.write(batch_entry + '\n')
-        # print batch_entry
+        ## print batch_entry
 
         # Clean up.
         img = None
+
+    # Location.
+    print '\n\n{} created.\nSaved to: {}\n\n'.format(batFilename, batch_path)
+
+    # Launch batch file.
+    # Excerpt from Tiede's ArcGIS Python Toolbox to launch SIAM
+    # myprocess = subprocess.Popen(batFilename)
+    #
+    # myprocess.wait()               # We wait for process to finish
+    # print myprocess.returncode     # then we get its returncode.
+
 else:
     print '\nNo SIAM batch file created.\n'
     sys.exit()
-
-#------------------------------------------------------------------------------#
-#                             Launch batch file                                #
-#------------------------------------------------------------------------------#
-
-
-# Excerpt from Tiede's ArcGIS Python Toolbox to launch SIAM
-# myprocess = subprocess.Popen(batFilename)
-#
-# myprocess.wait()               # We wait for process to finish
-# print myprocess.returncode     # then we get its returncode.
-
 
 #------------------------------------------------------------------------------#
 #                Parameters from Example batch file explained.                 #
