@@ -26,6 +26,9 @@ def getDirectorylist(rootdirectory, sensortype):
     if sensortype == "CORINE":
         directorypattern = "g100_clc"
 
+    if sensortype == "Sentinel-2":
+        directorypattern = "S2A_"  # Note new structure filenames (L1C*) are previously changed.
+
     #
     # directories keeps the list with the directory names
     #
@@ -83,6 +86,48 @@ def getDates(dirname,sensortype):
         #
         date = datetime.datetime(year, 1, 1)
         delta = date - datetime.datetime(1601, 1, 2)
+
+        #
+        # Return ANSI date and date
+        #
+        return [str(delta.days), str(date)[0:10]]
+
+    if sensortype == "Sentinel-2":
+
+        #
+        # New S2 data format.
+        #
+        if dirname.startswith('S2A_L1C_')
+
+            name_parts = dirname.split("_")
+            datetimeinfo = name_parts[4]
+
+        #
+        # Old S2 data format.
+        #
+        if dirname.startswith('S2A_OPER_')
+
+            name_parts = dirname.split("_")
+            datetimeinfo = name_parts[7]
+
+        #
+        # Extract year and day of year
+        #
+        dateinfo = datetimeinfo[:-7]
+        year = int(dateinfo[:-4])
+        month = int(dateinfo[4:-2])
+        day = int(dateinfo[6:])
+        fmt = '%Y.%m.%d'
+        s = '{}.{}.{}'.format(year, month, day)
+        dt = datetime.strptime(s, fmt)
+        tt = dt.timetuple()
+    	doy = int(tt.tm_yday) # Extract doy
+
+        #
+        # Convert to ANSI date
+        #
+        date = datetime.datetime(year, 1, 1) + datetime.timedelta(doy - 1)
+        delta = date - datetime.datetime(1601, 1, 2) # somehow there is one day too much, investigate later
 
         #
         # Return ANSI date and date
@@ -219,6 +264,10 @@ def getFilemetadata(rootdirectory, directorylist, sensortype, product):
                     fileinfo["epsg"] = 3035
                     fileinfo["pixelsize"] = 100
 
+                if sensortype == "Sentinel-2":
+                    fileinfo["filename"] = directory
+                    fileinfo["pixelsize"] = 10
+
                 #
                 # Add the fileinfo to the array
                 #
@@ -288,17 +337,20 @@ def extractMetadata(rootdirectory,sensortype, product):
 
     global debugging
 
+    if sensortype == "CORINE":
+        description = "This is the CORINE land use / land cover class layer"
+
     metadata = {
 
         #
         # The name of the dataset as it should be shown in IQ
         #
-        "name": "CORINE",
+        "name": sensortype,
 
         #
         # The description that should be shown in IQ
         #
-        "description": "This is the CORINE land use / land cover class layer",
+        "description": description,
 
         #
         # Whether this dataset should only be visible for certain user (groups) in IQ. Set to false as
