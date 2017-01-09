@@ -66,10 +66,13 @@ import gdal
 import numpy
 import scipy.ndimage
 
+# Define S2 root folder, where all downloads are located.
+root_folder = 'C:\\tempS2'
+
 # Create empty list for IMG_DATA folder paths
 imgFolders = []
 
-for dirpath, dirnames, filenames in os.walk('C:\\tempS2', topdown=True):
+for dirpath, dirnames, filenames in os.walk(root_folder, topdown=True):
     for dirname in dirnames:
         if dirname == 'IMG_DATA':
             imgFolders.append(os.path.join(dirpath, dirname))
@@ -231,7 +234,7 @@ for imgFolder in imgFolders:
             # Calculate stats.
             stats = outBand.ComputeStatistics(outBand)
             outBand.SetStatistics(stats[0], stats[1], stats[2], stats[3])
-            
+
             print 'Fake thermal band created.\n\n'
             print 'Elapsed time: {}'.format(
                 datetime.datetime.now() - start_time)
