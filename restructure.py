@@ -14,8 +14,20 @@ for dirpath, dirnames, filenames in os.walk(root_folder, topdown=True):
 print tile_folders
 
 for folder in tile_folders:
+    # This needs to return capture date for old structure.
+    # path_parts = folder.split("\\")
+    # granule_file = path_parts[:-1]
+    # if granule_file.startswith("S2A_"):
+        # package_file = path_parts[:-3]
+        # package_parts = package_file.split("_")[]
+        # datetimeinfo = package_parts[7]
+        # capture_date = datetimeinfo[:-7]
+
     # Move tile folder to temp folder.
     shutil.move(folder, root_folder)
+
+    # If old structure, rename to replace creation date with capture date in title.
+
     # Remove original file structure
     shutil.rmtree(str(folder[:-70]))
 
