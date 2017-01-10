@@ -43,23 +43,26 @@ def change_to_capture(tile_folders):
     for folder in tile_folders:
 
         # This needs to return capture date for old structure.
+        head, tile_file = os.path.split(folder)
 
-#       os.path.dirname(os.path.dirname(file)) ## directory of directory of file
+        # If it is the old version, then rename the tile package.
+        if tile_file.startswith("S2A_"):
 
-        # path_parts = folder.split("\\")
-        # granule_file = path_parts[-1]
-        # if granule_file.startswith("S2A_"):
-            # package_file = path_parts[-3]
-            # package_parts = package_file.split("_")
-            # capture_info = package_parts[7]
+            # Return path and name of package folder, extracting date and time
+            # of image capture.
+            package = os.path.dirname(os.path.dirname(folder))
+            head, tail = os.path.split(package)
+            package_parts = tail.split("_")
+            capture_info = package_parts[7]
 
             # capture_date = capture_info[1:-7]
 
-            # granule_parts = granule_file.split("_")
-            # granule_parts[4] = capture_info[1:]
-            # new_name = "_".join(granule_parts)
-            # os.path.abspath(folder)
-            # os.rename(granule_file, new_name)
+            # Replace the creation date and time with the capture date and time.
+            file_parts = tile_file.split("_")
+            file_parts[7] = capture_info[1:]
+            new_name = "_".join(file_parts)
+            new_path = os.path.join(os.path.dirname(folder), new_name)
+            os.rename(folder, new_path)
 
 def move_and_delete(tile_folders, root_folder):
 
