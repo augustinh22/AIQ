@@ -27,7 +27,7 @@ def getDirectorylist(rootdirectory, sensortype):
         directorypattern = "g100_clc"
 
     if sensortype == "Sentinel-2":
-        directorypattern = "S2A_"  # Note new structure filenames (L1C*) are previously changed.
+        directorypattern = "S2A"  # Note new structure filenames (L1C*) are previously changed.
 
     #
     # directories keeps the list with the directory names
