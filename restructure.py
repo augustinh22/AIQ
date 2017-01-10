@@ -64,14 +64,24 @@ def change_to_capture(tile_folders):
             new_path = os.path.join(os.path.dirname(folder), new_name)
             os.rename(folder, new_path)
 
-def move_and_delete(tile_folders, root_folder):
+
+def move_and_meta(tile_folders, root_folder, delete):
 
     for folder in tile_folders:
 
         # Move tile folder to temp folder.
         shutil.move(folder, root_folder)
-        # Remove original file structure
-        shutil.rmtree(str(folder[:-70]))
+
+        if delete is True:
+            # Remove original file structure
+            shutil.rmtree(os.path.dirname(os.path.dirname(folder)))
+        else:
+            # Move original file structure without images to metadata folder.
+            metadata_dir = os.path.join(root_folder, 'metadata')
+            if not(os.path.exists(metadata_dir)):
+                os.mkdir(metadata_dir)
+            shutil.move(os.path.dirname(os.path.dirname(folder)), metadata_dir)
+
 
 def new_to_S2A(root_folder):
 
@@ -84,6 +94,7 @@ def new_to_S2A(root_folder):
         else:
             new_fn = 'S2A{}'.format(fn)
             os.rename(os.path.join(root_folder, fn), os.path.join(root_folder, new_fn))
+
 
 if __name__ == "__main__":
 
@@ -100,7 +111,7 @@ if __name__ == "__main__":
     mod_folders = tile_folders(root_folder)
 
     # Move folders to root directory.
-    move_and_delete(mod_folders, root_folder)
+    move_and_delete(mod_folders, root_folder, False)
 
     # Modify new tile name directories (post-06.12.16) to start with S2A.
     new_to_S2A(root_folder)
