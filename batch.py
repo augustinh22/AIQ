@@ -17,9 +17,14 @@ import os
 import sys
 import Tkinter
 import fnmatch
+import subprocess
 import tkMessageBox
 
 import gdal
+
+# Set GDAL environment variable for translating grib to tiff.
+# os.environ['GDAL_DATA'] = r'C:\Program Files\GDAL\gdal-data'
+
 
 def param_check():
 
@@ -225,7 +230,10 @@ if messagebox:
 
     # Create empty batch file for SIAM.
     var06_text = var06.get()
-    batFilename = 'SIAM_multiple_batch_{}.bat'.format(var06_text[:-5])
+    if len(procFolders) > 1:
+        batFilename = 'SIAM_multiple_batch_{}.bat'.format(var06_text[:-5])
+    else:
+        batFilename = 'SIAM_batch_{}.bat'.format(var06_text[:-5])
     batch_path = os.path.join(s2_Folder.get(), batFilename)
 
     # Convert binary variables and image type identifier from GUI to strings.
@@ -292,16 +300,23 @@ if messagebox:
     # Location.
     print '\n\n{} created.\nSaved to: {}\n\n'.format(batFilename, batch_path)
 
-    # Launch batch file.
-    # Excerpt from Tiede's ArcGIS Python Toolbox to launch SIAM
-    # myprocess = subprocess.Popen(batFilename)
-    #
-    # myprocess.wait()               # We wait for process to finish
-    # print myprocess.returncode     # then we get its returncode.
-
 else:
     print '\nNo SIAM batch file created.\n'
     sys.exit()
+
+
+#------------------------------------------------------------------------------#
+#                              Launch batch file.                              #
+#------------------------------------------------------------------------------#
+
+## May need to add threading to avoid GUI freezing upon launch.
+
+# Excerpt from Tiede's ArcGIS Python Toolbox to launch SIAM
+
+# myprocess = subprocess.Popen(batch_path)
+# myprocess.wait()               # We wait for process to finish
+# print myprocess.returncode     # then we get its returncode.
+
 
 #------------------------------------------------------------------------------#
 #                Parameters from Example batch file explained.                 #
