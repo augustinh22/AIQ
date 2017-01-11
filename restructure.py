@@ -91,7 +91,7 @@ def new_to_S2A(root_folder):
             continue # Not a directory.
         if fn.startswith('S2A_'):
             continue
-        else:
+        elif fn.startswith('L1C'):
             new_fn = 'S2A{}'.format(fn)
             os.rename(os.path.join(root_folder, fn), os.path.join(root_folder, new_fn))
 
@@ -111,7 +111,7 @@ if __name__ == "__main__":
     mod_folders = tile_folders(root_folder)
 
     # Move folders to root directory.
-    move_and_delete(mod_folders, root_folder, False)
+    move_and_meta(mod_folders, root_folder, False)
 
     # Modify new tile name directories (post-06.12.16) to start with S2A.
     new_to_S2A(root_folder)
