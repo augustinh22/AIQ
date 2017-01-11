@@ -388,19 +388,29 @@ if options.tile is None or options.tile == '?':
             )
             sys.exit(-1)
 else:
-    # Returns polygon coordinates. Quits if the tile or kml file do not exist.
-    point1, point2, point3, point4, point5 = tile_coords(
-        options.tile, 'polygon')
-    # If the polygon's not square get the center coordinate...
-    if point1 != point5:
-        # Quits if the tile doesn't exist, otherwise returns center coordinates.
-        coords = tile_coords(options.tile, 'point')
-        options.lon = coords[0]
-        options.lat = coords[1]
-        print 'Center point: {} lat, {} lon'.format(options.lat, options.lon)
-        geom = 'point'
-    else:
-        geom = 'tile'
+    #
+    # # Returns polygon coordinates. Quits if the tile or kml file do not exist.
+    #
+    # point1, point2, point3, point4, point5 = tile_coords(
+    #     options.tile, 'polygon')
+    #
+    # # If the polygon's not square get the center coordinate...
+    # if point1 != point5:
+    #     # Quits if the tile doesn't exist, otherwise returns center coordinates.
+    #     coords = tile_coords(options.tile, 'point')
+    #     options.lon = coords[0]
+    #     options.lat = coords[1]
+    #     print 'Center point: {} lat, {} lon'.format(options.lat, options.lon)
+    #     geom = 'point'
+    # else:
+    #     geom = 'tile'
+
+    # Defines lat and lon based on tile's center point.
+    coords = tile_coords(options.tile, 'point')
+    options.lon = coords[0]
+    options.lat = coords[1]
+    print 'Center point: {} lat, {} lon'.format(options.lat, options.lon)
+    geom = 'point'
 
 # Create spatial parts of the query ::: point, rectangle or location name
 # Beware of the quotation marks. For some reason the double quotes alone are
@@ -640,6 +650,7 @@ if messagebox and (options.tile is None or options.tile == '?'):
         with zipfile.ZipFile(os.path.join(options.write_dir, zfile)) as z:
             z.extractall(u'\\\\?\\{}'.format(options.write_dir))
             print 'Unzipped Scene # {}'.format(str(entry + 1))
+
         # If the unzipped and zipped version exist, delete the zipped version.
         if (os.path.exists(os.path.join(options.write_dir, filename))
                 and os.path.exists(os.path.join(options.write_dir, zfile))):
@@ -654,6 +665,7 @@ if messagebox and (options.tile is None or options.tile == '?'):
 # with data specific to the tile you want, or, post 06.12.16, simply download
 # complete matching tile packages.
 elif messagebox and options.tile != None and options.tile != '?':
+    
     # Create download directory if not already existing (default = C:\\tempS2)
     if not(os.path.exists(options.write_dir)):
             os.mkdir(options.write_dir)
