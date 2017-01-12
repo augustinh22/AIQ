@@ -51,13 +51,13 @@
 #     See README.md for Windows configuration of Numpy, Scipy, and GDAL        #
 #------------------------------------------------------------------------------#
 
-
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
 import os
 import sys
 import datetime
+import fnmatch
 import Tkinter
 import tkMessageBox
 import xml.etree.ElementTree as etree
@@ -66,25 +66,31 @@ import gdal
 import numpy
 import scipy.ndimage
 
+#
 # Define S2 root folder, where all downloads are located.
+#
 root_folder = 'C:\\tempS2'
 
-# Create empty list for IMG_DATA folder paths
+#
+# Create list for IMG_DATA folder paths.
+#
 imgFolders = []
 
 for dirpath, dirnames, filenames in os.walk(root_folder, topdown=True):
     for dirname in dirnames:
         if dirname == 'IMG_DATA':
             imgFolders.append(os.path.join(dirpath, dirname))
-## print imgFolders
 
-# Create question to continue based on the number of scenes found.
+#
+# Hide the main window for the message popup.
+#
+Tkinter.Tk().withdraw()
+
+#
+# Create the content of the popup window.
+#
 question = ('Number of tiles found: {}'
     '\n\nDo you want to process all folders?').format(len(imgFolders))
-
-# Hide the main window.
-Tkinter.Tk().withdraw()
-# Create the content of the window.
 messagebox = tkMessageBox.askyesno('Sentinel for SIAM', question)
 
 if not messagebox:
@@ -94,38 +100,47 @@ if not messagebox:
 start_time = datetime.datetime.now()
 
 print '=================================================================='
-print 'Hold on to your hat. This may take ~10 minutes per S2 tile folder.'
+print 'Hold on to your hat. This may take ~15 minutes per S2 tile folder.'
 print 'Number of IMG_DATA folders found: {}'.format(len(imgFolders))
-print 'Estimated time: {} minutes'.format(int(len(imgFolders)) * 10)
+print 'Estimated time: {} minutes'.format(int(len(imgFolders)) * 15)
 print 'Start time: {}'.format(start_time.time())
 print '==================================================================\n\n'
 
-# Register all of the GDAL drivers
+#
+# Register all of the GDAL drivers.
+#
 gdal.AllRegister()
 
 for imgFolder in imgFolders:
 
     metadata_path = []
-    for file in os.listdir(imgFolder[:-9]):
-        if (file.startswith('S2A') or file.startswith('MTD')) and file.endswith('.xml'):
-            metadata_file = file
-            metadata_path.append(os.path.join(imgFolder[:-9], file))
+
+    for fn in os.listdir(os.path.dirname(imgFolder)):
+        if (fn.startswith('S2A_') or fn.startswith('MTD')) and fn.endswith('.xml'):
+            metadata_file = fn
+            metadata_path.append(os.path.join(os.path.dirname(imgFolder), fn))
     if len(metadata_path) > 1:
-        print 'Make sure only the original metadata exists in the tile folder.'
+        print ('Make sure only the original metadata exists in the tile folder'
+            '\n{}'.format(os.path.dirname(imgFolder)))
         sys.exit()
 
+    #
     # Parse the metadata xml-file. There should only be one path.
+    #
     tree = etree.parse(metadata_path[0])
 
+    #
     # Get metadata values from the General_Info element.
+    #
     General_Info = tree.find('{https://psd-12.sentinel2.eo.esa.int/'
         'PSD/S2_PDI_Level-1C_Tile_Metadata.xsd}General_Info')
     TILE_ID = General_Info.find('TILE_ID').text
     tile_id = TILE_ID[-12:-7]
-    ## DATASTRIP_ID = General_Info.find('DATASTRIP_ID').text
     SENSING_TIME = General_Info.find('SENSING_TIME').text
 
+    #
     # Get metadata values from the Geometric_Info element.
+    #
     Geometric_Info = tree.find('{https://psd-12.sentinel2.eo.esa.int/'
         'PSD/S2_PDI_Level-1C_Tile_Metadata.xsd}Geometric_Info')
     HORIZONTAL_CS_NAME = Geometric_Info.find('Tile_Geocoding').find(
@@ -134,31 +149,63 @@ for imgFolder in imgFolders:
         'HORIZONTAL_CS_CODE').text
 
     tile_bands = []
-    if metadata_file.startswith('S2A_OPER'):
+
+    #
+    # Retrieve desired bands from old data structure.
+    #
+    if metadata_file.startswith('S2A_'):
         for dirpath, dirnames, filenames in os.walk(imgFolder, topdown=True):
             for filename in filenames:
-                if filename.startswith('S2A') and filename.endswith('.jp2'):
+                if (filename.startswith('S2A') and filename.endswith('.jp2')
+                        and (fnmatch.fnmatch(filename, '*_B02.*')
+                        or fnmatch.fnmatch(filename, '*_B03.*')
+                        or fnmatch.fnmatch(filename, '*_B04.*')
+                        or fnmatch.fnmatch(filename, '*_B08.*')
+                        or fnmatch.fnmatch(filename, '*_B11.*')
+                        or fnmatch.fnmatch(filename, '*_B12.*'))):
+
                     tile_bands.append(os.path.join(dirpath, filename))
-        tile_bands.sort
+
+    #
+    # Retrieve desired bands from data structure.
+    #
     elif metadata_file.startswith('M'):
         for dirpath, dirnames, filenames in os.walk(imgFolder, topdown=True):
             for filename in filenames:
-                if filename.startswith('T') and filename.endswith('.jp2'):
+                if (filename.startswith('T') and filename.endswith('.jp2')
+                        and (fnmatch.fnmatch(filename, '*_B02.*')
+                        or fnmatch.fnmatch(filename, '*_B03.*')
+                        or fnmatch.fnmatch(filename, '*_B04.*')
+                        or fnmatch.fnmatch(filename, '*_B08.*')
+                        or fnmatch.fnmatch(filename, '*_B11.*')
+                        or fnmatch.fnmatch(filename, '*_B12.*'))):
+
                     tile_bands.append(os.path.join(dirpath, filename))
+
+    #
+    # Put bands in numeric order for processing. Redundant now, keep anyways.
+    #
     tile_bands.sort
 
+    #
     # Create the folder for processed data if it doesn't exist.
-    PROC_DATA = '{}PROC_DATA'.format(imgFolder[:-8])
+    #
+    PROC_DATA = os.path.join(os.path.dirname(imgFolder), 'PROC_DATA')
     if not(os.path.exists(PROC_DATA)):
         os.mkdir(PROC_DATA)
 
+    #
     # Create file to save stack to -- there is probably a better way to do this!
     # Also create fake thermal band file.
+    #
     for band in tile_bands:
-        # Get a band with 10m pixel size to get georeferencing, etc. metadata.
+
         if band.endswith('_B02.jp2'):
 
-            # Open the B02 image.
+            #
+            # Open the B02 image in order to initialize .dat files. Any band
+            # with 10m pixel size would do. Gets georeferencing info, etc.
+            #
             img = gdal.Open(band, gdal.GA_ReadOnly)
             band_id = band[-6:-4]
             if img is None:
@@ -171,67 +218,95 @@ for imgFolder in imgFolders:
             print 'Coordinate system: {}, {}\n\n'.format(
                 HORIZONTAL_CS_NAME, HORIZONTAL_CS_CODE)
 
-
+            #
             # Get raster georeference info from B02 for output .dat files.
+            #
             projection = img.GetProjection()
             transform = img.GetGeoTransform()
-            ## xOrigin = transform[0]
-            ## yOrigin = transform[3]
-            ## pixelWidth = transform[1]
-            ## pixelHeight = transform[5]
+            # xOrigin = transform[0]
+            # yOrigin = transform[3]
+            # pixelWidth = transform[1]
+            # pixelHeight = transform[5]
 
+            #
             # Establish size of raster from B02 for stacked output file.
+            #
             img_rows = img.RasterYSize
             img_cols = img.RasterXSize
 
+            #
             # Open output format driver, see gdal_translate --formats for list.
+            #
             format = 'ENVI'
             driver = gdal.GetDriverByName(format)
 
+            #
             # Test stacked band file path.
-            filepath = '{}/{}calrefbyt_lndstlk.dat'.format(
-                PROC_DATA, os.path.basename(band)[:-7])
+            #
+            stacked_file = '{}calrefbyt_lndstlk.dat'.format(
+                os.path.basename(band)[:-7])
+            filepath = os.path.join(PROC_DATA, stacked_file)
 
+            #
             # Print driver for stacked layers (6 bands, 8-bit unsigned).
+            #
             outDs = driver.Create(filepath, img_cols, img_rows, 6,
                 gdal.GDT_Byte)
             if outDs is None:
                 print 'Could not create test file.'
                 sys.exit(1)
+
+            #
             # Georeference the stacked .dat file and set the projection.
+            #
             outDs.SetGeoTransform(transform)
             outDs.SetProjection(projection)
 
             print 'Creating fake thermal band for {}\n'.format(tile_id)
 
-            # Test thermal band path.
-            filepath = '{}/{}caltembyt_lndstlk.dat'.format(
-                PROC_DATA, os.path.basename(band)[:-7])
+            #
+            # Create thermal band file path.
+            #
+            thermal_file = '{}caltembyt_lndstlk.dat'.format(
+                os.path.basename(band)[:-7])
+            filepath = os.path.join(PROC_DATA, thermal_file)
 
+            #
             # Print driver for fake thermal band (1 band, 8-bit unsigned).
+            #
             thermDs = driver.Create(filepath, img_cols, img_rows, 1,
                 gdal.GDT_Byte)
             if thermDs is None:
                 print 'Could not create test file.'
                 sys.exit(1)
+
+            #
             # Georeference the fake thermal band and set the projection.
+            #
             thermDs.SetGeoTransform(transform)
             thermDs.SetProjection(projection)
 
+            #
             # Create constant array with a value of 110.
+            #
             therm_array = numpy.ones((img_rows, img_cols)).astype(int)
             therm_array = therm_array * 110
-            ## print therm_array
-            ## print therm_array.shape
 
+            #
             # Write the data to the designated band.
+            #
             outBand = thermDs.GetRasterBand(1)
             outBand.WriteArray(therm_array, 0, 0)
 
+            #
             # Flush data to disk and set the NoData value.
+            #
             outBand.FlushCache()
-            outBand.SetNoDataValue(-99)
-            # Calculate stats.
+            # outBand.SetNoDataValue(-99)
+
+            #
+            # Calculate statistics.
+            #
             stats = outBand.ComputeStatistics(outBand)
             outBand.SetStatistics(stats[0], stats[1], stats[2], stats[3])
 
@@ -239,7 +314,9 @@ for imgFolder in imgFolders:
             print 'Elapsed time: {}'.format(
                 datetime.datetime.now() - start_time)
 
+            #
             # Clean up.
+            #
             del band_id
             del driver
             del therm_array
@@ -248,35 +325,61 @@ for imgFolder in imgFolders:
             thermDs = None
             img = None
 
-    # Keep track of which band we are writing to in the stacked file.
-    iteration = 1
+
     print 'Creating 6 band stack for tile {}\n'.format(tile_id)
 
     for band in tile_bands:
+
+        #
+        # Keep track of which band we are writing to in the stacked file.
+        #
+        if band.endswith('_B02.jp2'):
+            band_in_stack = 1
+        if band.endswith('_B03.jp2'):
+            band_in_stack = 2
+        if band.endswith('_B04.jp2'):
+            band_in_stack = 3
+        if band.endswith('_B08.jp2'):
+            band_in_stack = 4
+        if band.endswith('_B11.jp2'):
+            band_in_stack = 5
+        if band.endswith('_B12.jp2'):
+            band_in_stack = 6
+
+        #
+        # This if statement is redundant now, but keep for now anyways.
+        #
         if band.endswith(('_B02.jp2','_B03.jp2','_B04.jp2','_B08.jp2',
                 '_B11.jp2','_B12.jp2')):
-            # Open the image
+
+            #
+            # Open the band as read only.
+            #
             img = gdal.Open(band, gdal.GA_ReadOnly)
             band_id = band[-6:-4]
             if img is None:
                 print 'Could not open band #{}'.format(band_id)
                 sys.exit(1)
-
             print 'Processing band #{}'.format(band_id)
 
-            # Read in the data and get info about it.
+            #
+            # Retrieve band and get dimensions.
+            #
             img_band = img.GetRasterBand(1)
             img_rows = img.RasterYSize
             img_cols = img.RasterXSize
 
+            #
             # Read image as array using GDAL.
+            #
             img_array = img_band.ReadAsArray(0,0, img_cols, img_rows)
-            ## print 'Original array: \n{}'.format(img_array)
             print 'Original shape: {}'.format(img_array.shape)
-            ## print 'Original max: {}'.format(numpy.amax(img_array))
-            ## print 'Original min: {}'.format(numpy.amin(img_array))
+            # print 'Original max: {}'.format(numpy.amax(img_array))
+            # print 'Original min: {}'.format(numpy.amin(img_array))
 
-            # Adjust outliers.
+            #
+            # Adjust outliers (areas with very high reflectance and negative).
+            #
             outData = img_array / 10000.0
             for i in range(0, img_rows):
                 for j in range(0, img_cols):
@@ -285,23 +388,34 @@ for imgFolder in imgFolders:
                     elif outData[i,j] < 0:
                         outData[i,j] = 0
 
+            #
+            # Resample bands 11 and 12 from 20m to 10m resolution.
+            #
             if band.endswith(('_B11.jp2','_B12.jp2')):
-                ## Resampling to zoom factor of 2 as original pixel size is 20m.
                 print 'Resample by a factor of 2 with nearest interpolation.'
                 outData = scipy.ndimage.zoom(outData, 2, order=0)
                 print 'Resampled size: {}'.format(outData.shape)
 
+            #
             # Convert to 8-bit.
+            #
             outData = ((numpy.absolute(outData) * 255.0) + 0.5).astype(int)
 
-            # Write the data to the designated band and calculate stats.
-            outBand = outDs.GetRasterBand(iteration)
+            #
+            # Write the data to the designated band.
+            #
+            outBand = outDs.GetRasterBand(band_in_stack)
             outBand.WriteArray(outData, 0, 0)
 
+            #
             # Flush data to disk and set the NoData value.
+            #
             outBand.FlushCache()
-            outBand.SetNoDataValue(-99)
-            # Calculate stats.
+            # outBand.SetNoDataValue(-99)
+
+            #
+            # Calculate statistics.
+            #
             stats = outBand.ComputeStatistics(outBand)
             outBand.SetStatistics(stats[0], stats[1], stats[2], stats[3])
 
@@ -309,7 +423,9 @@ for imgFolder in imgFolders:
             print 'Elapsed time: {}'.format(
                 datetime.datetime.now() - start_time)
 
-            # Clean up.
+            #
+            # Clean up to avoid problems processing bands to follow.
+            #
             del img_band
             del band_id
             del img_array
@@ -318,13 +434,13 @@ for imgFolder in imgFolders:
             del stats
             img = None
 
-            # On we go...
-            iteration += 1
 
     print 'Tile {} processed and stacked.'.format(tile_id)
     print '------------------------------------------------------------\n\n\n'
 
-    # Clean up.
+    #
+    # Clean up to avoid problems processing tiles to follow.
+    #
     del metadata_path
     del tree
     del SENSING_TIME
