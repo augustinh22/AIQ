@@ -1,0 +1,31 @@
+{
+  "config": {
+    "service_url": "http://localhost:8080/rasdaman/ows",
+    "tmp_directory": "/tmp/",
+    "crs_resolver": "http://localhost:8080/def/",
+    "default_crs": "http://localhost:8080/def/crs/EPSG/0/__insert__",
+    "mock": false,
+    "automated": false,
+    "subset_correction": true
+  },
+  "input": {
+    "coverage_id": "S2_TILE_CLS",
+    "paths": [
+		"C:/tempS2/TILE_FOLDER_PATH/SIAM_stack_CLS.tif"
+    ]
+  },
+  "recipe": {
+    "name": "time_series_irregular",
+    "options": {
+      "time_parameter" :{
+        "filename": {
+        "regex": "(.*)_(\\d\\d\\d\\d)(.*)",
+        "group": "2"
+        },
+        "datetime_format": "YYYY"
+      },
+      "time_crs": "http://localhost:8080/def/crs/OGC/0/AnsiDate",
+      "tiling": "ALIGNED [0:127480, 0:85900, 1]"
+    }
+  }
+}
