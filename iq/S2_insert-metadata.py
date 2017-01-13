@@ -743,8 +743,15 @@ if __name__ == "__main__":
         #
         # Extract the metadata
         #
-        # metadata = extractMetadata('/var/projects/phd_sudmanns/rawdata/CORINE/raster-dach-region', "CORINE", "CORINE")
-        metadata = extractMetadata('path/to/file', "Sentinel-2", "SIAM_AIQ", tile="TILE")
+
+        # California fire example. EPSG: 32611
+        metadata = extractMetadata('path/to/file', "Sentinel-2", "SIAM_AIQ", tile="11SLV")
+
+        # Asyut, Egypt example. EPSG: 32636
+        # metadata = extractMetadata('path/to/file', "Sentinel-2", "SIAM_AIQ", tile="36RUR")
+
+        # Bidi Bidi refugee camp example. EPSG: 32636
+        # metadata = extractMetadata('path/to/file', "Sentinel-2", "SIAM_AIQ", tile="36NUJ")
 
         if debugging == True:
             print metadata
