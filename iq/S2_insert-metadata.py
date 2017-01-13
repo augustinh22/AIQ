@@ -437,13 +437,6 @@ def extractMetadata(rootdirectory, sensortype, product, tile=None):
                     "description": " This is the SIAM urban area seed pixel binary mask.",
                     "order": 1,
                     "belongs_to_collection": collectionMSK
-                },
-                {
-                    "acro": "SIAMWATERTRI",
-                    "name": "SIAM water trinary mask",
-                    "description": "This is the SIAM water trinary mask.",
-                    "order": 2,
-                    "belongs_to_collection": collectionMSK
                 }
             ],
 
