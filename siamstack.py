@@ -66,14 +66,21 @@ def siam_stack(siam_folders, stack_type, layer_endings):
         # Extract tile name from both new and old S2 naming conventions.
         #
         if (example).startswith('T'):
-            tileinfo = (example.split("_"))[0]
+            fn_parts = example.split("_")
+            tileinfo = fn_parts[0]
             utm_tile = tileinfo[1:]
+            capture_date = (file_parts[2])[:8]
 
         if (example).startswith('S2'):
             tileinfo = (example.split("_"))[9]
             utm_tile = tileinfo[1:]
+            tile_folder = os.path.dirname(os.path.dirname(folder))
+            head, tail = os.path.split(tile_folder)
+            tile_parts = tail.split("_")
+            capture_date = (tile_parts[7])[:8]
 
-        stack_name = 'SIAM_stack_S2_{}_{}.tif'.format(utm_tile, stack_type)
+        stack_name = 'SIAM_stack_S2_{}_{}_{}.tif'.format(
+            capture_date, utm_tile, stack_type)
 
         #
         # Create tiff file in folder for stack.
