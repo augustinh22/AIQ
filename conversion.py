@@ -333,6 +333,9 @@ for imgFolder in imgFolders:
         #
         # Keep track of which band we are writing to in the stacked file.
         #
+        
+        band_in_stack = None
+
         if band.endswith('_B02.jp2'):
             band_in_stack = 1
         if band.endswith('_B03.jp2'):
