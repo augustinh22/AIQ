@@ -745,13 +745,35 @@ if __name__ == "__main__":
         #
 
         # California fire example. EPSG: 32611
-        metadata = extractMetadata('path/to/file', "Sentinel-2", "SIAM_AIQ", tile="11SLV")
+            # Classes
+        # metadata = extractMetadata('C:/tempS2/S2A_OPER_MSI_L1C_TL_EPA__20151022T184002_A001740_T11SLV_N02.04/SIAM_stack_S2_11SLV_CLS.tif', "Sentinel-2", "SIAM_AIQ", tile="11SLV")
+        # metadata = extractMetadata('C:/tempS2/S2A_OPER_MSI_L1C_TL_MPS__20160519T184433_A004743_T11SLV_N02.02/SIAM_stack_S2_11SLV_CLS.tif', "Sentinel-2", "SIAM_AIQ", tile="11SLV")
+        # metadata = extractMetadata('C:/tempS2/S2A_OPER_MSI_L1C_TL_MPS__20160728T183826_A005744_T11SLV_N02.04/SIAM_stack_S2_11SLV_CLS.tif', "Sentinel-2", "SIAM_AIQ", tile="11SLV")
+        # metadata = extractMetadata('C:/tempS2/S2A_OPER_MSI_L1C_TL_MPS__20161105T183542_A007174_T11SLV_N02.04/SIAM_stack_S2_11SLV_CLS.tif', "Sentinel-2", "SIAM_AIQ", tile="11SLV")
+            # Masks
+        # metadata = extractMetadata('C:/tempS2/S2A_OPER_MSI_L1C_TL_EPA__20151022T184002_A001740_T11SLV_N02.04/SIAM_stack_S2_11SLV_MSK.tif', "Sentinel-2", "SIAM_AIQ", tile="11SLV")
+        # metadata = extractMetadata('C:/tempS2/S2A_OPER_MSI_L1C_TL_MPS__20160519T184433_A004743_T11SLV_N02.02/SIAM_stack_S2_11SLV_MSK.tif', "Sentinel-2", "SIAM_AIQ", tile="11SLV")
+        # metadata = extractMetadata('C:/tempS2/S2A_OPER_MSI_L1C_TL_MPS__20160728T183826_A005744_T11SLV_N02.04/SIAM_stack_S2_11SLV_MSK.tif', "Sentinel-2", "SIAM_AIQ", tile="11SLV")
+        # metadata = extractMetadata('C:/tempS2/S2A_OPER_MSI_L1C_TL_MPS__20161105T183542_A007174_T11SLV_N02.04/SIAM_stack_S2_11SLV_MSK.tif', "Sentinel-2", "SIAM_AIQ", tile="11SLV")
+
 
         # Asyut, Egypt example. EPSG: 32636
-        # metadata = extractMetadata('path/to/file', "Sentinel-2", "SIAM_AIQ", tile="36RUR")
+            # Classes
+        # metadata = extractMetadata('C:/tempS2/S2A_OPER_MSI_L1C_TL_SGS__20160110T085036_A002878_T36RUR_N02.01/SSIAM_stack_2_36RUR_CLS.tif', "Sentinel-2", "SIAM_AIQ", tile="36RUR")
+        # metadata = extractMetadata('C:/tempS2/S2AL1C_T36RUR_A008026_20170104T083845/SIAM_stack_S2_36RUR_CLS.tif', "Sentinel-2", "SIAM_AIQ", tile="36RUR")
+            # Masks
+        # metadata = extractMetadata('C:/tempS2/S2A_OPER_MSI_L1C_TL_SGS__20160110T085036_A002878_T36RUR_N02.01/SIAM_stack_S2_36RUR_MSK.tif', "Sentinel-2", "SIAM_AIQ", tile="36RUR")
+        # metadata = extractMetadata('C:/tempS2/S2AL1C_T36RUR_A008026_20170104T083845/SIAM_stack_S2_36RUR_MSK.tif', "Sentinel-2", "SIAM_AIQ", tile="36RUR")
+
 
         # Bidi Bidi refugee camp example. EPSG: 32636
-        # metadata = extractMetadata('path/to/file', "Sentinel-2", "SIAM_AIQ", tile="36NUJ")
+            # Classes
+        # metadata = extractMetadata('C:/tempS2/S2A_OPER_MSI_L1C_TL_SGS__20160213T082324_A003364_T36NUJ_N02.01/SIAM_stack_S2_36NUJ_CLS.tif', "Sentinel-2", "SIAM_AIQ", tile="36NUJ")
+        # metadata = extractMetadata('C:/tempS2/S2AL1C_T36NUJ_A008083_20170108T082804/SIAM_stack_S2_36NUJ_CLS.tif', "Sentinel-2", "SIAM_AIQ", tile="36NUJ")
+            # Masks
+        # metadata = extractMetadata('C:/tempS2/S2A_OPER_MSI_L1C_TL_SGS__20160213T082324_A003364_T36NUJ_N02.01/SIAM_stack_S2_36NUJ_MSK.tif', "Sentinel-2", "SIAM_AIQ", tile="36NUJ")
+        # metadata = extractMetadata('C:/tempS2/S2AL1C_T36NUJ_A008083_20170108T082804/SIAM_stack_S2_36NUJ_MSK.tif', "Sentinel-2", "SIAM_AIQ", tile="36NUJ")
+
 
         if debugging == True:
             print metadata

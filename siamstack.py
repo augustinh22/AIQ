@@ -73,7 +73,7 @@ def siam_stack(siam_folders, stack_type, layer_endings):
             tileinfo = (example.split("_"))[9]
             utm_tile = tileinfo[1:]
 
-        stack_name = 'S2_{}_{}.tif'.format(utm_tile, stack_type)
+        stack_name = 'SIAM_stack_S2_{}_{}.tif'.format(utm_tile, stack_type)
 
         #
         # Create tiff file in folder for stack.
