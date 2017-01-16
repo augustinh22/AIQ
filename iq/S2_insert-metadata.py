@@ -759,7 +759,7 @@ if __name__ == "__main__":
 
         # Asyut, Egypt example. EPSG: 32636
             # Classes
-        # metadata = extractMetadata('C:/tempS2/S2A_OPER_MSI_L1C_TL_SGS__20160110T085036_A002878_T36RUR_N02.01/SSIAM_stack_2_36RUR_CLS.tif', "Sentinel-2", "SIAM_AIQ", tile="36RUR")
+        # metadata = extractMetadata('C:/tempS2/S2A_OPER_MSI_L1C_TL_SGS__20160110T085036_A002878_T36RUR_N02.01/SIAM_stack_2_36RUR_CLS.tif', "Sentinel-2", "SIAM_AIQ", tile="36RUR")
         # metadata = extractMetadata('C:/tempS2/S2AL1C_T36RUR_A008026_20170104T083845/SIAM_stack_S2_36RUR_CLS.tif', "Sentinel-2", "SIAM_AIQ", tile="36RUR")
             # Masks
         # metadata = extractMetadata('C:/tempS2/S2A_OPER_MSI_L1C_TL_SGS__20160110T085036_A002878_T36RUR_N02.01/SIAM_stack_S2_36RUR_MSK.tif', "Sentinel-2", "SIAM_AIQ", tile="36RUR")
