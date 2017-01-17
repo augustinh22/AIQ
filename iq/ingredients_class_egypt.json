@@ -1,0 +1,32 @@
+{
+  "config": {
+    "service_url": "http://localhost:8080/rasdaman/ows",
+    "tmp_directory": "/tmp/",
+    "crs_resolver": "http://localhost:8080/def/",
+    "default_crs": "http://localhost:8080/def/crs/EPSG/0/32636",
+    "mock": false,
+    "automated": true,
+    "subset_correction": true
+  },
+  "input": {
+    "coverage_id": "S2_36RUR_CLS",
+    "paths": [
+		"/var/projects/aiq/rawdata/S2A_OPER_MSI_L1C_TL_SGS__20160110T085036_A002878_T36RUR_N02.01/SIAM_stack_S2_20160110_36RUR_CLS.tif",
+		"/var/projects/aiq/rawdata/S2AL1C_T36RUR_A008026_20170104T083845/SIAM_stack_S2_20170104_36RUR_CLS.tif"
+    ]
+  },
+  "recipe": {
+    "name": "time_series_irregular",
+    "options": {
+      "time_parameter" :{
+        "filename": {
+        "regex": "(.*)_(\\d\\d\\d\\d\\d\\d\\d\\d)_(.*)",
+        "group": "2"
+        },
+        "datetime_format": "YYYYMMDD"
+      },
+      "time_crs": "http://localhost:8080/def/crs/OGC/0/AnsiDate",
+      "tiling": "ALIGNED [0:127480, 0:85900, 1]"
+    }
+  }
+}
