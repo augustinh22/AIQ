@@ -120,7 +120,7 @@ def getDates(dirname, sensortype):
         day = dateinfo[6:]
         fmt = '%Y.%m.%d'
         s = '{}.{}.{}'.format(year, month, day)
-        dt = datetime.strptime(s, fmt)
+        dt = datetime.datetime.strptime(s, fmt)
         tt = dt.timetuple()
     	doy = int(tt.tm_yday) # Extract doy
         year = int(year)
