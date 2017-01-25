@@ -98,7 +98,7 @@ def getDates(dirname, sensortype):
         #
         # New S2 data format.
         #
-        if dirname.startswith('S2AL1C_')
+        if dirname.startswith('S2AL1C_'):
 
             name_parts = dirname.split("_")
             datetimeinfo = name_parts[3]
@@ -106,7 +106,7 @@ def getDates(dirname, sensortype):
         #
         # Old S2 data format.
         #
-        if dirname.startswith('S2A_OPER_')
+        if dirname.startswith('S2A_OPER_'):
 
             name_parts = dirname.split("_")
             datetimeinfo = name_parts[7]
