@@ -89,31 +89,21 @@ the University of Salzburg's M.Sc program in Applied Geoinformatics.
 
 ### Discover tiles
 * python iq_download.py -l Salzburg -t ? -d 2016-11-10
-   * This query returns all results identified as including 'Salzburg' as well as 
-     lists all of the tiles located within the package. Not so relevant now for 
-     single tile packages.
+   * This query returns all results identified as including 'Salzburg' as well as lists all of the tiles located within the package. Not so relevant now for single tile packages.
 
 # conversion.py
-* This script runs without any parameters, converting the bands in IMG_DATA folders
-  located in the directory structure of C:\tempS2 and saving the results
-  in a new folder called PROC_DATA.
-  It uses GDAL, Numpy and SciPy to convert bands to 8-bit, resample the 20m resolution
-  bands to 10m resolution, modify outliers (e.g. clouds) and create a 6 band
-  stack out of these pre-processed bands.
-  It also creates a fake thermal layer (110 constant) for use in SIAM.
+This script runs without any parameters, converting the bands in IMG_DATA folders located in the directory structure of C:\tempS2 and saving the results in a new folder called PROC_DATA. It uses __GDAL__, __Numpy__ and __SciPy__ to convert bands to 8-bit, resample the 20m resolution bands to 10m resolution, modify outliers (e.g. clouds) and create a 6 band stack out of these pre-processed bands. It also creates a fake thermal layer (110 constant) for use in the Satellite Image Automatic Mapper™ (SIAM™) created by Andrea Baraldi.
 
 # restructure.py
-* This script copies all of the tile specific folders from the main directory
-  structure (i.e. folders inside the GRANULE folder) and pastes them in the
-  defined root (e.g. C:\tempS2). After moving, it deletes the original structure.
-  This is necessary due to long file names, even with the data published
-  after 06.12.16, and since data outside the GRANULE folders is not used.
+This script moves all of the tile specific folders from the main directory structure (i.e. folders inside the GRANULE folder) to the defined root directory (e.g. C:\tempS2). After moving, it moves the remaining original structure into a metadata folder in the root directory. This restructuring is necessary due to long path names, even with the data published after 06.12.16. Data outside the GRANULE folders is not required anyways.
 
 # batch.py
-* This script runs without any parameters, but requires user input using a GUI.
-  It automatically creates a SIAM output folder within PROC_DATA and a batch script
-  to process all .dat files created in __conversion.py__ or otherwise located within
-  a PROC_DATA folder within the defined root directory (in this case, C:\tempS2).
-  Launching the batchfile automatically after creation will be added at a later date.
-  
+This script runs without any parameters, but requires user input using a GUI. It automatically creates a SIAM™ output folder within PROC_DATA in each tile folder. A batch script is produced to process all .dat files created in __conversion.py__ or otherwise located within a PROC_DATA folder within the defined root directory (in this case, C:\tempS2). Running the batch file automatically could be easily incorporated, but is undesired at this time.
+
 ![Batch GUI](/images/batch_tk.jpg?raw=true "Batch GUI")
+
+# siamstack.py
+This script creates stacks of specific information layers created by SIAM™, and saves them directly in each tile folder. Two stacks are created for each tile, one for semi-concept layers and another for mask layers. Currently the the 33 and 96 semi-concept layers are put into one stack and the binary vegetation and urban seed masks into another. This could be easily modified, depending on user requirements.
+
+# Scripts in the IQ folder
+These scripts are required for the [WCSTImport](http://rasdaman.org/wiki/WCSTImportGuide) for Rasdaman array databases. JSON ingredients files were manually modified to include the desired file paths to the SIAM™ semi-concept (i.e. class) and mask stacks. The S2_insert-metadata.py script, also known as the recipe script and primarily coded by M. Sudmanns, also required manual adjustments of file paths for each study area import.
