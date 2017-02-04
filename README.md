@@ -76,19 +76,19 @@ the University of Salzburg's M.Sc program in Applied Geoinformatics.
 # iq_download.py
 ## Example queries
 ### Point
-* python iq_download.py --lat 47.083 --lon 12.842
+* python download.py --lat 47.083 --lon 12.842
 
 ### Polygon
-* python iq_download.py --latmin 46 --latmax 48 --lonmin 12 --lonmax 14
+* python download.py --latmin 46 --latmax 48 --lonmin 12 --lonmax 14
 
 ### Location
-* python iq_download.py -l Vienna
+* python download.py -l Vienna
 
 ### Tile
-* python iq_download.py -t 33TUN
+* python download.py -t 33TUN
 
 ### Discover tiles
-* python iq_download.py -l Salzburg -t ? -d 2016-11-10
+* python download.py -l Salzburg -t ? -d 2016-11-10
    * This query returns all results identified as including 'Salzburg' as well as lists all of the tiles located within the package. Not so relevant now for single tile packages.
 
 # conversion.py
