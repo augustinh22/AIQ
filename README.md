@@ -15,7 +15,7 @@ the University of Salzburg's M.Sc program in Applied Geoinformatics.
  * Now you ought to be able to run Python from the command line!
     * check this by opening PowerShell and typing 'python'
  * _Note: Adding the Python system variables to the beginning of the list is recommended._
- * _$PYTHONHOME and $PYTHONPATH may also need to be modified
+ * _$PYTHONHOME and $PYTHONPATH may also need to be modified_
 3. Install aria2 downloading agent.
  * Go to: https://aria2.github.io/
  * Download most recent 64-bit version
