@@ -26,6 +26,7 @@ the University of Salzburg's M.Sc program in Applied Geoinformatics.
  * Go to: http://docs.python-requests.org/en/master/
  * Follow installation instructions.
     * e.g. as easy as "pip install requests" unless you have pip problems
+        * try "python -m ensurepip" if pip is not already installed, but check the python folder to make sure it exists first!
 5. Download kml tiling grid
  * Go to: https://sentinel.esa.int/web/sentinel/missions/sentinel-2/data-products
  * Download kml file: <pre>S2A_OPER_GIP_TILPAR_MPC__20151209T095117_V20150622T000000_21000101T000000_B00.kml</pre>
