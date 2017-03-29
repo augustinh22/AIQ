@@ -333,7 +333,7 @@ for imgFolder in imgFolders:
         #
         # Keep track of which band we are writing to in the stacked file.
         #
-        
+
         band_in_stack = None
 
         if band.endswith('_B02.jp2'):
@@ -384,12 +384,17 @@ for imgFolder in imgFolders:
             # Adjust outliers (areas with very high reflectance and negative).
             #
             outData = img_array / 10000.0
-            for i in range(0, img_rows):
-                for j in range(0, img_cols):
-                    if outData[i,j] > 1:
-                        outData[i,j] = 1
-                    elif outData[i,j] < 0:
-                        outData[i,j] = 0
+            del img_array
+
+            # for i in range(0, img_rows):
+            #     for j in range(0, img_cols):
+            #         if outData[i,j] > 1:
+            #             outData[i,j] = 1
+            #         elif outData[i,j] < 0:
+            #             outData[i,j] = 0
+
+            outData = numpy.where((outData > 1), (1), outData)
+            outData = numpy.where((outData < 0), (0), outData)
 
             #
             # Resample bands 11 and 12 from 20m to 10m resolution.
@@ -431,7 +436,6 @@ for imgFolder in imgFolders:
             #
             del img_band
             del band_id
-            del img_array
             del outData
             del outBand
             del stats
