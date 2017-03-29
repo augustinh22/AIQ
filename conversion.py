@@ -100,9 +100,9 @@ if not messagebox:
 start_time = datetime.datetime.now()
 
 print '=================================================================='
-print 'Hold on to your hat. This may take ~15 minutes per S2 tile folder.'
+print 'Hold on to your hat. This may take ~2 minutes per S2 tile folder.'
 print 'Number of IMG_DATA folders found: {}'.format(len(imgFolders))
-print 'Estimated time: {} minutes'.format(int(len(imgFolders)) * 15)
+print 'Estimated time: {} minutes'.format(int(len(imgFolders)) * 2)
 print 'Start time: {}'.format(start_time.time())
 print '==================================================================\n\n'
 
@@ -385,7 +385,12 @@ for imgFolder in imgFolders:
             #
             outData = img_array / 10000.0
             del img_array
+            outData = numpy.where((outData > 1), (1), outData)
+            outData = numpy.where((outData < 0), (0), outData)
 
+            #
+            # Old, slow method for reference.
+            #
             # for i in range(0, img_rows):
             #     for j in range(0, img_cols):
             #         if outData[i,j] > 1:
@@ -393,8 +398,6 @@ for imgFolder in imgFolders:
             #         elif outData[i,j] < 0:
             #             outData[i,j] = 0
 
-            outData = numpy.where((outData > 1), (1), outData)
-            outData = numpy.where((outData < 0), (0), outData)
 
             #
             # Resample bands 11 and 12 from 20m to 10m resolution.
