@@ -1,11 +1,11 @@
 #-------------------------------------------------------------------------------
-# Name:        Data cubes for IQ.
-# Purpose:     This script creates desired data cubes for import into IQ based
-#              on SIAM output.
+# Name:        Single Layer for IQ.
+# Purpose:     This script creates one layer for import into IQ based
+#              on SIAM output and NoData cells.
 #
 # Author:      h.Augustin
 #
-# Created:     10.01.2017
+# Created:     29.03.2017
 #
 #-------------------------------------------------------------------------------
 
@@ -22,9 +22,8 @@ import numpy
 
 def siam_folders(root_folder):
 
-    #
-    # Create empty list for 'siamoutput' folder paths
-    #
+    '''This function creates a list of siamoutput folder paths.'''
+
     siamFolders = []
 
     for dirpath, dirnames, filenames in os.walk(root_folder, topdown=True):
@@ -36,9 +35,9 @@ def siam_folders(root_folder):
     return siamFolders
 
 
-def siam_stack(siam_folders, stack_type, layer_endings):
+def siam_layer(siam_folders, stack_type, layer_endings):
 
-    '''This function will create a datacube of the desired SIAM layers, saving
+    '''This function will create a layer of defined SIAM semi-concepts, saving
         it to the tile folder.'''
 
     for folder in siam_folders:
@@ -58,95 +57,66 @@ def siam_stack(siam_folders, stack_type, layer_endings):
         siam_layers.sort
 
         #
-        # Calculate number of layers for stack.
+        # Generate name of layer, based on defined type.
         #
-        num_layers = len(siam_layers)
+        layer_name = generate_name(folder, example, stack_type)
 
         #
-        # Extract tile name from both new and old S2 naming conventions.
+        # Create tiff file in folder for layer.
         #
-        if (example).startswith('T'):
-            fn_parts = example.split("_")
-            tileinfo = fn_parts[0]
-            utm_tile = tileinfo[1:]
-            capture_date = (file_parts[2])[:8]
-
-        if (example).startswith('S2'):
-            tileinfo = (example.split("_"))[9]
-            utm_tile = tileinfo[1:]
-            tile_folder = os.path.dirname(os.path.dirname(folder))
-            head, tail = os.path.split(tile_folder)
-            tile_parts = tail.split("_")
-            capture_date = (tile_parts[7])[:8]
-
-        stack_name = 'SIAM_stack_S2_{}_{}_{}.tif'.format(
-            capture_date, utm_tile, stack_type)
+        outDs, outData = create_tif(siam_layers[0], layer_name, 1)
 
         #
-        # Create tiff file in folder for stack.
+        # Extract vegetation binary mask and clouds and ice/snow from
+        # 18 semi-concepts.
         #
-        outDs = create_tif(siam_layers[0], stack_name, num_layers)
-
         for layer in siam_layers:
 
-            #
-            # Keep track of which band we are writing to in the stacked file.
-            #
-            band_in_stack = None
+            img_array = None
+            img_array = open_as_array(layer)
 
-            if layer.endswith('VegBinaryMask.dat'):
-                band_in_stack = 1
-            if layer.endswith('UrbanAreaSeedPixelBinaryMask.dat'):
-                band_in_stack = 2
-            if layer.endswith('33SharedSpCt_r88v6.dat'):
-                band_in_stack = 1
-            if layer.endswith('96SpCt_r88v6.dat'):
-                band_in_stack = 2
+            if layer.endswith('18SpCt_r88v6.dat'):
 
-            #
-            # Get layer name.
-            #
-            head, layername = os.path.split(layer)
+                outData = numpy.where((img_array == 13), (2), outData)
+                outData = numpy.where((img_array == 10), (3), outData)
 
-            #
-            # Open the image.
-            #
-            img = gdal.Open(layer, gdal.GA_ReadOnly)
-            if img is None:
-                print 'Could not open {}'.format(layername)
-                sys.exit(1)
+                print '\nExtracted snow-ice and clouds from 18 granularity.\n'
+                del img_array
 
-            #
-            # Read in the data and get info about it.
-            #
-            img_band = img.GetRasterBand(1)
-            img_rows = img.RasterYSize
-            img_cols = img.RasterXSize
+            elif layer.endswith('VegBinaryMask.dat'):
 
-            #
-            # Read image as array using GDAL.
-            #
-            img_array = img_band.ReadAsArray(0,0, img_cols, img_rows)
+                outData = numpy.where((img_array == 1), (1), outData)
 
-            #
-            # Write the data to the designated band.
-            outBand = outDs.GetRasterBand(band_in_stack)
-            outBand.WriteArray(img_array, 0, 0)
+                print '\nExtracted vegetation mask.\n'
+                del img_array
 
-            #
-            # Flush data to disk and set the NoData value.
-            #
-            outBand.FlushCache()
-            outBand.SetNoDataValue(-99)
+        #
+        # Add '4' as placeholder for all other semi-concepts or noData
+        #
+        outData = numpy.where((outData == 0), (4), outData)
 
-            #
-            # Clean up.
-            #
-            del img_band
-            del img_array
-            del outBand
-            img = None
+        #
+        # Replace noData with zeros
+        #
+        outData = remove_nodata(folder, outData)
 
+        #
+        # Write outdata array.
+        #
+        outBand = outDs.GetRasterBand(1)
+        outBand.WriteArray(outData, 0, 0)
+
+        #
+        # Flush data to disk.
+        #
+        outBand.FlushCache()
+
+        #
+        # Clean up.
+        #
+        del outData
+        del outBand
+        img = None
         del outDs
 
 
@@ -211,12 +181,115 @@ def create_tif(layer, tiffname, num_layers):
     outDs.SetProjection(projection)
 
     #
+    # Create empty array to fill the layer later.
+    #
+    outData = numpy.zeros([img_cols, img_rows], dtype=int)
+
+    #
     # Return datastore for use.
     #
-    return outDs
+    return outDs, outData
 
     del driver
     img = None
+
+
+def generate_name(folder, example, stack_type):
+
+    #
+    # Extract tile name from both new and old S2 naming conventions.
+    #
+    if (example).startswith('T'):
+        fn_parts = example.split("_")
+        tileinfo = fn_parts[0]
+        utm_tile = tileinfo[1:]
+        capture_date = (file_parts[2])[:8]
+
+    if (example).startswith('S2'):
+        tileinfo = (example.split("_"))[9]
+        utm_tile = tileinfo[1:]
+        tile_folder = os.path.dirname(os.path.dirname(folder))
+        head, tail = os.path.split(tile_folder)
+        tile_parts = tail.split("_")
+        capture_date = (tile_parts[7])[:8]
+
+    layer_name = 'SIAM_layer_S2_{}_{}_{}.tif'.format(
+        capture_date, utm_tile, stack_type)
+
+    return layer_name
+
+
+def open_as_array(layer_path):
+
+    #
+    # Get layer name.
+    #
+    head, layername = os.path.split(layer_path)
+
+    #
+    # Open the image.
+    #
+    img = gdal.Open(layer_path, gdal.GA_ReadOnly)
+    if img is None:
+        print 'Could not open {}'.format(layername)
+        sys.exit(1)
+
+    #
+    # Read in the data and get info about it.
+    #
+    img_band = img.GetRasterBand(1)
+    img_rows = img.RasterYSize
+    img_cols = img.RasterXSize
+
+    #
+    # Read image as array using GDAL.
+    #
+    img_array = None
+    img_array = img_band.ReadAsArray(0,0, img_cols, img_rows)
+
+    del img_band
+
+    return img_array
+
+def remove_nodata(folder, outData):
+
+    #
+    # Access .dat file used as input for siam.
+    #
+    proc_folder = os.path.dirname(folder)
+
+    #
+    # Retrieve dat file path
+    #
+    for dirpath, dirnames, filenames in os.walk(proc_folder, topdown=True):
+        for filename in filenames:
+            if filename.endswith('_calrefbyt_lndstlk.dat'):
+                dat_file = os.path.join(dirpath, filename)
+
+    #
+    # Get layer name.
+    #
+    head, layername = os.path.split(dat_file)
+
+    #
+    # Open the image.
+    #
+    img = gdal.Open(dat_file, gdal.GA_ReadOnly)
+    if img is None:
+        print 'Could not open {}'.format(layername)
+        sys.exit(1)
+
+    for band in range(1, 7):
+        band_array = (img.GetRasterBand(band)).ReadAsArray()
+        outData = numpy.where((band_array == 0), (0), outData)
+
+    img = None
+    del head
+    del layername
+    del dat_file
+    del band_array
+
+    return outData
 
 
 if __name__ == "__main__":
@@ -231,15 +304,9 @@ if __name__ == "__main__":
     siam_folders = siam_folders(root_folder)
 
     #
-    # Create class stack.
+    # Create layer of noData (0), vegetation (1), snow/ice (2), clouds (3),
+    # and other semi-concepts (4).
     #
-    siam_classes = ['33SharedSpCt_r88v6.dat', '96SpCt_r88v6.dat']
+    siam_classes = ['_VegBinaryMask.dat', '18SpCt_r88v6.dat']
 
-    siam_stack(siam_folders, 'CLS', siam_classes)
-
-    #
-    # Create mask stack.
-    #
-    siam_masks = ['VegBinaryMask.dat', 'UrbanAreaSeedPixelBinaryMask.dat']
-
-    siam_stack(siam_folders, 'MSK', siam_masks)
+    siam_layer(siam_folders, 'IQ4SEN', siam_classes)
