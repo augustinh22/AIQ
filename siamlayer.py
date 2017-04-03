@@ -21,6 +21,7 @@ import tkMessageBox
 
 import gdal
 import numpy
+import scipy.ndimage
 
 
 def siam_folders(root_folder):
@@ -84,22 +85,22 @@ def siam_layer(siam_folders, stack_type, layer_endings, start_time):
                 outData = numpy.where((img_array == 10), (3), outData)
 
                 print '\nExtracted snow-ice and clouds from 18 granularity.'
-                del img_array
+                img_array = None
 
             elif layer.endswith('VegBinaryMask.dat'):
 
                 outData = numpy.where((img_array == 1), (1), outData)
 
                 print 'Extracted vegetation mask.'
-                del img_array
+                img_array = None
 
         #
-        # Add '4' as placeholder for all other semi-concepts or noData
+        # Add '4' as placeholder for all other semi-concepts or noData.
         #
         outData = numpy.where((outData == 0), (4), outData)
 
         #
-        # Replace noData with zeros
+        # Replace noData with zeros.
         #
         outData = remove_nodata(folder, outData)
 
@@ -280,36 +281,102 @@ def remove_nodata(folder, outData):
         The bands to be included may need to be reevaluated.'''
 
     #
-    # Access .dat file used as input for siam.
+    # Access original image folder.
     #
-    proc_folder = os.path.dirname(folder)
+    tile_folder = os.path.dirname(os.path.dirname(folder))
+    print tile_folder
+    exit()
 
     #
-    # Retrieve dat file path
+    # Find path to img folder.
     #
-    for dirpath, dirnames, filenames in os.walk(proc_folder, topdown=True):
-        for filename in filenames:
-            if filename.endswith('_calrefbyt_lndstlk.dat'):
-                dat_file = os.path.join(dirpath, filename)
+    imgFolder = None
+
+    for dirpath, dirnames, filenames in os.walk(tile_folder, topdown=True):
+        for dirname in dirnames:
+            if dirname == 'IMG_DATA':
+                imgFolder = os.path.join(dirpath, dirname)
 
     #
-    # Get layer name.
+    # Determine original file structure.
     #
-    head, layername = os.path.split(dat_file)
+    metadata_path = []
+
+    for fn in os.listdir(os.path.dirname(imgFolder)):
+        if (fn.startswith('S2A_') or fn.startswith('MTD')) and fn.endswith('.xml'):
+            metadata_file = fn
+            metadata_path.append(os.path.join(os.path.dirname(imgFolder), fn))
+    if len(metadata_path) > 1:
+        print ('Make sure only the original metadata exists in the tile folder'
+            '\n{}'.format(os.path.dirname(imgFolder)))
+        sys.exit()
 
     #
-    # Open the image.
+    # Grab relevant bands.
     #
-    img = gdal.Open(dat_file, gdal.GA_ReadOnly)
-    if img is None:
-        print 'Could not open {}'.format(layername)
-        sys.exit(1)
+    tile_bands = []
 
     #
-    # Cycle through bands 1-5, removing noData. Ignore band 6 (S2 band 12).
+    # Retrieve desired bands from old data structure.
     #
-    for band in range(1, 6):
-        band_array = (img.GetRasterBand(band)).ReadAsArray()
+    if metadata_file.startswith('S2A_'):
+        for dirpath, dirnames, filenames in os.walk(imgFolder, topdown=True):
+            for filename in filenames:
+                if (filename.startswith('S2A') and filename.endswith('.jp2')
+                        and (fnmatch.fnmatch(filename, '*_B02.*')
+                        or fnmatch.fnmatch(filename, '*_B03.*')
+                        or fnmatch.fnmatch(filename, '*_B04.*')
+                        or fnmatch.fnmatch(filename, '*_B08.*')
+                        or fnmatch.fnmatch(filename, '*_B11.*')
+                        or fnmatch.fnmatch(filename, '*_B12.*'))):
+
+                    tile_bands.append(os.path.join(dirpath, filename))
+
+    #
+    # Retrieve desired bands from data structure.
+    #
+    elif metadata_file.startswith('M'):
+        for dirpath, dirnames, filenames in os.walk(imgFolder, topdown=True):
+            for filename in filenames:
+                if (filename.startswith('T') and filename.endswith('.jp2')
+                        and (fnmatch.fnmatch(filename, '*_B02.*')
+                        or fnmatch.fnmatch(filename, '*_B03.*')
+                        or fnmatch.fnmatch(filename, '*_B04.*')
+                        or fnmatch.fnmatch(filename, '*_B08.*')
+                        or fnmatch.fnmatch(filename, '*_B11.*')
+                        or fnmatch.fnmatch(filename, '*_B12.*'))):
+
+                    tile_bands.append(os.path.join(dirpath, filename))
+
+    #
+    # Put bands in numeric order for processing.
+    #
+    tile_bands.sort
+
+    for band in tile_bands:
+
+        #
+        # Open the band as read only.
+        #
+        img = gdal.Open(band, gdal.GA_ReadOnly)
+        band_id = band[-6:-4]
+        if img is None:
+            print 'Could not open band #{}'.format(band_id)
+            sys.exit(1)
+        print 'Processing noData for band #{}'.format(band_id)
+
+        #
+        # Cycle through bands 1-5, removing noData. Skip band 6 (S2 B12).
+        #
+        band_array = (img.GetRasterBand(1)).ReadAsArray()
+
+        #
+        # Resample bands 11 and 12 from 20m to 10m resolution.
+        #
+        if band.endswith(('_B11.jp2','_B12.jp2')):
+            print 'Resample by a factor of 2 with nearest interpolation.'
+            band_array = scipy.ndimage.zoom(band_array, 2, order=0)
+
         outData = numpy.where((band_array == 0), (0), outData)
 
     img = None
