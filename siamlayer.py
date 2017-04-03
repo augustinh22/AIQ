@@ -15,6 +15,9 @@
 import os
 import sys
 import fnmatch
+import datetime
+import Tkinter
+import tkMessageBox
 
 import gdal
 import numpy
@@ -121,13 +124,13 @@ def siam_layer(siam_folders, stack_type, layer_endings, start_time):
 
         time_elapsed(start_time)
         print '\nFinished layer: {}'.format(layer_name)
-        print '--------------------------------\n\n'
+        print '--------------------------------'
 
 
 def create_tif(layer, tiffname, num_layers):
 
     '''Create file to save to based on a defined layer.
-        All should have the same size and resolution after SIAM processing, so
+        All should have the same size and resolution after SIAM processing --
         it ought not matter which one.'''
 
     #
@@ -206,21 +209,23 @@ def create_tif(layer, tiffname, num_layers):
 
 def generate_name(folder, example, stack_type):
 
+    '''This function generates the layer name based on one S2 band name. '''
+
     #
     # Extract tile name from both new and old S2 naming conventions.
     #
     if (example).startswith('T'):
-        fn_parts = example.split("_")
+        fn_parts = example.split('_')
         tileinfo = fn_parts[0]
         utm_tile = tileinfo[1:]
         capture_date = (fn_parts[1])[:8]
 
     if (example).startswith('S2'):
-        tileinfo = (example.split("_"))[9]
+        tileinfo = (example.split('_'))[9]
         utm_tile = tileinfo[1:]
         tile_folder = os.path.dirname(os.path.dirname(folder))
         head, tail = os.path.split(tile_folder)
-        tile_parts = tail.split("_")
+        tile_parts = tail.split('_')
         capture_date = (tile_parts[7])[:8]
 
     layer_name = 'SIAM_layer_S2_{}_{}_{}.tif'.format(
@@ -230,6 +235,8 @@ def generate_name(folder, example, stack_type):
 
 
 def open_as_array(layer_path):
+
+    '''This function opens the input layer as a numpy array.'''
 
     #
     # Get layer name.
@@ -263,7 +270,14 @@ def open_as_array(layer_path):
 
     return img_array
 
+
 def remove_nodata(folder, outData):
+
+    '''This function removes all pixels that have a value of 5 in any of the
+        first 5 bands in the .dat stack created for SIAM. These bands
+        correspond to S2 bands 2, 3, 4, 8 and 11. Band 6, or S2 band 12 is not
+        included due to the presence of data pixels having a value of 0.
+        The bands to be included may need to be reevaluated.'''
 
     #
     # Access .dat file used as input for siam.
@@ -307,7 +321,11 @@ def remove_nodata(folder, outData):
 
     return outData
 
+
 def start_or_quit(siam_folders):
+
+    '''This funciton allows the user to decide whether to process all of the
+        siamoutput folders, or not. If yes, a start time is established.'''
 
     #
     # Hide the main window for the message popup.
@@ -325,18 +343,24 @@ def start_or_quit(siam_folders):
         print 'No folders processed.'
         sys.exit(1)
 
+    #
+    # Return start time if user has chosen to continue.
+    #
     start_time = datetime.datetime.now()
 
     print '================================================================'
-    print 'Hold on to your hat. This may take ~1 minute per S2 tile folder.'
+    print 'Hold on to your hat. This may take ~0.5 minute per S2 tile folder.'
     print 'Number of siamoutput folders found: {}'.format(len(siam_folders))
-    print 'Estimated time: {} minutes'.format(int(len(siam_folders)) * 1)
+    print 'Estimated time: {} minutes'.format(int(len(siam_folders)) * 0.5)
     print 'Start time: {}'.format(start_time.time())
     print '================================================================\n\n'
 
     return start_time
 
+
 def time_elapsed(start_time):
+
+    '''This function returns the time elapsed.'''
 
     print 'Elapsed time: {}'.format(
         datetime.datetime.now() - start_time)
