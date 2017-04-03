@@ -35,7 +35,7 @@ def siam_folders(root_folder):
     return siamFolders
 
 
-def siam_layer(siam_folders, stack_type, layer_endings):
+def siam_layer(siam_folders, stack_type, layer_endings, start_time):
 
     '''This function will create a layer of defined SIAM semi-concepts, saving
         it to the tile folder.'''
@@ -80,14 +80,14 @@ def siam_layer(siam_folders, stack_type, layer_endings):
                 outData = numpy.where((img_array == 13), (2), outData)
                 outData = numpy.where((img_array == 10), (3), outData)
 
-                print '\nExtracted snow-ice and clouds from 18 granularity.\n'
+                print '\nExtracted snow-ice and clouds from 18 granularity.'
                 del img_array
 
             elif layer.endswith('VegBinaryMask.dat'):
 
                 outData = numpy.where((img_array == 1), (1), outData)
 
-                print '\nExtracted vegetation mask.\n'
+                print 'Extracted vegetation mask.'
                 del img_array
 
         #
@@ -116,8 +116,12 @@ def siam_layer(siam_folders, stack_type, layer_endings):
         #
         del outData
         del outBand
-        img = None
         del outDs
+        img = None
+
+        time_elapsed(start_time)
+        print '\nFinished layer: {}'.format(layer_name)
+        print '--------------------------------\n\n'
 
 
 def create_tif(layer, tiffname, num_layers):
@@ -185,13 +189,19 @@ def create_tif(layer, tiffname, num_layers):
     #
     outData = numpy.zeros([img_cols, img_rows], dtype=int)
 
+    driver = None
+    img = None
+    img_rows = None
+    img_cols = None
+    transform = None
+    projection = None
+    head = None
+    layername = None
+
     #
     # Return datastore for use.
     #
     return outDs, outData
-
-    del driver
-    img = None
 
 
 def generate_name(folder, example, stack_type):
@@ -247,7 +257,9 @@ def open_as_array(layer_path):
     img_array = None
     img_array = img_band.ReadAsArray(0,0, img_cols, img_rows)
 
-    del img_band
+    img_band = None
+    img_rows = None
+    img_cols = None
 
     return img_array
 
@@ -279,18 +291,55 @@ def remove_nodata(folder, outData):
         print 'Could not open {}'.format(layername)
         sys.exit(1)
 
-    for band in range(1, 7):
+    #
+    # Cycle through bands 1-5, removing noData. Ignore band 6 (S2 band 12).
+    #
+    for band in range(1, 6):
         band_array = (img.GetRasterBand(band)).ReadAsArray()
         outData = numpy.where((band_array == 0), (0), outData)
 
     img = None
-    del head
-    del layername
-    del dat_file
-    del band_array
+    head = None
+    layername = None
+    dat_file = None
+    band_array = None
+    proc_folder = None
 
     return outData
 
+def start_or_quit(siam_folders):
+
+    #
+    # Hide the main window for the message popup.
+    #
+    Tkinter.Tk().withdraw()
+
+    #
+    # Create the content of the popup window.
+    #
+    question = ('Number of tiles found: {}'
+        '\n\nDo you want to process all folders?').format(len(siam_folders))
+    messagebox = tkMessageBox.askyesno('SIAM Layer IQ4SEN', question)
+
+    if not messagebox:
+        print 'No folders processed.'
+        sys.exit(1)
+
+    start_time = datetime.datetime.now()
+
+    print '================================================================'
+    print 'Hold on to your hat. This may take ~1 minute per S2 tile folder.'
+    print 'Number of siamoutput folders found: {}'.format(len(siam_folders))
+    print 'Estimated time: {} minutes'.format(int(len(siam_folders)) * 1)
+    print 'Start time: {}'.format(start_time.time())
+    print '================================================================\n\n'
+
+    return start_time
+
+def time_elapsed(start_time):
+
+    print 'Elapsed time: {}'.format(
+        datetime.datetime.now() - start_time)
 
 if __name__ == "__main__":
 
@@ -304,9 +353,14 @@ if __name__ == "__main__":
     siam_folders = siam_folders(root_folder)
 
     #
+    # Ask user to continue after assessing folders and establish start time.
+    #
+    start_time = start_or_quit(siam_folders)
+
+    #
     # Create layer of noData (0), vegetation (1), snow/ice (2), clouds (3),
     # and other semi-concepts (4).
     #
     siam_classes = ['_VegBinaryMask.dat', '18SpCt_r88v6.dat']
 
-    siam_layer(siam_folders, 'IQ4SEN', siam_classes)
+    siam_layer(siam_folders, 'IQ4SEN', siam_classes, start_time)
