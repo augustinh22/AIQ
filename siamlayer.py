@@ -203,7 +203,7 @@ def create_tif(layer, tiffname, num_layers):
     layername = None
 
     #
-    # Return datastore for use.
+    # Return datastore and empty array for use.
     #
     return outDs, outData
 
@@ -274,18 +274,14 @@ def open_as_array(layer_path):
 
 def remove_nodata(folder, outData):
 
-    '''This function removes all pixels that have a value of 5 in any of the
-        first 5 bands in the .dat stack created for SIAM. These bands
-        correspond to S2 bands 2, 3, 4, 8 and 11. Band 6, or S2 band 12 is not
-        included due to the presence of data pixels having a value of 0.
-        The bands to be included may need to be reevaluated.'''
+    '''This function removes all pixels that have a value of 0 in any of the
+        original Sentinel-2 bands used to create the .dat SIAM input file.
+        These correspond to S2 bands 2, 3, 4, 8, 11 and 12.'''
 
     #
     # Access original image folder.
     #
     tile_folder = os.path.dirname(os.path.dirname(folder))
-    print tile_folder
-    exit()
 
     #
     # Find path to img folder.
@@ -333,7 +329,7 @@ def remove_nodata(folder, outData):
                     tile_bands.append(os.path.join(dirpath, filename))
 
     #
-    # Retrieve desired bands from data structure.
+    # Retrieve desired bands from new data structure.
     #
     elif metadata_file.startswith('M'):
         for dirpath, dirnames, filenames in os.walk(imgFolder, topdown=True):
@@ -374,9 +370,11 @@ def remove_nodata(folder, outData):
         # Resample bands 11 and 12 from 20m to 10m resolution.
         #
         if band.endswith(('_B11.jp2','_B12.jp2')):
-            print 'Resample by a factor of 2 with nearest interpolation.'
             band_array = scipy.ndimage.zoom(band_array, 2, order=0)
 
+        #
+        # Ddjust output layer to 0 where there is nodata.
+        #
         outData = numpy.where((band_array == 0), (0), outData)
 
     img = None
@@ -415,10 +413,10 @@ def start_or_quit(siam_folders):
     #
     start_time = datetime.datetime.now()
 
-    print '================================================================'
-    print 'Hold on to your hat. This may take ~0.5 minute per S2 tile folder.'
+    print '\n\n================================================================'
+    print 'Hold on to your hat. This may take ~2 minutes per S2 tile folder.'
     print 'Number of siamoutput folders found: {}'.format(len(siam_folders))
-    print 'Estimated time: {} minutes'.format(int(len(siam_folders)) * 0.5)
+    print 'Estimated time: {} minutes'.format(int(len(siam_folders)) * 2)
     print 'Start time: {}'.format(start_time.time())
     print '================================================================\n\n'
 
@@ -432,6 +430,7 @@ def time_elapsed(start_time):
     print 'Elapsed time: {}'.format(
         datetime.datetime.now() - start_time)
 
+
 if __name__ == "__main__":
 
     #
@@ -439,8 +438,10 @@ if __name__ == "__main__":
     #
     gdal.AllRegister()
 
+    #
+    # Get siam output folders from the defined root folder.
+    #
     root_folder = 'C:\\tempS2'
-
     siam_folders = siam_folders(root_folder)
 
     #
@@ -453,5 +454,4 @@ if __name__ == "__main__":
     # and other semi-concepts (4).
     #
     siam_classes = ['_VegBinaryMask.dat', '18SpCt_r88v6.dat']
-
     siam_layer(siam_folders, 'IQ4SEN', siam_classes, start_time)

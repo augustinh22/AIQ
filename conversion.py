@@ -317,11 +317,11 @@ for imgFolder in imgFolders:
             #
             # Clean up.
             #
-            del band_id
             del driver
-            del therm_array
-            del outBand
-            del stats
+            band_id = None
+            therm_array = None
+            outBand = None
+            stats = None
             thermDs = None
             img = None
 
@@ -384,7 +384,6 @@ for imgFolder in imgFolders:
             # Adjust outliers (areas with very high reflectance and negative).
             #
             outData = img_array / 10000.0
-            del img_array
             outData = numpy.where((outData > 1), (1), outData)
             outData = numpy.where((outData < 0), (0), outData)
 
@@ -398,6 +397,11 @@ for imgFolder in imgFolders:
             #         elif outData[i,j] < 0:
             #             outData[i,j] = 0
 
+            #
+            # Possible adjustment for noData.
+            #
+            #outData = numpy.where((img_array == 0), (-1), outData)
+            img_array = None
 
             #
             # Resample bands 11 and 12 from 20m to 10m resolution.
@@ -437,11 +441,11 @@ for imgFolder in imgFolders:
             #
             # Clean up to avoid problems processing bands to follow.
             #
-            del img_band
-            del band_id
             del outData
             del outBand
-            del stats
+            img_band = None
+            band_id = None
+            stats = None
             img = None
 
 
