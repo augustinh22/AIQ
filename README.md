@@ -30,7 +30,7 @@ the University of Salzburg's M.Sc program in Applied Geoinformatics.
 5. Download kml tiling grid
  * Go to: https://sentinel.esa.int/web/sentinel/missions/sentinel-2/data-products
  * Download kml file: <pre>S2A_OPER_GIP_TILPAR_MPC__20151209T095117_V20150622T000000_21000101T000000_B00.kml</pre>
- * Save in folder where __iq_download.py__ is located.
+ * Save in folder where __download.py__ is located.
 6. Download and install MSVC 2008 (for Python 2.7.x) and Service Pack 1
  * Go to http://www.lfd.uci.edu/~gohlke/pythonlibs/
  * Follow the two links in the Introduction. Install MSVC 2008 first, then SP1 (64-bit)
@@ -75,7 +75,7 @@ the University of Salzburg's M.Sc program in Applied Geoinformatics.
           and is not compatible with the GDAL core downloaded from gisinternals
           that can also be used from the commmand line instead of just in python.
 
-# iq_download.py
+# download.py
 ## Example queries
 ### Point
 * python download.py --lat 47.083 --lon 12.842
