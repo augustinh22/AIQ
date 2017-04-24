@@ -41,7 +41,7 @@ class OptionParser(optparse.OptionParser):
 def kml_api(tile):
 
     '''This function returns the center point of a defined S2 tile based on an
-        API developed by M. Sudmanns.'''
+        API developed by M. Sudmanns, or from the kml file if request fails.'''
 
     #
     # Formulate request and get it.
@@ -49,7 +49,7 @@ def kml_api(tile):
     with requests.Session() as session:
 
         api_request = ('http://cf000008.geo.sbg.ac.at/cgi-bin/s2-dashboard/'
-                        'api.py?centroid={}').format(tile)
+            'api.py?centroid={}').format(tile)
 
         try:
             r = session.get(api_request)
@@ -61,22 +61,26 @@ def kml_api(tile):
             result = r.text
             result = ast.literal_eval(result)
 
-        except requests.exceptions.RequestException as e:  # This is the correct syntax
+        #
+        # Catch base-class exception.
+        #
+        except requests.exceptions.RequestException as e:
             print '\n\n{}\n\n'.format(e)
             result = {"status": "FAIL"}
 
     #
-    # Extract lat, lon from API request, or get try to get from file if failed.
+    # Extract lat, lon from API request, or try to get from file if failed.
     #
-    if result["status"] == "OK":
+    if result["status"] == "OK" and result["data"]:
 
         print '\n------------------------------------------------------------------'
-        print 'Hold on while we check the kml for the tile\'s coordinates!'
+        print 'Hold on while we get the tile\'s coordinates!'
 
         coords = [result["data"]["x"], result["data"]["y"]]
 
     else:
-        coords = tile_coords(options.tile, 'point')
+        print 'API failed.'
+        coords = tile_coords(tile, 'point')
 
     return coords
 
@@ -608,6 +612,7 @@ if options.tile is None or options.tile == '?':
             sys.exit(-1)
 
 else:
+
     #
     # # Returns polygon coordinates. Quits if the tile or kml file do not exist.
     #
@@ -626,15 +631,7 @@ else:
     #     geom = 'tile'
 
     #
-    # Defines lat and lon based on tile's center point.
-    #
-    ##
-    ## Old version retrieving center point from kml file on disk
-    ##
-    # coords = tile_coords(options.tile, 'point')
-
-    #
-    # New method using API.
+    # Defines lat and lon based on tile's center point using API or kml file.
     #
     coords = kml_api(options.tile)
     options.lon = coords[0]
