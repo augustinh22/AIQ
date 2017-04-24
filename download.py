@@ -20,6 +20,7 @@ import tkMessageBox
 import xml.etree.ElementTree as etree
 from datetime import date
 import Tkinter
+import ast
 
 import requests
 
@@ -36,6 +37,48 @@ class OptionParser(optparse.OptionParser):
             self.error('{} option not supplied'.format(option))
 
 ################################################################################
+
+def kml_api(tile):
+
+    '''This function returns the center point of a defined S2 tile based on an
+        API developed by M. Sudmanns.'''
+
+    #
+    # Formulate request and get it.
+    #
+    with requests.Session() as session:
+
+        api_request = ('http://cf000008.geo.sbg.ac.at/cgi-bin/s2-dashboard/'
+                        'api.py?centroid={}').format(tile)
+
+        try:
+            r = session.get(api_request)
+
+            #
+            # Read string result as a dictionary.
+            #
+            result = {}
+            result = r.text
+            result = ast.literal_eval(result)
+
+        except requests.exceptions.RequestException as e:  # This is the correct syntax
+            print '\n\n{}\n\n'.format(e)
+            result = {"status": "FAIL"}
+
+    #
+    # Extract lat, lon from API request, or get try to get from file if failed.
+    #
+    if result["status"] == "OK":
+
+        print '\n------------------------------------------------------------------'
+        print 'Hold on while we check the kml for the tile\'s coordinates!'
+
+        coords = [result["data"]["x"], result["data"]["y"]]
+
+    else:
+        coords = tile_coords(options.tile, 'point')
+
+    return coords
 
 
 def check_kml():
@@ -585,9 +628,18 @@ else:
     #
     # Defines lat and lon based on tile's center point.
     #
-    coords = tile_coords(options.tile, 'point')
+    ##
+    ## Old version retrieving center point from kml file on disk
+    ##
+    # coords = tile_coords(options.tile, 'point')
+
+    #
+    # New method using API.
+    #
+    coords = kml_api(options.tile)
     options.lon = coords[0]
     options.lat = coords[1]
+
     print 'Center point: {} lat, {} lon'.format(options.lat, options.lon)
     geom = 'point'
 
