@@ -524,9 +524,9 @@ def start_session():
             print 'Max records changed to 10 due to dhus limit.'
             options.MaxRecords = '10'
 
-    # # Untested, but may be possible to add later.
+    # Untested, but may be possible to add later.
     # elif options.hub == 'zamg':
-    #     huburl = 'https://data.sentinel.zamg.ac.at/dhus/'
+    #    huburl = 'https://data.sentinel.zamg.ac.at/d'
 
     #
     # Use this part if you want to have your password and username saved in a
