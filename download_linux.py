@@ -20,7 +20,6 @@ import tkMessageBox
 import xml.etree.ElementTree as etree
 from datetime import date
 from datetime import datetime
-import Tkinter
 import ast
 
 import requests
@@ -736,21 +735,27 @@ def get_query_xml():
         question_tile = ('Do you want to download only {} tiles selected '
             'from the results?').format(options.tile)
 
-    question = ('Number of scenes found: {}'
+    question = ('\n\nNumber of scenes found: {}'
         '\nTotal size of scenes: {}'
         '\n\n{}').format(scenes, total_size, question_tile)
 
-    #
-    # Hide the main window.
-    #
-    Tkinter.Tk().withdraw()
+    print question
 
-    #
-    # Create the content of the window.
-    #
-    messagebox = tkMessageBox.askyesno('Sentinel Downloader', question)
+    ins = None
+    while True:
+        ins = raw_input('Answer [y/n]: ')
+        if (ins == 'y' or ins == 'Y' or ins == 'yes' or ins == 'Yes'
+                or ins == 'n' or ins == 'N' or ins == 'no' or ins == 'No'):
+            break
+        else:
+            print("Your input should indicate yes or no.")
 
-    return messagebox, entries
+    if ins == 'y' or ins == 'Y' or ins == 'yes' or ins == 'Yes':
+        bool_answer = True
+    else:
+        bool_answer = None
+
+    return bool_answer, entries
 
 
 def return_tiles(uuid_element, filename, tile=''):
@@ -985,6 +990,13 @@ def get_inside_files(inside_folder_dir, tile_entry_id):
 
 def download_results(entries):
 
+    #
+    # Create download directory if not already existing (default = ./tempS2)
+    #
+    if not(os.path.exists(options.write_dir)):
+
+            os.mkdir(options.write_dir)
+
     #------------------------------------------------------------------------------#
     #                                  Download.                                   #
     #------------------------------------------------------------------------------#
@@ -1067,12 +1079,6 @@ def download_results(entries):
     #
     elif options.tile is not None and options.tile is not '?':
 
-        #
-        # Create download directory if not already existing (default = ./tempS2)
-        #
-        if not(os.path.exists(options.write_dir)):
-
-                os.mkdir(options.write_dir)
 
         #
        	# Search through entries for matching tiles.
