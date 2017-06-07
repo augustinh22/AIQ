@@ -1,11 +1,11 @@
 #-------------------------------------------------------------------------------
 # Name:        Sentinel2 Downloader
-# Purpose:     This script uses aria2 and Powershell to download Sentinel2
-#              images from the Sentinel API or Scientific Data Hub.
+# Purpose:     This script uses wget and requests to download Sentinel2
+#              images from the Sentinel API or Scientific Data Hub on Linux.
 #
 # Author:      h.Augustin
 #
-# Created:     12.10.2016
+# Created:     07.06.2017
 #
 #-------------------------------------------------------------------------------
 
@@ -565,11 +565,14 @@ def start_session():
 
 def set_wget_var():
     #
-    # Set aria2 query variables used throughout the script.
+    # Set wget query variables used throughout the script.
     #
     url_search = '{}search?q='.format(huburl)
-    wg = 'wget --no-check-certificate'
-    auth = '--user="{}" --password="{}"'.format(account, passwd)
+
+    # Don't validate server's certificate and don't wait for authorization
+    # challenge from server.
+    wg = 'wget --no-check-certificate --auth-no-challenge'
+    auth = '--http-user="{}" --http-password="{}"'.format(account, passwd)
     search_output = ' --output-document=query_results.xml'
     wg_opt = ' --continue --output-document='
 
@@ -584,7 +587,7 @@ def set_wget_var():
 def get_query_xml():
 
     #--------------------------------------------------------------------------#
-    #              Prepare aria2 command line to search catalog                #
+    #               Prepare wget command line to search catalog                #
     #--------------------------------------------------------------------------#
 
     #
@@ -1032,40 +1035,41 @@ def download_results(entries):
 
                 continue
 
-            #
-            # Save to defined directory (default = ./tempS2)
-            #
-            command_wget = '{} {} {}{}/{} "{}"'.format(wg, auth, wg_opt,
-                options.write_dir, zfile, sentinel_link)
+            else:
+                #
+                # Save to defined directory (default = ./tempS2)
+                #
+                command_wget = '{} {} {}{}/{} "{}"'.format(wg, auth, wg_opt,
+                    options.write_dir, zfile, sentinel_link)
 
-            #
-            # Execute download.
-            #
-            os.system(command_wget)
-            print 'Downloaded Scene #{}'.format(str(entry + 1))
+                #
+                # Execute download.
+                #
+                os.system(command_wget)
+                print 'Downloaded Scene #{}'.format(str(entry + 1))
 
-            #
-            # Unzip even if path names are really long.
-            #
-            try:
-                with zipfile.ZipFile(os.path.join(options.write_dir, zfile)) as z:
+                #
+                # Unzip even if path names are really long.
+                #
+                try:
+                    with zipfile.ZipFile(os.path.join(options.write_dir, zfile)) as z:
 
-                    z.extractall(u'\\\\?\\{}'.format(options.write_dir))
-                    print 'Unzipped Scene # {}'.format(str(entry + 1))
+                        z.extractall(u'{}'.format(options.write_dir))
+                        print 'Unzipped Scene # {}'.format(str(entry + 1))
 
-            except zipfile.BadZipfile:
-                print 'Zipfile corrupt or hub might have a problem.'
-                continue
+                except zipfile.BadZipfile:
+                    print 'Zipfile corrupt or hub might have a problem.'
+                    continue
 
 
 
-            #
-            # If the unzipped and zipped version exist, delete the zipped version.
-            #
-            if (os.path.exists(os.path.join(options.write_dir, filename))
-                    and os.path.exists(os.path.join(options.write_dir, zfile))):
+                #
+                # If the unzipped and zipped version exist, delete the zipped version.
+                #
+                if (os.path.exists(os.path.join(options.write_dir, filename))
+                        and os.path.exists(os.path.join(options.write_dir, zfile))):
 
-                os.remove(os.path.join(options.write_dir, zfile))
+                    os.remove(os.path.join(options.write_dir, zfile))
 
         print '\n------------------------------------------------------------------'
         print 'Downloading complete!'
@@ -1259,7 +1263,7 @@ if __name__ == '__main__':
     session, huburl, account, passwd = start_session()
 
     #
-    # Set aria2 query variables used throughout the script.
+    # Set wget query variables used throughout the script.
     #
     url_search, wg, auth, search_output, wg_opt, value = set_wget_var()
 
