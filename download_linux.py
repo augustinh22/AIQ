@@ -56,7 +56,7 @@ def get_args():
                 'password file, if available')
         parser.add_argument('-w', '--write_dir', dest='write_dir', action='store',
                 type=str, help='Path where products should be downloaded',
-                default='C:\\tempS2')
+                default='./tempS2')
         parser.add_argument('-r', dest='MaxRecords', action='store', type=int,
                 help='Maximum number of records to download (default=100)',
                 default=100)
@@ -1021,7 +1021,7 @@ def download_results(entries):
                 continue
 
             #
-            # Save to defined directory (default = C:\\tempS2)
+            # Save to defined directory (default = ./tempS2)
             #
             command_wget = '{} {} {}{}/{} "{}"'.format(wg, auth, wg_opt,
                 options.write_dir, zfile, sentinel_link)
@@ -1068,7 +1068,7 @@ def download_results(entries):
     elif options.tile is not None and options.tile is not '?':
 
         #
-        # Create download directory if not already existing (default = C:\\tempS2)
+        # Create download directory if not already existing (default = ./tempS2)
         #
         if not(os.path.exists(options.write_dir)):
 
@@ -1195,7 +1195,7 @@ def download_results(entries):
                     continue
 
                 #
-                # Save to defined directory (default = C:\\tempS2)
+                # Save to defined directory (default = ./tempS2)
                 #
                 command_wget = '{} {} {}{}/{} "{}"'.format(wg, auth, wg_opt,
                     options.write_dir, zfile, sentinel_link)
