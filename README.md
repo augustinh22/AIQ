@@ -1,5 +1,5 @@
-This project is under development for the capstone I3 Project course in
-the University of Salzburg's M.Sc program in Applied Geoinformatics.  
+This project is still under development and was undertaken for the capstone 
+I3 Project course in the University of Salzburg's M.Sc program in Applied Geoinformatics.  
 
 ## Configuration (for Windows 64-bit and Python 2.7)
 1. If not already installed, install Python 2.7.x
