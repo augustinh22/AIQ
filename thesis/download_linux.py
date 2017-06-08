@@ -84,7 +84,7 @@ def get_args():
         # Other Sentinel file related command parameters
         #
         parser.add_argument('-s', '--sentinel', dest='sentinel', action='store',
-                type=str, help='Sentinel mission considered (e.g. S1 or S2)',
+                type=str, help='Sentinel mission considered (e.g. S1, S2A)',
                 default='S2')
         parser.add_argument('-d', '--start_date', dest='start_date', action='store',
                 type=str, help='Start date, fmt("2015-12-22")', default=None)
@@ -414,8 +414,17 @@ def create_query():
         query += ' AND (platformname:Sentinel-1)'
     elif options.sentinel == 'S3':
         query += ' AND (platformname:Sentinel-3)'
+    elif options.sentinel == 'S1A':
+        query += ' AND (platformname:Sentinel-1 AND filename:S1A_*)'
+    elif options.sentinel == 'S1B':
+        query += ' AND (platformname:Sentinel-1 AND filename:S1B_*)'
+    elif options.sentinel == 'S2A':
+        query += ' AND (platformname:Sentinel-2 AND filename:S2A_*)'
+    elif options.sentinel == 'S2B':
+        query += ' AND (platformname:Sentinel-2 AND filename:S2B_*)'
     else:
         pass
+
 
     #
     # Add dates of capture.
@@ -667,7 +676,8 @@ def get_query_xml():
             print '# of Tiles: {}'.format(str(len(found_tiles[0])))
             print 'Tiles:{}'.format(found_tiles[1])
 
-        if options.tile == '?' and filename.startswith('S2A_MSIL1C_'):
+        if options.tile == '?' and (filename.startswith('S2A_MSIL')
+                or filename.startswith('S2B_MSIL')):
 
             #
             # Print the number of tiles and their names.
@@ -844,7 +854,7 @@ def download_check(write_dir, title_element, filename):
     elif os.path.exists(os.path.join(write_dir, zfile)):
         print '{} has already been downloaded!'.format(zfile)
         with zipfile.ZipFile(os.path.join(write_dir, zfile)) as z:
-            z.extractall(u'\\\\?\\{}'.format(write_dir))
+            z.extractall(u'{}'.format(write_dir))
             print '\tAnd is now unzipped.'
         os.remove(os.path.join(write_dir, zfile))
         return True
@@ -1049,7 +1059,7 @@ def download_results(entries):
                 print 'Downloaded Scene #{}'.format(str(entry + 1))
 
                 #
-                # Unzip even if path names are really long.
+                # Unzip.
                 #
                 try:
                     with zipfile.ZipFile(os.path.join(options.write_dir, zfile)) as z:
@@ -1060,8 +1070,6 @@ def download_results(entries):
                 except zipfile.BadZipfile:
                     print 'Zipfile corrupt or hub might have a problem.'
                     continue
-
-
 
                 #
                 # If the unzipped and zipped version exist, delete the zipped version.
@@ -1107,9 +1115,11 @@ def download_results(entries):
                 #
                 included_tiles = return_tiles(uuid_element, filename)
 
-            elif filename.startswith('S2A_MSIL1C_'):
+            elif (filename.startswith('S2A_MSIL')
+                    or filename.startswith('S2B_MSIL')):
 
                 included_tiles = [filename[-26:-21], filename[-26:-21]]
+
 
             #
             # If the tile you want is in the entry, then it will create the
@@ -1187,7 +1197,8 @@ def download_results(entries):
                     options.tile, str(entry + 1))
 
             elif (options.tile in included_tiles
-                    and filename.startswith('S2A_MSIL1C_')):
+                    and (filename.startswith('S2A_MSIL')
+                    or filename.startswith('S2B_MSIL'))):
 
                 #
                 # Create download command for the entry.
@@ -1204,41 +1215,42 @@ def download_results(entries):
 
                     continue
 
-                #
-                # Save to defined directory (default = ./tempS2)
-                #
-                command_wget = '{} {} {}{}/{} "{}"'.format(wg, auth, wg_opt,
-                    options.write_dir, zfile, sentinel_link)
+                else:
+                    #
+                    # Save to defined directory (default = ./tempS2)
+                    #
+                    command_wget = '{} {} {}{}/{} "{}"'.format(wg, auth, wg_opt,
+                        options.write_dir, zfile, sentinel_link)
 
-                #
-                # Execute download.
-                #
-                os.system(command_wget)
-                print 'Downloaded Scene #{}'.format(str(entry + 1))
+                    #
+                    # Execute download.
+                    #
+                    os.system(command_wget)
+                    print 'Downloaded Scene #{}'.format(str(entry + 1))
 
-                #
-                # Unzip the downloaded file.
-                #
-                try:
-                    with zipfile.ZipFile(os.path.join(options.write_dir, zfile)) as z:
+                    #
+                    # Unzip the downloaded file.
+                    #
+                    try:
+                        with zipfile.ZipFile(os.path.join(options.write_dir, zfile)) as z:
 
-                        z.extractall(u'\\\\?\\{}'.format(options.write_dir))
-                        print 'Unzipped Scene # {}'.format(str(entry + 1))
-                except zipfile.BadZipfile:
-                    print 'Zipfile corrupt or problem with hub.'
+                            z.extractall(u'{}'.format(options.write_dir))
+                            print 'Unzipped Scene # {}'.format(str(entry + 1))
+                    except zipfile.BadZipfile:
+                        print 'Zipfile corrupt or problem with hub.'
 
-                #
-                # Delete the zipped version.
-                #
-                if (os.path.exists(os.path.join(options.write_dir, filename))
-                        and os.path.exists(os.path.join(options.write_dir, zfile))):
+                    #
+                    # Delete the zipped version.
+                    #
+                    if (os.path.exists(os.path.join(options.write_dir, filename))
+                            and os.path.exists(os.path.join(options.write_dir, zfile))):
 
-                    os.remove(os.path.join(options.write_dir, zfile))
+                        os.remove(os.path.join(options.write_dir, zfile))
 
-            else:
+                    else:
 
-                print '\nTile {} not in scene #{}\n'.format(
-                    options.tile, str(entry + 1))
+                        print '\nTile {} not in scene #{}\n'.format(
+                            options.tile, str(entry + 1))
 
         print '\n------------------------------------------------------------------'
         print 'Downloading complete!'
