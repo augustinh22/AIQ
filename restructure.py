@@ -138,7 +138,9 @@ def new_to_S2A(root_folder):
 
 if __name__ == "__main__":
 
-    root_folder = 'C:\\tempS2'
+    cwd = os.getcwd()
+    root_folder = os.path.join(cwd, 'tempS2')
+    # root_folder = 'C:\\tempS2'
 
     #
     # List all original tile folders.
