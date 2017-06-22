@@ -1,7 +1,8 @@
 #-------------------------------------------------------------------------------
 # Name:        Sentinel2 Downloader
-# Purpose:     This script uses aria2 and Powershell to download Sentinel2
-#              images from the Sentinel API or Scientific Data Hub.
+# Purpose:     This script downloads Sentinel2 images from the Sentinel API
+#              or Scientific Data Hub using wget if on linux and aria2 if on
+#              Windows.
 #
 # Author:      h.Augustin
 #
@@ -821,11 +822,6 @@ def get_query_xml():
 
         os.system(command_aria)
 
-
-    #--------------------------------------------------------------------------#
-    #                            Parse catalog output                          #
-    #--------------------------------------------------------------------------#
-
     #
     # Parse the xml query file. The entry tag contains the results.
     #
@@ -841,6 +837,7 @@ def get_query_xml():
     # Initialize variable to return total file size of results.
     #
     total_size = 0
+    scenes_have = 0
 
     for entry in range(len(entries)):
 
@@ -937,12 +934,11 @@ def get_query_xml():
         #
         # Check if file was already downloaded.
         #
-        download_check(options.write_dir, title_element, filename)
+        check = download_check(options.write_dir, title_element, filename)
 
+        if check is True:
 
-    #------------------------------------------------------------------------------#
-    #                            Downloader message box                            #
-    #------------------------------------------------------------------------------#
+            scenes_have += 1
 
     #
     # Turn the total size of all scenes found back into text.
@@ -954,16 +950,17 @@ def get_query_xml():
     #
     if options.tile is None or options.tile == '?':
 
-        question_tile = 'Do you want to download all results?'
+        question_tile = 'Download all results you do not already have?'
 
     elif options.tile is not None:
 
         question_tile = ('Do you want to download only {} tiles selected '
-            'from the results?').format(options.tile)
+            'from the results you do not already have?').format(options.tile)
 
-    question = ('Number of scenes found: {}'
-        '\nTotal size of scenes: {}'
-        '\n\n{}').format(scenes, total_size, question_tile)
+    question = ('Total number of scenes found: {0}'
+        '\nYou already have {1} of {0} total scenes found.'
+        '\nTotal size of all scenes: {2}'
+        '\n\n{3}').format(scenes, scenes_have, total_size, question_tile)
 
     if (sys.platform.startswith('linux')
             or sys.platform.startswith('darwin')):
@@ -1404,7 +1401,7 @@ def download_results(entries):
 
                             z.extractall(u'\\\\?\\{}'.format(options.write_dir))
 
-                        print 'Unzipped Scene # {}'.format(str(entry + 1))
+                        print 'Unzipped Scene #{}'.format(str(entry + 1))
 
                 except zipfile.BadZipfile:
 
@@ -1565,6 +1562,7 @@ def download_results(entries):
                 # Skip files that have already been downloaded.
                 #
                 check = download_check(options.write_dir, title_element, filename)
+
                 if check is True:
 
                     continue
@@ -1603,7 +1601,7 @@ def download_results(entries):
 
                                 z.extractall(u'\\\\?\\{}'.format(options.write_dir))
 
-                            print 'Unzipped Scene # {}'.format(str(entry + 1))
+                            print 'Unzipped Scene #{}'.format(str(entry + 1))
 
                     except zipfile.BadZipfile:
 
