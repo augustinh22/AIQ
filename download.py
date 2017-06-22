@@ -26,6 +26,7 @@ import ast
 import requests
 
 ################################################################################
+
 def get_args():
 
     #
@@ -34,14 +35,17 @@ def get_args():
     prog = os.path.basename(sys.argv[0])
 
     if len(sys.argv) == 1:
+
         print('\n        {0} [options]'
             '\n        Help: {1} --help'
             '\n        or: {1} -h'
             '\nexample python {0} --lat 43.6 --lon 1.44\n').format(
             sys.argv[0], prog)
+
         sys.exit(-1)
 
     else:
+
         parser = argparse.ArgumentParser(prog=prog,
             usage='%(prog)s [options]',
             description='Sentinel data downloader.',
@@ -56,7 +60,7 @@ def get_args():
                 'password file, if available')
         parser.add_argument('-w', '--write_dir', dest='write_dir', action='store',
                 type=str, help='Path where products should be downloaded',
-                default='C:\\tempS2')
+                default=None)
         parser.add_argument('-r', dest='MaxRecords', action='store', type=int,
                 help='Maximum number of records to download (default=100)',
                 default=100)
@@ -97,14 +101,34 @@ def get_args():
         parser.add_argument('--if', '--end_ingest_date',
                 dest='end_ingest_date', action='store', type=str,
                 help='end ingestion date fmt("2015-12-23")', default=None)
+        parser.add_argument('-o', '--orbit', dest='rel_orbit', action='store',
+                type=int, help='Relative orbit path number', default=None)
+        parser.add_argument('-od', '--orbit_dir', dest='orbit_dir', action='store',
+                type=str, help='Orbit direction (e.g. asc or desc)', default=None)
+        parser.add_argument('-ord', '--orderby', dest='orderby', action='store',
+                type=str, help=('Order results by ingestion (id) or capture date (d), '
+                'asc or desc (e.g. \'id-asc\' for ingestion date, ascending)'), default=None)
+        #
+        # Sentinel-1 specific parameters.
+        #
+        parser.add_argument('-s1pr', '--s1product', dest='s1product', action='store',
+                type=str, help='Sentinel-1 product (e.g. SLC, GRD, OCN)', default=None)
+        parser.add_argument('-s1po', '--s1polar', dest='s1polar', action='store',
+                type=str, help='Sentinel-1 polarisation mode (e.g. HH, VV, HV, VH, VV VH)',
+                default=None)
+        parser.add_argument('-s1mo', '--s1mode', dest='s1mode', action='store',
+                type=str, help='Sentinel-1 sensor operational mode (e.g. SM, IW, EW)',
+                default=None)
+
+        #
+        # Sentinel-2 specific parameters.
+        #
         parser.add_argument('-c', '--max_cloud', dest='max_cloud', action='store',
                 type=float, help='Only search for products up to a certain '
                 'cloud percentage (e.g. 50 for 50 percent)', default=None)
-        parser.add_argument('-o', '--orbit', dest='orbit', action='store',
-                type=int, help='Orbit path number', default=None)
-
-        # Currently unused commands that could be built into the script at a later date
-
+        parser.add_argument('-s2pr', '--s2product', dest='s2product', action='store',
+                type=str, help='Sentinel-2 product (e.g. S2MSI1C, S2MSI2Ap)',
+                default='S2MSI1C')
 
         return parser.parse_args()
 
@@ -123,11 +147,11 @@ def kml_api(tile):
             'api.py?centroid={}').format(tile)
 
         try:
-            r = s.get(api_request)
 
             #
-            # Read string result as a dictionary.
+            # Get string and read as a dictionary.
             #
+            r = s.get(api_request)
             result = {}
             result = r.text
             result = ast.literal_eval(result)
@@ -136,17 +160,22 @@ def kml_api(tile):
         # Catch base-class exception.
         #
         except requests.exceptions.RequestException as e:
+
             print '\n\n{}\n\n'.format(e)
+
             result = {"status": "FAIL"}
 
     #
     # Extract lat, lon from API request, or try to get from file if failed.
     #
     if result["status"] == "OK" and result["data"]:
+
         coords = [result["data"]["x"], result["data"]["y"]]
 
     else:
+
         print '\nAPI failed.\n'
+
         coords = tile_coords(tile, 'point')
 
     return coords
@@ -158,13 +187,16 @@ def check_kml():
 
     kml_file = ('S2A_OPER_GIP_TILPAR_MPC__20151209T095117_V20150622T000000'
         '_21000101T000000_B00.kml')
+
     if os.path.exists(kml_file) is False:
+
         print(
             '\n--------------------------------------------------------------'
             '\nPlease download the ESA Sentinel-2 kml file!'
             '\nSee README.md for details.'
             '\n--------------------------------------------------------------\n'
         )
+
         sys.exit(-1)
 
     return kml_file
@@ -178,6 +210,7 @@ def tile_coords(tile, form):
     # Check for kml file.
     #
     kml_file = check_kml()
+
     print '\n------------------------------------------------------------------'
     print 'Hold on while we check the kml for the tile\'s coordinates!'
 
@@ -196,6 +229,7 @@ def tile_coords(tile, form):
     # Iterate through the attributes within each placemark.
     #
     for attributes in placemarks:
+
         for subAttribute in attributes:
 
             #
@@ -218,11 +252,16 @@ def tile_coords(tile, form):
                 # Access and return the tile's polygon coordinates.
                 #
                 for unit in points:
+
                     xyz = attributes.find('.//{http://www.opengis.net/kml/2.2}'
                         'coordinates').text
                     xyz = xyz.strip('\t\n\r')
+
+                    #
+                    # Original form: ['longitude,latitude,vertical', ... ]
+                    #
                     coords = (xyz).split(' ')
-                    # ['longitude,latitude,vertical', ... ]
+
                     point1 = coords[0].split(',')
                     point2 = coords[1].split(',')
                     point3 = coords[2].split(',')
@@ -233,22 +272,27 @@ def tile_coords(tile, form):
 
 
             elif name.text == tile and form == 'point':
+
                 #
                 # Find the center point tag.
                 #
                 points = attributes.find('.//{http://www.opengis.net/kml/2.2}'
                     'Point')
+
                 for unit in points:
 
                     #
                     # Save the center point values as a list.
+                    # Form: ['longitude,latitude,vertical', ... ]
                     #
                     coords = (unit.text).split(',')
-                    # ['longitude', 'latitude', 'vertical']
+
                     return coords
 
     if not coords:
+
         print 'Tile not found. Try again.'
+
         sys.exit(-1)
 
 
@@ -257,9 +301,11 @@ def validate_date(date_text):
     '''This function validates date argument input.'''
 
     try:
+
         datetime.strptime(date_text, '%Y-%m-%d')
 
     except ValueError:
+
         raise ValueError('\nIncorrect date format, should be YYYY-MM-DD\n')
 
 
@@ -270,23 +316,28 @@ def create_query():
     #
     # Make sure write_dir is formatted properly.
     #
-    if sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
-        # Add whatever might be necessary here.
-        pass
+    if options.write_dir is None:
+
+        #
+        # Create tempS2 folder in currend working directory.
+        #
+        cwd = os.getcwd()
+        options.write_dir = os.path.join(cwd, 'tempS2')
 
     else:
-        options.write_dir = (options.write_dir).replace('/', '\\')
+
+        if (sys.platform.startswith('linux')
+                or sys.platform.startswith('darwin')):
+
+            pass
+
+        else:
+
+            options.write_dir = (options.write_dir).replace('/', '\\')
 
     print '\nDirectory: {}\n'.format(options.write_dir)
 
     prog = os.path.basename(sys.argv[0])
-
-    #
-    # Add tile query check.
-    #
-    if options.tile != None and options.sentinel != 'S2':
-        print 'The tile option (-t) can only be used for Sentinel-2!'
-        sys.exit(-1)
 
     #
     # Build in checks for valid commands related to the spatial aspect.
@@ -295,20 +346,12 @@ def create_query():
 
         if options.lat is None or options.lon is None:
 
-            if (options.latmin is None or options.lonmin is None
-                    or options.latmax is None or options.lonmax is None):
+            if (options.latmin is None
+                    or options.lonmin is None
+                    or options.latmax is None
+                    or options.lonmax is None):
 
-                #
-                # Explain problem and give example.
-                #
-                print(
-                    '\nPlease provide at least one point or rectangle!'
-                    '\nExamples:'
-                    '\n\tPoint: python {0} --lat 47.083 --lon 12.842'
-                    '\n\tPolygon: python {0} --latmin 46 '
-                    '--latmax 48 --lonmin 12 --lonmax 14'
-                ).format(prog)
-                sys.exit(-1)
+                geom = None
 
             else:
 
@@ -316,21 +359,16 @@ def create_query():
 
         else:
 
-            if (options.latmin is None and options.lonmin is None
-                    and options.latmax is None and options.lonmax is None):
+            if (options.latmin is None
+                    and options.lonmin is None
+                    and options.latmax is None
+                    and options.lonmax is None):
 
                 geom = 'point'
 
             else:
 
-                print(
-                    '\nPlease choose either point or rectangle, but not both!'
-                    '\nExamples:'
-                    '\n\tPoint: python {0} --lat 47.083 --lon 12.842'
-                    '\n\tPolygon: python {0} --latmin 46 '
-                    '--latmax 48 --lonmin 12 --lonmax 14'
-                ).format(prog)
-                sys.exit(-1)
+                geom = None
 
     else:
 
@@ -358,10 +396,14 @@ def create_query():
     #
     if geom == 'point':
 
-        if sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
+        if (sys.platform.startswith('linux')
+                or sys.platform.startswith('darwin')):
+
             query += '(footprint:\\"Intersects({} {})\\")'.format(
                 options.lon, options.lat)
+
         else:
+
             query += '(footprint:"\""Intersects({} {})"\"")'.format(
                 options.lon, options.lat)
 
@@ -380,29 +422,28 @@ def create_query():
                 latmax = options.latmax, lonmin = options.lonmin,
                 lonmax = options.lonmax)
 
-
-    elif geom == 'tile':
-
-        point1 = '{} {}'.format(point1[0], point1[1])
-        point2 = '{} {}'.format(point2[0], point2[1])
-        point3 = '{} {}'.format(point3[0], point3[1])
-        point4 = '{} {}'.format(point4[0], point4[1])
-        del point5
-
-        if sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
-            query += ('(footprint:\\"Intersects(POLYGON(({0}, {1}, {2}, {3}, '
-                '{0})))\\")').format(point1, point2, point3, point4)
-        else:
-            query += ('(footprint:"\""Intersects(POLYGON(({0}, {1}, {2}, {3}, '
-                '{0})))"\"")').format(point1, point2, point3, point4)
     else:
         pass
 
     #
     # Add orbit, if defined (default: NONE).
     #
-    if options.orbit:
-        query += ' AND (relativeorbitnumber:{})'.format(options.orbit)
+    if options.rel_orbit:
+        query += ' AND (relativeorbitnumber:{})'.format(options.rel_orbit)
+    else:
+        pass
+
+    #
+    # Orbit direction as free text.
+    #
+    if options.orbit_dir == 'asc':
+
+        query += ' AND ASCENDING'
+
+    elif options.orbit_dir == 'desc':
+
+        query += ' AND DESCENDING'
+
     else:
         pass
 
@@ -410,31 +451,132 @@ def create_query():
     # Add Sentinel mission.
     #
     if options.sentinel == 'S2':
+
         query += ' AND (platformname:Sentinel-2)'
+
     elif options.sentinel == 'S1':
+
         query += ' AND (platformname:Sentinel-1)'
+
     elif options.sentinel == 'S3':
+
         query += ' AND (platformname:Sentinel-3)'
+
+    elif options.sentinel == 'S1A':
+
+        query += ' AND (platformname:Sentinel-1 AND filename:S1A_*)'
+
+    elif options.sentinel == 'S1B':
+
+        query += ' AND (platformname:Sentinel-1 AND filename:S1B_*)'
+
+    elif options.sentinel == 'S2A':
+
+        query += ' AND (platformname:Sentinel-2 AND filename:S2A_*)'
+
+    elif options.sentinel == 'S2B':
+
+        query += ' AND (platformname:Sentinel-2 AND filename:S2B_*)'
+
     else:
+
         pass
+
+    #
+    # Add Sentinel-1 specific query parameters, if S1 specific query.
+    #
+    if (options.sentinel == 'S1'
+            or options.sentinel == 'S1A'
+            or options.sentinel == 'S1B'):
+
+        if options.s1product is not None:
+
+            query += ' AND (producttype:{})'.format(options.s1product)
+
+        else:
+
+            pass
+
+        if options.s1polar is not None:
+
+            query += ' AND (polarisationmode:{})'.format(options.s1polar)
+
+        else:
+
+            pass
+
+        if options.s1mode is not None:
+
+            query += ' AND (sensoroperationalmode:{})'.format(options.s1mode)
+
+        else:
+
+            pass
+
+    else:
+
+        pass
+
+    #
+    # Add Sentinel-2 specific query parameters, if S2 specific query.
+    #
+    if (options.sentinel == 'S2'
+            or options.sentinel == 'S2A'
+            or options.sentinel == 'S2B'):
+
+        #
+        # Add cloud cover query.
+        #
+        if options.max_cloud is not None:
+
+            query += ' AND (cloudcoverpercentage:[0.0 TO {}])'.format(
+                options.max_cloud)
+
+        else:
+
+            pass
+
+        if options.s2product is not None:
+
+            query += ' AND (producttype:{})'.format(options.s2product)
+
+        else:
+
+            pass
+
+    else:
+        #
+        # Add tile query check.
+        #
+        if options.tile != None:
+
+            print 'The tile option (-t) can only be used for Sentinel-2!'
+
+            sys.exit(-1)
 
     #
     # Add dates of capture.
     #
     if options.start_date is not None:
+
         #
         # Default value is None, so must check user format.
         #
         validate_date(options.start_date)
+
     else:
+
         pass
 
     if options.end_date is not None:
+
         #
         # Default value is None, so must check user format.
         #
         validate_date(options.end_date)
+
     else:
+
         pass
 
     if options.start_date is not None or options.end_date is not None:
@@ -443,15 +585,19 @@ def create_query():
         # If only one is given, fill the other with today or S2 launch date.
         #
         if options.end_date is None:
+
             options.end_date = date.today().isoformat()
 
         if options.start_date is None:
+
             options.start_date = '2015-06-23' # S2 launch date.
 
         query += (' AND (beginPosition:[{0}T00:00:00.000Z TO {1}T23:59:59.999Z] '
             'AND endPosition:[{0}T00:00:00.000Z TO {1}T23:59:59.999Z])').format(
             options.start_date, options.end_date)
+
     else:
+
         pass
 
     #
@@ -462,7 +608,9 @@ def create_query():
         # Default value is None, so must check user format.
         #
         validate_date(options.start_ingest_date)
+
     else:
+
         pass
 
     if options.end_ingest_date is not None:
@@ -470,7 +618,9 @@ def create_query():
         # Default value is None, so must check user format.
         #
         validate_date(options.end_ingest_date)
+
     else:
+
         pass
 
     if options.start_date is not None or options.end_date is not None:
@@ -479,54 +629,79 @@ def create_query():
         # If only one is given, fill the other with today or S2 launch date.
         #
         if options.end_ingest_date is None:
+
             options.end_ingest_date = date.today().isoformat()
 
         if options.start_ingest_date is None:
+
             options.start_ingest_date = '2015-06-23' # S2 launch date.
 
         query += (' AND (ingestionDate:[{}T00:00:00.000Z TO {}T23:59:59.999Z ])'
             ).format(options.start_ingest_date, options.end_ingest_date)
+
     else:
+
         pass
 
     #
-    # Add cloud cover query.
+    # Sort results, if desired.
     #
-    if options.max_cloud is not None and options.sentinel == 'S2':
-        query += ' AND (cloudcoverpercentage:[0.0 TO {}])'.format(
-            options.max_cloud)
-    elif options.max_cloud is not None and options.sentinel is not 'S2':
-        print "Cloud cover is only relevant for Sentinel-2 images."
+    if options.orderby == 'id-asc':
+
+        options.orderby = '&orderby=ingestiondate asc'
+
+    elif options.orderby == 'id-desc':
+
+        options.orderby = '&orderby=ingestiondate desc'
+
+    elif options.orderby == 'd-asc':
+
+        options.orderby = '&orderby=beginposition asc'
+
+    elif options.orderby == 'd-desc':
+
+        options.orderby = '&orderby=beginposition desc'
+
     else:
-        pass
+
+        options.orderby = ''
+
+    #
+    # Correct query string if no geographic coordinates are given.
+    #
+    if query.startswith(' AND'):
+
+        query = query[5:]
+
 
     return query
 
 
 def start_session():
-    #--------------------------------------------------------------------------#
-    #                 Authorize ESA API or DataHub Credentials                 #
-    #--------------------------------------------------------------------------#
 
     #
     # Set data source (apihub vs dhus -- more could be added).
     #
     if options.hub is None:
+
         huburl = 'https://scihub.copernicus.eu/apihub/'
 
     elif options.hub == 'dhus':
+
         huburl = 'https://scihub.copernicus.eu/dhus/'
 
         #
         # The dhus data hub has a limit of 10 records.
         #
         if int(options.MaxRecords) > 10:
-            print 'Max records changed to 10 due to dhus limit.'
+
             options.MaxRecords = '10'
 
-    # Untested, but may be possible to add later.
-    # elif options.hub == 'zamg':
-    #    huburl = 'https://data.sentinel.zamg.ac.at/d'
+            print 'Max records changed to 10 due to dhus limit.'
+
+    elif options.hub == 'zamg':
+
+        huburl = 'https://data.sentinel.zamg.ac.at/'
 
     #
     # Use this part if you want to have your password and username saved in a
@@ -534,11 +709,16 @@ def start_session():
     #
 
     if options.auth is not None:
+
         try:
+
             f = file(options.auth)  # Should this be done with a "with" function?
             (account,passwd) = f.readline().split(' ')
+
             if passwd.endswith('\n'):
+
                 passwd=passwd[:-1]
+
             f.close()
 
         except:
@@ -553,6 +733,7 @@ def start_session():
     # Authenticate at data hub.
     #
     else:
+
         url = '{}search?q='.format(huburl)
         account = raw_input('Username: ')
         passwd = raw_input('Password: ')
@@ -562,9 +743,14 @@ def start_session():
     #
     session = requests.Session()
     session.auth = (account, passwd)
+
     return session, huburl, account, passwd
 
+
 def set_aria2_var():
+
+    '''Assumes any operating system other than linux or darwin.'''
+
     #
     # Set aria2 query variables used throughout the script.
     #
@@ -573,36 +759,67 @@ def set_aria2_var():
     auth = '--http-user="{}" --http-passwd="{}"'.format(account, passwd)
     search_output = ' --continue -o query_results.xml'
     wg_opt = ' -o '
+    value = '$value'
 
-    if sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
-        value='\$value'
-    else:
-        value='$value'
+    return url_search, wg, auth, search_output, wg_opt, value
+
+
+def set_wget_var():
+
+    '''Assumes linux or darwin operating system.'''
+
+    #
+    # Set wget query variables used throughout the script.
+    # Don't validate server's certificate and don't wait for authorization
+    # challenge from server.
+    #
+    url_search = '{}search?q='.format(huburl)
+    wg = 'wget --no-check-certificate --auth-no-challenge'
+    auth = '--http-user="{}" --http-password="{}"'.format(account, passwd)
+    search_output = ' --output-document=query_results.xml'
+    wg_opt = ' --continue --output-document='
+    value ='\\$value'
 
     return url_search, wg, auth, search_output, wg_opt, value
 
 
 def get_query_xml():
 
-    #--------------------------------------------------------------------------#
-    #              Prepare aria2 command line to search catalog                #
-    #--------------------------------------------------------------------------#
+    #
+    # Initialize command variables.
+    #
+    command_wget = None
+    comand_aria = None
 
     #
     # Check for existing xml query file and delete if present.
     #
     if os.path.exists('query_results.xml'):
+
         os.remove('query_results.xml')
 
     #
     # Execute command to download and save query as xml-file in the same location
     # as the python script.
     #
-    command_aria = '{} {} {} "{}{}&rows={}"'.format(
-        wg, auth, search_output, url_search, query, options.MaxRecords)
+    if (sys.platform.startswith('linux')
+            or sys.platform.startswith('darwin')):
 
-    print command_aria
-    os.system(command_aria)
+        command_wget = '{} {} {} "{}{}&rows={}{}"'.format(
+            wg, auth, search_output, url_search, query, options.MaxRecords, options.orderby)
+
+        print command_wget
+
+        os.system(command_wget)
+
+    else:
+
+        command_aria = '{} {} {} "{}{}&rows={}{}"'.format(
+            wg, auth, search_output, url_search, query, options.MaxRecords, options.orderby)
+
+        print command_aria
+
+        os.system(command_aria)
 
 
     #--------------------------------------------------------------------------#
@@ -665,7 +882,8 @@ def get_query_xml():
             print '# of Tiles: {}'.format(str(len(found_tiles[0])))
             print 'Tiles:{}'.format(found_tiles[1])
 
-        if options.tile == '?' and filename.startswith('S2A_MSIL1C_'):
+        if options.tile == '?' and (filename.startswith('S2A_MSIL')
+                or filename.startswith('S2B_MSIL')):
 
             #
             # Print the number of tiles and their names.
@@ -676,9 +894,13 @@ def get_query_xml():
         #
         # Find cloud cover percentage of Sentinel-2 images.
         #
-        if options.sentinel == 'S2':
+        if (options.sentinel == 'S2'
+                or options.sentinel == 'S2A'
+                or options.sentinel == 'S2B'):
+
             cloud_element = (entries[entry].find('.//*[@name="cloudcoverpercentage"]')
                 ).text
+
             print 'Cloud cover percentage: {}'.format(cloud_element)
 
         #
@@ -700,10 +922,13 @@ def get_query_xml():
         # Parse size to float and add to running total of size.
         #
         if 'GB' in size_element:
+
             size_element = size_element.replace(' GB', '')
             size_element = float(size_element)
             total_size += size_element
+
         elif 'MB' in size_element:
+
             size_element = size_element.replace(' MB', '')
             size_element = float(size_element) / 1024
             size_element = size_element
@@ -740,17 +965,48 @@ def get_query_xml():
         '\nTotal size of scenes: {}'
         '\n\n{}').format(scenes, total_size, question_tile)
 
-    #
-    # Hide the main window.
-    #
-    Tkinter.Tk().withdraw()
+    if (sys.platform.startswith('linux')
+            or sys.platform.startswith('darwin')):
 
-    #
-    # Create the content of the window.
-    #
-    messagebox = tkMessageBox.askyesno('Sentinel Downloader', question)
+        question = '\n\n{}'.format(question)
 
-    return messagebox, entries
+        print question
+
+        ins = None
+
+        while True:
+
+            ins = raw_input('Answer [y/n]: ')
+
+            if (ins == 'y' or ins == 'Y' or ins == 'yes' or ins == 'Yes'
+                    or ins == 'n' or ins == 'N' or ins == 'no' or ins == 'No'):
+
+                break
+
+            else:
+
+                print("Your input should indicate yes or no.")
+
+        if ins == 'y' or ins == 'Y' or ins == 'yes' or ins == 'Yes':
+
+            bool_answer = True
+
+        else:
+
+            bool_answer = None
+
+    else:
+        #
+        # Hide the main window.
+        #
+        Tkinter.Tk().withdraw()
+
+        #
+        # Create the content of the window.
+        #
+        bool_answer = tkMessageBox.askyesno('Sentinel Downloader', question)
+
+    return bool_answer, entries
 
 
 def return_tiles(uuid_element, filename, tile=''):
@@ -798,9 +1054,13 @@ def return_tiles(uuid_element, filename, tile=''):
         # If one tile is given as an optional arg, return entire tile file name.
         #
         if tile != '':
+
             if tile in granule_dir_name:
+
                 granule_file = granule_dir_name
+
         else:
+
             granule_file = ''
 
     #
@@ -808,9 +1068,11 @@ def return_tiles(uuid_element, filename, tile=''):
     # tile file name if a specific tile was asked for.
     #
     if not granule_file:
+
         return(granule_entries, granules)
 
     else:
+
         return(granule_file)
 
 
@@ -820,27 +1082,50 @@ def download_check(write_dir, title_element, filename):
        unzipped, it unzips them and deletes the zipped folder.'''
 
     #
-    # Possible zipped folder name.
+    # Possible zipped folder name and paths.
     #
     zfile = '{}.zip'.format(title_element)
+    unzipped_path = os.path.join(write_dir, filename)
+    zipped_path = os.path.join(write_dir, zfile)
 
     #
     # Check if file was already downloaded.
     #
     if os.path.exists(os.path.join(write_dir, title_element)):
+
         print '{} already exists in unzipped form!'.format(title_element)
+
         return True
-    elif os.path.exists(os.path.join(write_dir, filename)):
+
+    elif os.path.exists(unzipped_path):
+
         print '{} already exists in unzipped form!'.format(filename)
+
         return True
-    elif os.path.exists(os.path.join(write_dir, zfile)):
+
+    elif os.path.exists(zipped_path):
+
         print '{} has already been downloaded!'.format(zfile)
-        with zipfile.ZipFile(os.path.join(write_dir, zfile)) as z:
-            z.extractall(u'\\\\?\\{}'.format(write_dir))
+
+        with zipfile.ZipFile(zipped_path) as z:
+
+            if (sys.platform.startswith('linux')
+                    or sys.platform.startswith('darwin')):
+
+                z.extractall(u'{}'.format(write_dir))
+
+            else:
+
+                z.extractall(u'\\\\?\\{}'.format(write_dir))
+
             print '\tAnd is now unzipped.'
-        os.remove(os.path.join(write_dir, zfile))
+
+        os.remove(zipped_path)
+
         return True
+
     else:
+
         return False
 
 
@@ -876,10 +1161,15 @@ def return_header(uuid_element, filename):
         #
         safe_name = (safe_entries[safe_entry].find(
             '{http://www.w3.org/2005/Atom}title')).text
+
         if 'SAFL1C' in safe_name:
+
             header_xml = safe_name
+
             return header_xml
+
     if not header_xml:
+
         print 'Header xml could not be located!'
         # Maybe change to throw some sort of exception?
 
@@ -889,7 +1179,9 @@ def make_dir(location, filename):
     ''' Creates a directory in another directory if it doesn't already exist.'''
 
     dir_name = '{}/{}'.format(location, filename)
+
     if not(os.path.exists(dir_name)):
+
         os.mkdir(dir_name)
 
     return dir_name
@@ -899,6 +1191,12 @@ def get_tile_files(uuid_element, filename, tile_file, tile_dir):
 
     ''' Creates structure for tile specific download (tile inside GRANULE
        folder), and fills it.'''
+
+    #
+    # Initialize command variables.
+    #
+    command_wget = None
+    comand_aria = None
 
     #
     # Define link to tile folder in data hub.
@@ -923,21 +1221,37 @@ def get_tile_files(uuid_element, filename, tile_file, tile_dir):
     # Go through each entry and identify necessary information for download.
     #
     for tile_folder_entry in range(len(tile_folder_entries)):
+
         tile_entry_title = (tile_folder_entries[tile_folder_entry].find(
             '{http://www.w3.org/2005/Atom}title')).text
-        print '\n\n\n\n\nDownloading: {}'.format(tile_entry_title)
+
         tile_entry_id = (tile_folder_entries[tile_folder_entry].find(
             '{http://www.w3.org/2005/Atom}id')).text
+
+        print '\n\n\n\n\nDownloading: {}'.format(tile_entry_title)
 
         #
         # Download xml file
         #
         if '.xml' in tile_entry_title:
+
             tile_xml_file = tile_entry_title
             tile_xml_link = '{}/{}'.format(tile_entry_id, value)
-            command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
-                tile_dir, wg_opt, tile_xml_file, tile_xml_link)
-            os.system(command_aria)
+
+            if (sys.platform.startswith('linux')
+                    or sys.platform.startswith('darwin')):
+
+                command_wget = '{} {} {}{}/{} "{}"'.format(wg, auth, wg_opt,
+                    tile_dir, tile_xml_file, tile_xml_link)
+
+                os.system(command_wget)
+
+            else:
+
+                command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
+                    tile_dir, wg_opt, tile_xml_file, tile_xml_link)
+
+                os.system(command_aria)
 
         else:
 
@@ -953,6 +1267,12 @@ def get_inside_files(inside_folder_dir, tile_entry_id):
     ''' Go deeper in the element tree and download contents to the specified
        folder. This is relevant for tile specific downloads in the old file
        structure, pre-06.12.16.'''
+
+    #
+    # Initialize command variables.
+    #
+    command_wget = None
+    comand_aria = None
 
     #
     # Get xml link and connect to server, parsing response as a string.
@@ -971,25 +1291,49 @@ def get_inside_files(inside_folder_dir, tile_entry_id):
     # Download each entry saving in the defined directory.
     #
     for inside_folder_entry in range(len(inside_folder_entries)):
+
         inside_entry_title = (inside_folder_entries[inside_folder_entry].find(
             '{http://www.w3.org/2005/Atom}title')).text
         inside_entry_id = (inside_folder_entries[inside_folder_entry].find(
             '{http://www.w3.org/2005/Atom}id')).text
         inside_entry_file = inside_entry_title
         inside_entry_link = '{}/{}'.format(inside_entry_id, value)
-        command_aria = '{} {} --dir {} {}{} "{}"'.format( wg, auth,
-            inside_folder_dir, wg_opt, inside_entry_file, inside_entry_link)
-        os.system(command_aria)
+
+        if (sys.platform.startswith('linux')
+                or sys.platform.startswith('darwin')):
+
+            command_wget = '{} {} {}{}/{} "{}"'.format(wg, auth, wg_opt,
+                inside_folder_dir, inside_entry_file, inside_entry_link)
+
+            os.system(command_wget)
+
+        else:
+
+            command_aria = '{} {} --dir {} {}{} "{}"'.format( wg, auth,
+                inside_folder_dir, wg_opt, inside_entry_file, inside_entry_link)
+
+            os.system(command_aria)
+
 
 def download_results(entries):
 
-    #------------------------------------------------------------------------------#
-    #                                  Download.                                   #
-    #------------------------------------------------------------------------------#
+    #
+    # Initialize command variables.
+    #
+    command_wget = None
+    comand_aria = None
 
     #
-    # If you want to download all entries and did not search for a specific tile,
-    # then downloading will begin.
+    # Create download directory if not already existing (default = ./tempS2 or cwd\tempS2)
+    #
+    if not(os.path.exists(options.write_dir)):
+
+            os.mkdir(options.write_dir)
+
+
+    #
+    # If you want to download all entries and did not search for a specific
+    # tile, then downloading will begin.
     #
     if (options.tile is None or options.tile == '?'):
 
@@ -1014,44 +1358,67 @@ def download_results(entries):
             # Skip files that have already been downloaded.
             #
             check = download_check(options.write_dir, title_element, filename)
+
             if check is True:
 
                 continue
 
-            #
-            # Save to defined directory (default = C:\\tempS2)
-            #
-            command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
-                options.write_dir, wg_opt, zfile, sentinel_link)
+            else:
 
-            #
-            # Execute download.
-            #
-            os.system(command_aria)
-            print 'Downloaded Scene #{}'.format(str(entry + 1))
+                #
+                # Execute download.
+                #
+                if (sys.platform.startswith('linux')
+                        or sys.platform.startswith('darwin')):
 
-            #
-            # Unzip even if path names are really long.
-            #
-            try:
-                with zipfile.ZipFile(os.path.join(options.write_dir, zfile)) as z:
+                    command_wget = '{} {} {}{}/{} "{}"'.format(wg, auth, wg_opt,
+                        options.write_dir, zfile, sentinel_link)
 
-                    z.extractall(u'\\\\?\\{}'.format(options.write_dir))
-                    print 'Unzipped Scene # {}'.format(str(entry + 1))
+                    os.system(command_wget)
 
-            except zipfile.BadZipfile:
-                print 'Zipfile corrupt or hub might have a problem.'
-                continue
+                else:
 
+                    command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
+                        options.write_dir, wg_opt, zfile, sentinel_link)
 
+                    os.system(command_aria)
 
-            #
-            # If the unzipped and zipped version exist, delete the zipped version.
-            #
-            if (os.path.exists(os.path.join(options.write_dir, filename))
-                    and os.path.exists(os.path.join(options.write_dir, zfile))):
+                print 'Downloaded Scene #{}'.format(str(entry + 1))
 
-                os.remove(os.path.join(options.write_dir, zfile))
+                #
+                # Unzip even if path names are really long.
+                #
+                unzipped_path = os.path.join(options.write_dir, filename)
+                zipped_path = os.path.join(options.write_dir, zfile)
+
+                try:
+
+                    with zipfile.ZipFile(zipped_path) as z:
+
+                        if (sys.platform.startswith('linux')
+                                or sys.platform.startswith('darwin')):
+
+                            z.extractall(u'{}'.format(options.write_dir))
+
+                        else:
+
+                            z.extractall(u'\\\\?\\{}'.format(options.write_dir))
+
+                        print 'Unzipped Scene # {}'.format(str(entry + 1))
+
+                except zipfile.BadZipfile:
+
+                    print 'Zipfile corrupt or hub might have a problem.'
+
+                    continue
+
+                #
+                # If the unzipped and zipped version exist, delete the zipped version.
+                #
+                if (os.path.exists(unzipped_path) and os.path.exists(zipped_path)):
+
+                    os.remove(zipped_path)
+
 
         print '\n------------------------------------------------------------------'
         print 'Downloading complete!'
@@ -1064,13 +1431,6 @@ def download_results(entries):
     # complete matching tile packages.
     #
     elif options.tile is not None and options.tile is not '?':
-
-        #
-        # Create download directory if not already existing (default = C:\\tempS2)
-        #
-        if not(os.path.exists(options.write_dir)):
-
-                os.mkdir(options.write_dir)
 
         #
        	# Search through entries for matching tiles.
@@ -1095,7 +1455,8 @@ def download_results(entries):
                 #
                 included_tiles = return_tiles(uuid_element, filename)
 
-            elif filename.startswith('S2A_MSIL1C_'):
+            elif (filename.startswith('S2A_MSIL')
+                    or filename.startswith('S2B_MSIL')):
 
                 included_tiles = [filename[-26:-21], filename[-26:-21]]
 
@@ -1141,9 +1502,14 @@ def download_results(entries):
                 header_file = return_header(uuid_element, filename)
                 header_link = "{}('{}')/{}".format(
                     sentinel_link, header_file, value)
-                command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
-                    product_dir_name, wg_opt, header_file, header_link)
-                os.system(command_aria)
+                if sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
+                    command_wget = '{} {} {}{}/{} "{}"'.format(wg, auth, wg_opt,
+                        product_dir_name, header_file, header_link)
+                    os.system(command_wget)
+                else:
+                    command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
+                        product_dir_name, wg_opt, header_file, header_link)
+                    os.system(command_aria)
 
                 #
                 # Download INSPIRE.xml
@@ -1151,9 +1517,14 @@ def download_results(entries):
                 inspire_file = 'INSPIRE.xml'
                 inspire_link = "{}('{}')/{}".format(
                     sentinel_link, inspire_file, value)
-                command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
-                    product_dir_name, wg_opt, inspire_file, inspire_link)
-                os.system(command_aria)
+                if sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
+                    command_wget = '{} {} {}{}/{} "{}"'.format(wg, auth, wg_opt,
+                        product_dir_name, inspire_file, inspire_link)
+                    os.system(command_wget)
+                else:
+                    command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
+                        product_dir_name, wg_opt, inspire_file, inspire_link)
+                    os.system(command_aria)
 
                 #
                 # Download manifest.safe
@@ -1161,9 +1532,14 @@ def download_results(entries):
                 manifest_file = 'manifest.safe'
                 manifest_link = "{}('{}')/{}".format(
                     sentinel_link, manifest_file, value)
-                command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
-                    product_dir_name, wg_opt, manifest_file, manifest_link)
-                os.system(command_aria)
+                if sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
+                    command_wget = '{} {} {}{}/{} "{}"'.format(wg, auth, wg_opt,
+                        product_dir_name, manifest_file, manifest_link)
+                    os.system(command_wget)
+                else:
+                    command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
+                        product_dir_name, wg_opt, manifest_file, manifest_link)
+                    os.system(command_aria)
 
                 #
                 # Download tile xml file and create AUX_DATA, IMG_DATA and QI_DATA
@@ -1175,7 +1551,8 @@ def download_results(entries):
                     options.tile, str(entry + 1))
 
             elif (options.tile in included_tiles
-                    and filename.startswith('S2A_MSIL1C_')):
+                    and (filename.startswith('S2A_MSIL')
+                    or filename.startswith('S2B_MSIL'))):
 
                 #
                 # Create download command for the entry.
@@ -1192,41 +1569,57 @@ def download_results(entries):
 
                     continue
 
-                #
-                # Save to defined directory (default = C:\\tempS2)
-                #
-                command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
-                    options.write_dir, wg_opt, zfile, sentinel_link)
+                else:
 
-                #
-                # Execute download.
-                #
-                os.system(command_aria)
-                print 'Downloaded Scene #{}'.format(str(entry + 1))
+                    #
+                    # Execute download.
+                    #
+                    if sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
+                        command_wget = '{} {} {}{}/{} "{}"'.format(wg, auth, wg_opt,
+                            options.write_dir, zfile, sentinel_link)
+                        os.system(command_wget)
+                    else:
+                        command_aria = '{} {} --dir {} {}{} "{}"'.format(wg, auth,
+                            options.write_dir, wg_opt, zfile, sentinel_link)
+                        os.system(command_aria)
 
-                #
-                # Unzip the downloaded file.
-                #
-                try:
-                    with zipfile.ZipFile(os.path.join(options.write_dir, zfile)) as z:
+                    print 'Downloaded Scene #{}'.format(str(entry + 1))
 
-                        z.extractall(u'\\\\?\\{}'.format(options.write_dir))
-                        print 'Unzipped Scene # {}'.format(str(entry + 1))
-                except zipfile.BadZipfile:
-                    print 'Zipfile corrupt or problem with hub.'
+                    #
+                    # Unzip the downloaded file.
+                    #
+                    unzipped_path = os.path.join(options.write_dir, filename)
+                    zipped_path = os.path.join(options.write_dir, zfile)
 
-                #
-                # Delete the zipped version.
-                #
-                if (os.path.exists(os.path.join(options.write_dir, filename))
-                        and os.path.exists(os.path.join(options.write_dir, zfile))):
+                    try:
+                        with zipfile.ZipFile(zipped_path) as z:
 
-                    os.remove(os.path.join(options.write_dir, zfile))
+                            if (sys.platform.startswith('linux')
+                                    or sys.platform.startswith('darwin')):
 
-            else:
+                                z.extractall(u'{}'.format(options.write_dir))
 
-                print '\nTile {} not in scene #{}\n'.format(
-                    options.tile, str(entry + 1))
+                            else:
+
+                                z.extractall(u'\\\\?\\{}'.format(options.write_dir))
+
+                            print 'Unzipped Scene # {}'.format(str(entry + 1))
+
+                    except zipfile.BadZipfile:
+
+                        print 'Zipfile corrupt or problem with hub.'
+
+                    #
+                    # If the unzipped and zipped version exist, delete the zipped version.
+                    #
+                    if (os.path.exists(unzipped_path) and os.path.exists(zipped_path)):
+
+                        os.remove(zipped_path)
+
+                    else:
+
+                        print '\nTile {} not in scene #{}\n'.format(
+                            options.tile, str(entry + 1))
 
         print '\n------------------------------------------------------------------'
         print 'Downloading complete!'
@@ -1253,14 +1646,20 @@ if __name__ == '__main__':
     #
     # Set aria2 query variables used throughout the script.
     #
-    url_search, wg, auth, search_output, wg_opt, value = set_aria2_var()
+    if sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
+
+        url_search, wg, auth, search_output, wg_opt, value = set_wget_var()
+
+    else:
+
+        url_search, wg, auth, search_output, wg_opt, value = set_aria2_var()
 
     #
     # Query hub, print results and ask whether to continue.
     #
     download_bool, entries = get_query_xml()
 
-    if download_bool:
+    if download_bool is True:
 
         download_results(entries)
 
