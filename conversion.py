@@ -69,7 +69,9 @@ import scipy.ndimage
 #
 # Define S2 root folder, where all downloads are located.
 #
-root_folder = 'C:\\tempS2'
+cwd = os.getcwd()
+root_folder = os.path.join(cwd, 'tempS2')
+# root_folder = 'C:\\tempS2'
 
 #
 # Create list for IMG_DATA folder paths.
@@ -82,19 +84,52 @@ for dirpath, dirnames, filenames in os.walk(root_folder, topdown=True):
             imgFolders.append(os.path.join(dirpath, dirname))
 
 #
-# Hide the main window for the message popup.
-#
-Tkinter.Tk().withdraw()
-
-#
 # Create the content of the popup window.
 #
 question = ('Number of tiles found: {}'
     '\n\nDo you want to process all folders?').format(len(imgFolders))
-messagebox = tkMessageBox.askyesno('Sentinel for SIAM', question)
 
-if not messagebox:
+if (sys.platform.startswith('linux')
+        or sys.platform.startswith('darwin')):
+
+    print question
+
+    ins = None
+
+    while True:
+
+        ins = raw_input('Answer [y/n]: ')
+
+        if (ins == 'y' or ins == 'Y' or ins == 'yes' or ins == 'Yes'
+                or ins == 'n' or ins == 'N' or ins == 'no' or ins == 'No'):
+
+            break
+
+        else:
+
+            print("Your input should indicate yes or no.")
+
+    if ins == 'y' or ins == 'Y' or ins == 'yes' or ins == 'Yes':
+
+        bool_answer = True
+
+    else:
+
+        bool_answer = None
+
+else:
+
+    #
+    # Hide the main window for the message popup.
+    #
+    Tkinter.Tk().withdraw()
+
+    bool_answer = tkMessageBox.askyesno('Sentinel for SIAM', question)
+
+if bool_answer is not True:
+
     print 'No folders processed.'
+
     sys.exit(1)
 
 start_time = datetime.datetime.now()
@@ -154,8 +189,11 @@ for imgFolder in imgFolders:
     # Retrieve desired bands from old data structure.
     #
     if metadata_file.startswith('S2A_'):
+
         for dirpath, dirnames, filenames in os.walk(imgFolder, topdown=True):
+
             for filename in filenames:
+
                 if (filename.startswith('S2A') and filename.endswith('.jp2')
                         and (fnmatch.fnmatch(filename, '*_B02.*')
                         or fnmatch.fnmatch(filename, '*_B03.*')
@@ -170,8 +208,11 @@ for imgFolder in imgFolders:
     # Retrieve desired bands from data structure.
     #
     elif metadata_file.startswith('M'):
+
         for dirpath, dirnames, filenames in os.walk(imgFolder, topdown=True):
+
             for filename in filenames:
+
                 if (filename.startswith('T') and filename.endswith('.jp2')
                         and (fnmatch.fnmatch(filename, '*_B02.*')
                         or fnmatch.fnmatch(filename, '*_B03.*')
@@ -185,13 +226,15 @@ for imgFolder in imgFolders:
     #
     # Put bands in numeric order for processing. Redundant now, keep anyways.
     #
-    tile_bands.sort
+    tile_bands.sort()
 
     #
     # Create the folder for processed data if it doesn't exist.
     #
     PROC_DATA = os.path.join(os.path.dirname(imgFolder), 'PROC_DATA')
+
     if not(os.path.exists(PROC_DATA)):
+
         os.mkdir(PROC_DATA)
 
     #
@@ -307,7 +350,7 @@ for imgFolder in imgFolders:
             #
             # Calculate statistics.
             #
-            stats = outBand.ComputeStatistics(outBand)
+            stats = outBand.ComputeStatistics(False)
             outBand.SetStatistics(stats[0], stats[1], stats[2], stats[3])
 
             print 'Fake thermal band created.\n\n'
@@ -360,9 +403,13 @@ for imgFolder in imgFolders:
             #
             img = gdal.Open(band, gdal.GA_ReadOnly)
             band_id = band[-6:-4]
+
             if img is None:
+
                 print 'Could not open band #{}'.format(band_id)
+
                 sys.exit(1)
+
             print 'Processing band #{}'.format(band_id)
 
             #
@@ -376,6 +423,7 @@ for imgFolder in imgFolders:
             # Read image as array using GDAL.
             #
             img_array = img_band.ReadAsArray(0,0, img_cols, img_rows)
+
             print 'Original shape: {}'.format(img_array.shape)
             # print 'Original max: {}'.format(numpy.amax(img_array))
             # print 'Original min: {}'.format(numpy.amin(img_array))
@@ -407,8 +455,11 @@ for imgFolder in imgFolders:
             # Resample bands 11 and 12 from 20m to 10m resolution.
             #
             if band.endswith(('_B11.jp2','_B12.jp2')):
+
                 print 'Resample by a factor of 2 with nearest interpolation.'
+
                 outData = scipy.ndimage.zoom(outData, 2, order=0)
+
                 print 'Resampled size: {}'.format(outData.shape)
 
             #
@@ -431,7 +482,7 @@ for imgFolder in imgFolders:
             #
             # Calculate statistics.
             #
-            stats = outBand.ComputeStatistics(outBand)
+            stats = outBand.ComputeStatistics(False)
             outBand.SetStatistics(stats[0], stats[1], stats[2], stats[3])
 
             print 'Band #{} completed.\n'.format(band_id)
