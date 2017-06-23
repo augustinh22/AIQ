@@ -67,7 +67,8 @@ import scipy.ndimage
 #
 # Define S2 root folder, where all downloads are located.
 #
-root_folder = './tempS2'
+cwd = os.getcwd()
+root_folder = os.path.join(cwd, 'tempS2')
 
 #
 # Create list for IMG_DATA folder paths.

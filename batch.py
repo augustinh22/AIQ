@@ -29,24 +29,34 @@ import gdal
 def param_check():
 
     if var00.get() == '':
+
         info = 'Please enter SIAM executable location!'
         tkMessageBox.showerror('Missing Parameter', info)
+
     elif s2_Folder.get() == '':
+
         info = 'Please enter root folder!'
         tkMessageBox.showerror('Missing Parameter', info)
+
     elif var06.get() == 'Select one.':
+
         info = 'Please select an image type!\n\nSentinel 2 is LANDSAT_LIKE.'
         tkMessageBox.showerror('Missing Parameter', info)
+
     else:
+
         master.quit()
 
 
 def show_params():
 
     if var06.get() == 'Select one.':
+
         info = 'Please select an image type!\n\nSentinel 2 is LANDSAT_LIKE.'
         tkMessageBox.showerror('Missing Parameter', info)
+
     else:
+
         test = ('S2 path:\n  {}\n\n'
             'Image type: {} ({})\n'
             'Processing with a binary mask: {}\n'
@@ -65,13 +75,16 @@ def show_params():
             var03.get(), var07.get(), var09.get(), var10.get(), var11.get(),
             var12.get(), var13.get(), var14.get(), var15.get(), var16.get(),
             var17.get(), var18.get())
+
         tkMessageBox.showinfo('Test Parameters', test)
 
 #------------------------------------------------------------------------------#
 #                                     GUI                                      #
 #------------------------------------------------------------------------------#
 
+#
 # Create GUI interface frames.
+#
 master = Tkinter.Tk()
 title = Tkinter.Frame(master)
 title.pack(side='top')
@@ -87,12 +100,16 @@ buttons = Tkinter.Frame(master)
 buttons.config(pady=15)
 buttons.pack(side='bottom')
 
-# Title.
+#
+# Title
+#
 label01 = Tkinter.Label(title, text="SIAM Batch Creator")
 label01.config(width=30, font=("Courier", 44))
 label01.pack(pady=15)
 
+#
 # Define SIAM .exe location text entry box.
+#
 label02 = Tkinter.Label(siam_input, text="Insert SIAM .exe path: ")
 label02.pack(pady=15, side='left')
 
@@ -103,18 +120,25 @@ var00x = Tkinter.Entry(siam_input, textvariable=var00, justify='left')
 var00x.config(width=61)
 var00x.pack(pady=15, side='right')
 
+#
 # Define S2 root folder text entry box.
+#
 label03 = Tkinter.Label(s2_input, text='Path to folder where Sentinel 2 '
     'including .dat files for SIAM are saved: ')
 label03.pack(pady=15, side='left')
 
+cwd = os.getcwd()
+root_folder = os.path.join(cwd, 'tempS2')
+
 s2_Folder = Tkinter.StringVar()
-s2_Folder.set(r'C:\tempS2')
+s2_Folder.set(root_folder)
 s2_Folderx = Tkinter.Entry(s2_input, textvariable=s2_Folder, justify='left')
 s2_Folderx.config(width=40)
 s2_Folderx.pack(pady=15, side='right')
 
+#
 # Create image-type dropdown menu.
+#
 label04 = Tkinter.Label(img_options, text="Select an image type: ")
 label04.pack(side='left')
 
@@ -126,7 +150,9 @@ var06x.config(width=15, anchor='w')
 var06x.pack(pady=10, side='right')
 # image_type[var06.get()] returns the key value
 
+#
 # Create checkboxes for all binary variables.
+#
 var03 = Tkinter.IntVar()
 var03x = Tkinter.Checkbutton(binary, text="Use a binary mask for processing",
     variable=var03, anchor='w', height=1, width=50)
@@ -189,13 +215,17 @@ var18x = Tkinter.Checkbutton(binary, text="Urban area binary mask",
     variable=var18, anchor='w', height=1, width=50)
 var18x.pack()
 
+#
 # Ability to close GUI and print current state of variables using bottons.
+#
 button01 = Tkinter.Button(buttons, text='Continue', command=param_check)
 button01.pack()
 button02 = Tkinter.Button(buttons, text='Test', command=show_params)
 button02.pack()
 
+#
 # Creates GUI box where widgets go.
+#
 Tkinter.mainloop()
 
 #------------------------------------------------------------------------------#
@@ -205,16 +235,24 @@ Tkinter.mainloop()
 procFolders = []
 
 for dirpath, dirnames, filenames in os.walk(s2_Folder.get(), topdown=True):
+
     for dirname in dirnames:
+
         if dirname == 'PROC_DATA':
+
             procFolders.append(os.path.join(dirpath, dirname))
 
+#
 # Hide the main window.
+#
 Tkinter.Tk().withdraw()
 
 question = ('Would you like to process {} tiles in SIAM?').format(
     str(len(procFolders)))
+
+#
 # Create the content of the window.
+#
 messagebox = tkMessageBox.askyesno('SIAM batch creator',
     question)
 
@@ -225,18 +263,29 @@ messagebox = tkMessageBox.askyesno('SIAM batch creator',
 
 if messagebox:
 
-    # register all of the GDAL drivers
+    #
+    # Register all of the GDAL drivers.
+    #
     gdal.AllRegister()
 
+    #
     # Create empty batch file for SIAM.
+    #
     var06_text = var06.get()
+
     if len(procFolders) > 1:
+
         batFilename = 'SIAM_multiple_batch_{}.bat'.format(var06_text[:-5])
+
     else:
+
         batFilename = 'SIAM_batch_{}.bat'.format(var06_text[:-5])
+
     batch_path = os.path.join(s2_Folder.get(), batFilename)
 
+    #
     # Convert binary variables and image type identifier from GUI to strings.
+    #
     var00 = var00.get()
     var03 = str(var03.get())
     var06 = str(image_type[var06.get()])
@@ -256,52 +305,83 @@ if messagebox:
 
         var01 = procFolder
 
+        #
         # Create the folder for SIAM output data if it doesn't exist.
+        #
         siam_output = os.path.join(procFolder, 'siamoutput')
+
         if not(os.path.exists(siam_output)):
+
             os.mkdir(siam_output)
+
         var08 = siam_output
 
+        #
         # Fill var02 variable with the calrefbyt filename.
+        #
         for filename in os.listdir(procFolder):
+
             if (filename.endswith('.dat')
                     and fnmatch.fnmatch(filename, '*_calrefbyt_*')):
+
                 var02 = filename
 
+        #
         # Go to next folder if calibrated, stacked raster not yet craeted.
+        #
         if not var02:
+
             print '*_calrefbyt_* not found in {}'.format(procFolder)
             print 'Tile not processed.'
+
             continue
 
+        #
         # Path to calrefbyt.
+        #
         calrefbyt = os.path.join(procFolder, var02)
 
+        #
         # Open image to calculate rows and columns.
+        #
         img = gdal.Open(calrefbyt, gdal.GA_ReadOnly)
+
         if img is None:
+
             print '\nCould not open *calrefbyt*.dat'
             print 'Folder not processed: {}\n'.format(procFolder)
+
             continue
+
         var04 = str(img.RasterYSize)  # Rows.
         var05 = str(img.RasterXSize)  # Columns.
 
+        #
         # Create string to write to batch file.
+        #
         batch_entry = ' '.join((var00, var01, var02, var03, var04, var05,
             var06, var07, var08, var09, var10, var11, var12, var13, var14,
             var15, var16, var17, var18))
+
         with open(batch_path, 'a') as f:
+
             f.write(batch_entry + '\n')
         ## print batch_entry
 
+        #
         # Clean up.
+        #
         img = None
 
+    #
     # Location.
+    #
     print '\n\n{} created.\nSaved to: {}\n\n'.format(batFilename, batch_path)
 
 else:
+
     print '\nNo SIAM batch file created.\n'
+
     sys.exit()
 
 
