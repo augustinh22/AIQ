@@ -1102,24 +1102,46 @@ def download_check(write_dir, title_element, filename):
 
     elif os.path.exists(zipped_path):
 
-        print '{} has already been downloaded!'.format(zfile)
+        try:
 
-        with zipfile.ZipFile(zipped_path) as z:
+            with zipfile.ZipFile(zipped_path) as z:
 
-            if (sys.platform.startswith('linux')
-                    or sys.platform.startswith('darwin')):
+                #
+                # Test again to see if zipfile is corrupt, if so, remove.
+                #
+                ret = z.testzip()
 
-                z.extractall(u'{}'.format(write_dir))
+                if ret is not None:
 
-            else:
+                    os.remove(zipped_path)
 
-                z.extractall(u'\\\\?\\{}'.format(write_dir))
+                    return False
 
-            print '\tAnd is now unzipped.'
+                #
+                # Otherwise extract and remove.
+                #
+                else:
 
-        os.remove(zipped_path)
+                    print '{} has already been successfully downloaded!'.format(zfile)
 
-        return True
+                    if (sys.platform.startswith('linux')
+                            or sys.platform.startswith('darwin')):
+
+                        z.extractall(u'{}'.format(write_dir))
+
+                    else:
+
+                        z.extractall(u'\\\\?\\{}'.format(write_dir))
+
+                    print '\tAnd is now unzipped.'
+                    os.remove(zipped_path)
+
+                    return True
+
+        except zipfile.BadZipfile:
+            #print 'Zipfile corrupt or hub might have a problem.'
+            os.remove(zipped_path)
+            return False
 
     else:
 
