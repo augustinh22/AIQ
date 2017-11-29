@@ -1291,7 +1291,7 @@ def download_results(entries):
 
                     with zipfile.ZipFile(zipped_path) as z:
 
-                            z.extractall(u'{}'.format(options.write_dir))
+                        z.extractall(u'{}'.format(options.write_dir))
 
                         print 'Unzipped Scene #{}'.format(str(entry + 1))
 
