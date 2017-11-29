@@ -1508,7 +1508,7 @@ def download_results(entries):
 
                     except Exception as e:
                         logging.error(str(e) + " in getting " + zfile +
-                            " from " + sentinel_link " in " + options.write_dir)
+                            " from " + sentinel_link + " in " + options.write_dir)
                         continue
 
                     print 'Downloaded Scene #{}'.format(str(entry + 1))
