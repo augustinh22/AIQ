@@ -763,7 +763,6 @@ def get_query_xml():
     except Exception as e:
         logging.error(str(e) + " in getting " + query +
             " from " + command_wget)
-        continue
 
     #
     # Parse the xml query file. The entry tag contains the results.
@@ -1427,7 +1426,6 @@ def download_results(entries):
                 except Exception as e:
                     logging.error(str(e) + " in getting " + header_file +
                         " from " + header_link + " in " + product_dir_name)
-                    continue
 
                 #
                 # Download INSPIRE.xml
@@ -1444,7 +1442,6 @@ def download_results(entries):
                 except Exception as e:
                     logging.error(str(e) + " in getting " + inspire_file +
                         " from " + inspire_link + " in " + product_dir_name)
-                    continue
 
                 #
                 # Download manifest.safe
@@ -1461,8 +1458,6 @@ def download_results(entries):
                 except Exception as e:
                     logging.error(str(e) + " in getting " + manifest_file +
                         " from " + manifest_link + " in " + product_dir_name)
-                    continue
-
 
                 #
                 # Download tile xml file and create AUX_DATA, IMG_DATA and QI_DATA
