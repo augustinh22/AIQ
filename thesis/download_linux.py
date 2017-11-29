@@ -20,6 +20,7 @@ import xml.etree.ElementTree as etree
 from datetime import date
 from datetime import datetime
 import ast
+import logging
 
 import requests
 
@@ -727,7 +728,7 @@ def set_wget_var():
     wg = 'wget --no-check-certificate --auth-no-challenge'
     auth = '--http-user="{}" --http-password="{}"'.format(account, passwd)
     search_output = ' --output-document=query_results.xml'
-    wg_opt = ' --continue --output-document='
+    wg_opt = ' --continue --tries=20 --read-timeout=60 --output-document='
     value='\\$value'
 
     return url_search, wg, auth, search_output, wg_opt, value
@@ -756,7 +757,13 @@ def get_query_xml():
 
     print command_wget
 
-    os.system(command_wget)
+    try:
+        os.system(command_wget)
+
+    except Exception as e:
+        logging.error(str(e) + " in getting " + query +
+            " from " + command_wget)
+        continue
 
     #
     # Parse the xml query file. The entry tag contains the results.
@@ -1170,7 +1177,13 @@ def get_tile_files(uuid_element, filename, tile_file, tile_dir):
             command_wget = '{} {} {}{}/{} "{}"'.format(wg, auth, wg_opt,
                 tile_dir, tile_xml_file, tile_xml_link)
 
-            os.system(command_wget)
+            try:
+                os.system(command_wget)
+
+            except Exception as e:
+                logging.error(str(e) + " in getting " + tile_xml_file +
+                    " from " + tile_xml_link + " in " + tile_dir)
+                continue
 
         else:
 
@@ -1219,7 +1232,13 @@ def get_inside_files(inside_folder_dir, tile_entry_id):
         command_wget = '{} {} {}{}/{} "{}"'.format(wg, auth, wg_opt,
             inside_folder_dir, inside_entry_file, inside_entry_link)
 
-        os.system(command_wget)
+        try:
+            os.system(command_wget)
+
+        except Exception as e:
+            logging.error(str(e) + " in getting " + inside_entry_file +
+                " from " + inside_entry_link + " in " + inside_folder_dir)
+            continue
 
 
 def download_results(entries):
@@ -1278,7 +1297,14 @@ def download_results(entries):
                 #
                 # Execute download.
                 #
-                os.system(command_wget)
+                try:
+                    os.system(command_wget)
+
+                except Exception as e:
+                    logging.error(str(e) + " in getting " + zfile +
+                        " from " + sentinel_link + " in " + options.write_dir)
+                    continue
+
                 print 'Downloaded Scene #{}'.format(str(entry + 1))
 
                 #
@@ -1391,9 +1417,17 @@ def download_results(entries):
                 header_file = return_header(uuid_element, filename)
                 header_link = "{}('{}')/{}".format(
                     sentinel_link, header_file, value)
+
                 command_wget = '{} {} {}{}/{} "{}"'.format(wg, auth, wg_opt,
                     product_dir_name, header_file, header_link)
-                os.system(command_wget)
+
+                try:
+                    os.system(command_wget)
+
+                except Exception as e:
+                    logging.error(str(e) + " in getting " + header_file +
+                        " from " + header_link + " in " + product_dir_name)
+                    continue
 
                 #
                 # Download INSPIRE.xml
@@ -1403,7 +1437,14 @@ def download_results(entries):
                     sentinel_link, inspire_file, value)
                 command_wget = '{} {} {}{}/{} "{}"'.format(wg, auth, wg_opt,
                     product_dir_name, inspire_file, inspire_link)
-                os.system(command_wget)
+
+                try:
+                    os.system(command_wget)
+
+                except Exception as e:
+                    logging.error(str(e) + " in getting " + inspire_file +
+                        " from " + inspire_link + " in " + product_dir_name)
+                    continue
 
                 #
                 # Download manifest.safe
@@ -1413,7 +1454,15 @@ def download_results(entries):
                     sentinel_link, manifest_file, value)
                 command_wget = '{} {} {}{}/{} "{}"'.format(wg, auth, wg_opt,
                     product_dir_name, manifest_file, manifest_link)
-                os.system(command_wget)
+
+                try:
+                    os.system(command_wget)
+
+                except Exception as e:
+                    logging.error(str(e) + " in getting " + manifest_file +
+                        " from " + manifest_link + " in " + product_dir_name)
+                    continue
+
 
                 #
                 # Download tile xml file and create AUX_DATA, IMG_DATA and QI_DATA
@@ -1454,7 +1503,14 @@ def download_results(entries):
                     #
                     # Execute download.
                     #
-                    os.system(command_wget)
+                    try:
+                        os.system(command_wget)
+
+                    except Exception as e:
+                        logging.error(str(e) + " in getting " + zfile +
+                            " from " + sentinel_link " in " + options.write_dir)
+                        continue
+
                     print 'Downloaded Scene #{}'.format(str(entry + 1))
 
                     #
@@ -1499,6 +1555,12 @@ def download_results(entries):
 
 
 if __name__ == '__main__':
+    #
+    # Set-up logger.
+    #
+    logging.basicConfig(filename='log/collector.log',
+                    format='%(asctime)s:%(levelname)s:%(message)s',
+                    level=logging.DEBUG)
 
     #
     # Parse command line to get global arguments.
