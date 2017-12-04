@@ -64,6 +64,10 @@ def get_args():
                 default=100)
         parser.add_argument('--hub', dest='hub', action='store',
                 help='Try other hubs if apihub is not working', default=None)
+        parser.add_argument('--auto', dest='auto', action='store',
+                help=('No user input necessary -- automatically downloads all '
+                'matching results ingested within the last month.'),
+                default=None)
 
         #
         # Location related commands
@@ -595,7 +599,12 @@ def create_query():
 
         pass
 
-    if options.start_date is not None or options.end_date is not None:
+
+    if options.auto is not None:
+
+        query += (' AND (ingestionDate:[NOW-14DAYS TO NOW ])')
+
+    elif options.start_date is not None or options.end_date is not None:
 
         #
         # If only one is given, fill the other with today or S2 launch date.
@@ -907,17 +916,23 @@ def get_query_xml():
 
     ins = None
 
-    while True:
-        ins = raw_input('Answer [y/n]: ')
+    if options.auto is not None:
 
-        if (ins == 'y' or ins == 'Y' or ins == 'yes' or ins == 'Yes'
-                or ins == 'n' or ins == 'N' or ins == 'no' or ins == 'No'):
+        ins = 'y'
 
-            break
+    else:
 
-        else:
+        while True:
+            ins = raw_input('Answer [y/n]: ')
 
-            print("Your input should indicate yes or no.")
+            if (ins == 'y' or ins == 'Y' or ins == 'yes' or ins == 'Yes'
+                    or ins == 'n' or ins == 'N' or ins == 'no' or ins == 'No'):
+
+                break
+
+            else:
+
+                print("Your input should indicate yes or no.")
 
     if ins == 'y' or ins == 'Y' or ins == 'yes' or ins == 'Yes':
 
