@@ -602,7 +602,7 @@ def create_query():
 
     if options.auto is not None:
 
-        query += (' AND (ingestionDate:[NOW-14DAYS TO NOW ])')
+        query += (' AND (ingestionDate:[ NOW-3DAYS TO NOW ])')
 
     elif options.start_date is not None or options.end_date is not None:
 
