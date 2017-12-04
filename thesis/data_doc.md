@@ -31,9 +31,9 @@
 
 ##### 37SDA
  - python download_linux.py -t 37SDA -d 2015-05-01 -f 2017-08-16 -w /data/s2/37SDA
-  -  [run on 01.12.2017 at 13:49]
+  -  [run on 01.12.2017 at 13:49 -- ~2:15 on 02.12.2017 for 97 scenes)]
  -  python download_linux.py -t 37SDA -d 2017-08-15  -w /data/s2/37SDA
-  -  [run on 04.12.2017 at 12:33]
+  -  [run on 04.12.2017 at 12:33 -- 13:31, 21 scenes]
 
 ##### Additional Possibilities
 ###### _Border of Syria and Turkey_
