@@ -1,3 +1,4 @@
 git rm --cached S2A_OPER_GIP_TILPAR_MPC__20151209T095117_V20150622T000000_21000101T000000_B00.kml
 git rm --cached TimeSheetTemplate.xlsx
 git rm --cached key.txt
+git rm --cached thesis/key.txt
