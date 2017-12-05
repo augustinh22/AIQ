@@ -250,6 +250,11 @@ def convert_imgs(root_folder, imgFolders):
     #
     gdal.AllRegister()
 
+    #
+    # Possible XML Schema namespaces.
+    #
+    XML_namespaces = ['https://psd-12.sentinel2.eo.esa.int/', 'https://psd-13.sentinel2.eo.esa.int/', 'https://psd-14.sentinel2.eo.esa.int/']
+
     for imgFolder in imgFolders:
 
         metadata_path = []
@@ -271,30 +276,38 @@ def convert_imgs(root_folder, imgFolders):
         #
         tree = etree.parse(metadata_path[0])
 
-        #
-        # Get metadata values from the General_Info element.
-        #
-        General_Info = tree.find('{https://psd-12.sentinel2.eo.esa.int/'
-            'PSD/S2_PDI_Level-1C_Tile_Metadata.xsd}General_Info')
-        try:
-            TILE_ID = General_Info.find('TILE_ID').text
-            tile_id = TILE_ID[-12:-7]
-            SENSING_TIME = General_Info.find('SENSING_TIME').text
-        except Exception as e:
+
+        for namespace in XML_namespaces:
+
+            try:
+
+                #
+                # Get metadata values from the General_Info element.
+                #
+                General_Info = tree.find(('{{}PSD/S2_PDI_Level-1C_Tile_Metadata.xsd}'
+                    'General_Info').format(namespace))
+                TILE_ID = General_Info.find('TILE_ID').text
+                tile_id = TILE_ID[-12:-7]
+                SENSING_TIME = General_Info.find('SENSING_TIME').text
+
+                #
+                # Get metadata values from the Geometric_Info element.
+                #
+                Geometric_Info = tree.find(('{{}PSD/S2_PDI_Level-1C_Tile_Metadata.xsd}'
+                    'Geometric_Info').format(namespace))
+                HORIZONTAL_CS_NAME = Geometric_Info.find('Tile_Geocoding').find(
+                    'HORIZONTAL_CS_NAME').text
+                HORIZONTAL_CS_CODE = Geometric_Info.find('Tile_Geocoding').find(
+                    'HORIZONTAL_CS_CODE').text
+                break
+            except IOError:
+                pass
+        else:
             logger.error(('{} in {} could not be parsed.').format(
                 metadata_path[0], imgFolder))
-            raise Exception(e)
             continue
 
-        #
-        # Get metadata values from the Geometric_Info element.
-        #
-        Geometric_Info = tree.find('{https://psd-12.sentinel2.eo.esa.int/'
-            'PSD/S2_PDI_Level-1C_Tile_Metadata.xsd}Geometric_Info')
-        HORIZONTAL_CS_NAME = Geometric_Info.find('Tile_Geocoding').find(
-            'HORIZONTAL_CS_NAME').text
-        HORIZONTAL_CS_CODE = Geometric_Info.find('Tile_Geocoding').find(
-            'HORIZONTAL_CS_CODE').text
+
 
         tile_bands = []
 
