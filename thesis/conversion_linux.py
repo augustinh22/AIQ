@@ -281,7 +281,7 @@ def convert_imgs(root_folder, imgFolders):
             tile_id = TILE_ID[-12:-7]
             SENSING_TIME = General_Info.find('SENSING_TIME').text
         except Exception as e:
-            logger.error(metadata_path[0] + ' in ' imgFolder + ' could not be parsed.')
+            logger.error(metadata_path[0] + ' in ' + imgFolder + ' could not be parsed.')
             raise Exception(e)
             continue
 
@@ -360,7 +360,7 @@ def convert_imgs(root_folder, imgFolders):
                 band_id = band[-6:-4]
                 if img is None:
                     print 'Could not open band #{}'.format(band_id)
-                    logger.critical(band + ' in ' imgFolder + ' could not be opened.')
+                    logger.critical(band + ' in ' + imgFolder + ' could not be opened.')
                     sys.exit(1)
 
                 print '------------------------------------------------------------'
