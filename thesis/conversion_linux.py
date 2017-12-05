@@ -238,7 +238,7 @@ def convert_imgs(root_folder, imgFolders):
     print 'Hold on to your hat. This may take ~45s per S2 tile folder.'
     print 'Number of unprocessed IMG_DATA folders found: {}'.format(
         len(imgFolders))
-    print 'Estimated time: {} minutes'.format(int(len(imgFolders)) * 45/60)
+    print 'Estimated time: {} minutes'.format(int(len(imgFolders)) * 0.75)
     print 'Start time: {}'.format(start_time.time())
     print '==================================================================\n\n'
 
@@ -251,11 +251,13 @@ def convert_imgs(root_folder, imgFolders):
     gdal.AllRegister()
 
     #
-    # Possible XML Schema namespaces.
+    # Possible XML Schema namespaces (plus a few potential future ones.)
     #
     XML_namespaces = ['https://psd-12.sentinel2.eo.esa.int/',
                       'https://psd-13.sentinel2.eo.esa.int/',
-                      'https://psd-14.sentinel2.eo.esa.int/']
+                      'https://psd-14.sentinel2.eo.esa.int/',
+                      'https://psd-15.sentinel2.eo.esa.int/',
+                      'https://psd-16.sentinel2.eo.esa.int/']
 
     i = 0
 
