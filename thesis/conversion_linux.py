@@ -300,8 +300,9 @@ def convert_imgs(root_folder, imgFolders):
                 HORIZONTAL_CS_CODE = Geometric_Info.find('Tile_Geocoding').find(
                     'HORIZONTAL_CS_CODE').text
                 break
-            except IOError:
-                pass
+            except Exception as e:
+                logger.error(('{} {} in {} could not be parsed with {}.').format(
+                    e, metadata_path[0], imgFolder, namespace))
         else:
             logger.error(('{} in {} could not be parsed.').format(
                 metadata_path[0], imgFolder))
