@@ -284,8 +284,8 @@ def convert_imgs(root_folder, imgFolders):
                 #
                 # Get metadata values from the General_Info element.
                 #
-                General_Info = tree.find(('{{}PSD/S2_PDI_Level-1C_Tile_Metadata.xsd}'
-                    'General_Info').format(namespace))
+                General_Info = tree.find(('{' + namespace + 'PSD/'
+                    'S2_PDI_Level-1C_Tile_Metadata.xsd}General_Info')
                 TILE_ID = General_Info.find('TILE_ID').text
                 tile_id = TILE_ID[-12:-7]
                 SENSING_TIME = General_Info.find('SENSING_TIME').text
@@ -293,8 +293,8 @@ def convert_imgs(root_folder, imgFolders):
                 #
                 # Get metadata values from the Geometric_Info element.
                 #
-                Geometric_Info = tree.find(('{{}PSD/S2_PDI_Level-1C_Tile_Metadata.xsd}'
-                    'Geometric_Info').format(namespace))
+                Geometric_Info = tree.find(('{' + namespace + 'PSD/'
+                    'S2_PDI_Level-1C_Tile_Metadata.xsd}Geometric_Info')
                 HORIZONTAL_CS_NAME = Geometric_Info.find('Tile_Geocoding').find(
                     'HORIZONTAL_CS_NAME').text
                 HORIZONTAL_CS_CODE = Geometric_Info.find('Tile_Geocoding').find(
