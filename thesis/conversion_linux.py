@@ -631,10 +631,10 @@ if __name__ == '__main__':
     #
     # Set-up logger.
     #
-    logger = logging.getLogger('converter ')
-    logger.basicConfig(filename='log/converter.log',
+    logging.basicConfig(filename='log/converter.log',
                     format='%(asctime)s:%(levelname)s:%(message)s',
                     level=logging.DEBUG)
+    logger = logging.getLogger('converter ')
 
     #
     # Define S2 root folder, where all downloads are located.
