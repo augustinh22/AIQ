@@ -253,7 +253,11 @@ def convert_imgs(root_folder, imgFolders):
     #
     # Possible XML Schema namespaces.
     #
-    XML_namespaces = ['https://psd-12.sentinel2.eo.esa.int/', 'https://psd-13.sentinel2.eo.esa.int/', 'https://psd-14.sentinel2.eo.esa.int/']
+    XML_namespaces = ['https://psd-12.sentinel2.eo.esa.int/',
+                      'https://psd-13.sentinel2.eo.esa.int/',
+                      'https://psd-14.sentinel2.eo.esa.int/']
+
+    i = 0
 
     for imgFolder in imgFolders:
 
@@ -274,7 +278,11 @@ def convert_imgs(root_folder, imgFolders):
         #
         # Parse the metadata xml-file. There should only be one path.
         #
-        tree = etree.parse(metadata_path[0])
+        try:
+            tree = etree.parse(metadata_path[0])
+        except Exception as e:
+            logger.critical(('{} {} in {} could not be parsed.').format(
+                str(e), metadata_path[0], imgFolder))
 
 
         for namespace in XML_namespaces:
@@ -302,7 +310,7 @@ def convert_imgs(root_folder, imgFolders):
                 break
             except Exception as e:
                 logger.error(('{} {} in {} could not be parsed with {}.').format(
-                    e, metadata_path[0], imgFolder, namespace))
+                    str(e), metadata_path[0], imgFolder, namespace))
         else:
             logger.error(('{} in {} could not be parsed.').format(
                 metadata_path[0], imgFolder))
@@ -617,11 +625,12 @@ def convert_imgs(root_folder, imgFolders):
                 stats = None
                 img = None
 
+        i += 1
 
-        print 'Tile {} of {} processed and stacked.'.format(tile_id, len(imgFolders))
+        print 'Tile {}, {} of {} processed and stacked.'.format(tile_id, str(i), len(imgFolders))
         print '------------------------------------------------------------\n\n\n'
-        logger.info(('Tile {} of {} processed and stacked.').format(
-            tile_id, len(imgFolders)))
+        logger.info(('Tile {}, {} of {} processed and stacked.').format(
+            tile_id, str(i), len(imgFolders)))
 
         #
         # Clean up to avoid problems processing tiles to follow.
