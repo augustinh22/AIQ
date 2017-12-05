@@ -176,11 +176,11 @@ def check_imgFolders(root_folder, options):
             elif filename.endswith('calrefbyt_lndstlk.dat'):
 
                 calrefbyt_path = os.path.join(procFolder, filename)
-                calrefbyt_size = os.path.getsize(caltembyt_path)
+                calrefbyt_size = os.path.getsize(calrefbyt_path)
 
                 if calrefbyt_size < 5:
                     remove_procFolder = True
-                    logger.info('calrefbyt file error: ' + caltembyt_path)
+                    logger.info('calrefbyt file error: ' + calrefbyt_path)
                 else:
                     calrefbyt = True
 
