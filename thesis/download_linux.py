@@ -734,7 +734,7 @@ def set_wget_var():
 
     # Don't validate server's certificate and don't wait for authorization
     # challenge from server.
-    wg = 'wget --no-check-certificate --auth-no-challenge'
+    wg = 'wget --quiet --no-check-certificate --auth-no-challenge'
     auth = '--http-user="{}" --http-password="{}"'.format(account, passwd)
     search_output = ' --output-document=query_results.xml'
     wg_opt = ' --continue --tries=20 --read-timeout=60 --output-document='
@@ -1178,7 +1178,7 @@ def get_tile_files(uuid_element, filename, tile_file, tile_dir):
         tile_entry_id = (tile_folder_entries[tile_folder_entry].find(
             '{http://www.w3.org/2005/Atom}id')).text
 
-        print '\n\n\n\n\nDownloading: {}'.format(tile_entry_title)
+        print 'Downloading: {}'.format(tile_entry_title)
 
         #
         # Download xml file
@@ -1319,7 +1319,7 @@ def download_results(entries):
                         " from " + sentinel_link + " in " + options.write_dir)
                     continue
 
-                print 'Downloaded Scene #{}'.format(str(entry + 1))
+                print 'Downloaded Scene #{}: {}'.format(str(entry + 1), zfile)
 
                 #
                 # Unzip.
@@ -1480,8 +1480,8 @@ def download_results(entries):
                 #
                 get_tile_files(uuid_element, filename, tile_file, tile_dir)
 
-                print 'Downloaded tile {} from scene #{}\n'.format(
-                    options.tile, str(entry + 1))
+                print 'Downloaded tile {} from scene #{}\n{}'.format(
+                    options.tile, str(entry + 1), product_dir_name)
 
             elif (options.tile in included_tiles
                     and (filename.startswith('S2A_MSIL')
@@ -1521,7 +1521,8 @@ def download_results(entries):
                             " from " + sentinel_link + " in " + options.write_dir)
                         continue
 
-                    print 'Downloaded Scene #{}'.format(str(entry + 1))
+                    print 'Downloaded Scene #{}: {}'.format(
+                        str(entry + 1), zfile)
 
                     #
                     # Unzip the downloaded file.
