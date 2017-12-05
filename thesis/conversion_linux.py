@@ -1,4 +1,4 @@
-#-------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # Name:        Sentinel2 'Conversion' for SIAM.
 # Purpose:     Use NumPy, GDAL and SciPy to convert all Sentinel2 bands to
 #              8-bit, resample bands 11 and 12 to 10m pixels and build a 6-band
@@ -12,7 +12,7 @@
 #
 # Created:     14.12.2016
 #
-#-------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 ##; FROM Andrea Baraldi:
 ##;     OBJECTIVE: Radiometric calibration of Sentinel-2A/2B imagery into
 ##;         (i)  TOP-OF-ATMOSPHERE (TOA, PLANETARY, EXOATMOSPHERIC)
@@ -47,15 +47,12 @@
 ##;             the Sentinel-2A/2B bands           2, 3, 4, 8, 11 and 12
 ##;             with spatial resolutions          10, 10, 10, 10, 20, 20.
 
-#------------------------------------------------------------------------------#
-#     See README.md for Windows configuration of Numpy, Scipy, and GDAL        #
-#------------------------------------------------------------------------------#
-
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
 import os
 import sys
+import shutil
 import datetime
 import fnmatch
 import argparse
@@ -66,8 +63,12 @@ import gdal
 import numpy
 import scipy.ndimage
 
-################################################################################
+###############################################################################
+
+
 def get_args():
+
+    '''Gets arguments from command line. '''
 
     #
     # Create download tool help response.
@@ -93,39 +94,116 @@ def get_args():
             epilog='Go get \'em!')
 
         #
-        # Authorization and directory related commands
+        # Arguments.
         #
-
-        parser.add_argument('-w', '--write_dir', dest='write_dir', action='store',
+        parser.add_argument('-r', '--read_dir', dest='read_dir', action='store',
                 type=str, help='Path where downloaded products are located.',
                 default=None)
         parser.add_argument('--auto', dest='auto', action='store',
                 help=('No user input necessary -- automatically converts all '
                 'previously not converted images files.'),
                 default=None)
+
         return parser.parse_args()
+
 
 def check_imgFolders(root_folder, options):
 
     #
-    # Create list for IMG_DATA folder paths.
+    # Create list for IMG_DATA folder and existing PROC_DATA folder paths.
     #
     imgFolders = []
+    procFolders = []
 
     for dirpath, dirnames, filenames in os.walk(root_folder, topdown=True):
+
         for dirname in dirnames:
+
             if dirname == 'IMG_DATA':
+
                 imgFolders.append(os.path.join(dirpath, dirname))
+
+            elif dirname == 'PROC_DATA':
+
+                procFolder = os.path.join(dirpath, dirname)
+
+                procFolders.append(procFolder)
+    #
+    # Determine which tile folders have no PROC_DATA folder.
+    #
+    unprocFolders = []
+
+    for imgFolder in imgFolders:
+
+        test_path = os.path.join(os.path.dirname(imgFolder), 'PROC_DATA')
+
+        if test_path in procFolders:
+            continue
+        else:
+            unprocFolders.append(imgFolder)
+
+
+    #
+    # Check validity of relevant PROC_DATA contents.
+    #
+    for procFolder in procFolders:
+
+        #
+        # Initialize variables for PROC_DATA folder.
+        #
+        caltembyt = None
+        caltembyt_path = None
+        caltembyt_size = 0
+        calrefbyt = None
+        calrefbyt_path = None
+        calrefbyt_size = 0
+        remove_procFolder = None
+
+        for filename in os.listdir(procFolder):
+
+            if filename.endswith('caltembyt_lndstlk.dat'):
+
+                caltembyt_path = os.path.join(procFolder, filename)
+                caltembyt_size = os.path.getsize(caltembyt_path)
+
+                if caltembyt_size < 5:
+                    remove_procFolder = True
+                    logger.info('caltembyt file error: ' + caltembyt_path)
+                else:
+                    caltembyt = True
+
+
+            elif filename.endswith('calrefbyt_lndstlk.dat'):
+
+                calrefbyt_path = os.path.join(procFolder, filename)
+                calrefbyt_size = os.path.getsize(caltembyt_path)
+
+                if calrefbyt_size < 5:
+                    remove_procFolder = True
+                    logger.info('calrefbyt file error: ' + caltembyt_path)
+                else:
+                    calrefbyt = True
+
+        #
+        # Removes PROC_DATA folders with problem files and adds to list to be
+        # processed.
+        #
+        if remove_procFolder is True:
+            shutil.rmtree(procFolder)
+            logger.info('Removed Folder: ' + procFolder)
+            unprocFolders.append(procFolder)
 
     #
     # Create the content of the popup window.
     #
     question = ('Number of tiles found: {}'
-        '\n\nDo you want to process all folders?').format(len(imgFolders))
+        '\n\nDo you want to process all unprocessed folders [{}]?').format(
+        len(imgFolders), len(unprocFolders))
 
     print question
 
     ins = None
+    bool_answer = None
 
     if options.auto is not None:
 
@@ -134,34 +212,39 @@ def check_imgFolders(root_folder, options):
     else:
 
         while True:
+
             ins = raw_input('Answer [y/n]: ')
-            if (ins == 'y' or ins == 'Y' or ins == 'yes' or ins == 'Yes'
-                    or ins == 'n' or ins == 'N' or ins == 'no' or ins == 'No'):
+
+            if (ins == 'y' or ins == 'n'):
+
                 break
+
             else:
-                print("Your input should indicate yes or no.")
+
+                print  'Your input should indicate yes [y] or no [n].'
 
     if ins == 'y' or ins == 'Y' or ins == 'yes' or ins == 'Yes':
 
         bool_answer = True
-    else:
 
-        bool_answer = None
-
-    return bool_answer, imgFolders
+    return bool_answer, unprocFolders
 
 
-def convert_imgs(imgFolders):
+def convert_imgs(root_folder, imgFolders):
 
     start_time = datetime.datetime.now()
 
     print '=================================================================='
-    print 'Hold on to your hat. This may take ~2 minutes per S2 tile folder.'
-    print 'Number of IMG_DATA folders found: {}'.format(len(imgFolders))
-    print 'Estimated time: {} minutes'.format(int(len(imgFolders)) * 2)
+    print 'Hold on to your hat. This may take ~45s per S2 tile folder.'
+    print 'Number of unprocessed IMG_DATA folders found: {}'.format(
+        len(imgFolders))
+    print 'Estimated time: {} minutes'.format(int(len(imgFolders)) * 45/60)
     print 'Start time: {}'.format(start_time.time())
     print '==================================================================\n\n'
 
+    logger.info('Root Folder: {} \nNumber of unprocessed IMG_DATA folders '
+        'found: {}\nStart time: {}').format(
+        root_folder, len(imgFolders), start_time.time())
     #
     # Register all of the GDAL drivers.
     #
@@ -178,6 +261,9 @@ def convert_imgs(imgFolders):
         if len(metadata_path) > 1:
             print ('Make sure only the original metadata exists in the tile folder'
                 '\n{}'.format(os.path.dirname(imgFolder)))
+            logger.critical('Make sure only the original metadata exists '
+                'in the tile folder\n{}\nAborting.'.format(
+                os.path.dirname(imgFolder)))
             sys.exit()
 
         #
@@ -190,9 +276,14 @@ def convert_imgs(imgFolders):
         #
         General_Info = tree.find('{https://psd-12.sentinel2.eo.esa.int/'
             'PSD/S2_PDI_Level-1C_Tile_Metadata.xsd}General_Info')
-        TILE_ID = General_Info.find('TILE_ID').text
-        tile_id = TILE_ID[-12:-7]
-        SENSING_TIME = General_Info.find('SENSING_TIME').text
+        try:
+            TILE_ID = General_Info.find('TILE_ID').text
+            tile_id = TILE_ID[-12:-7]
+            SENSING_TIME = General_Info.find('SENSING_TIME').text
+        except Exception as e:
+            logger.error(metadata_path[0] + ' in ' imgFolder + ' could not be parsed.')
+            raise Exception(e)
+            continue
 
         #
         # Get metadata values from the Geometric_Info element.
@@ -269,6 +360,7 @@ def convert_imgs(imgFolders):
                 band_id = band[-6:-4]
                 if img is None:
                     print 'Could not open band #{}'.format(band_id)
+                    logger.critical(band + ' in ' imgFolder + ' could not be opened.')
                     sys.exit(1)
 
                 print '------------------------------------------------------------'
@@ -421,6 +513,7 @@ def convert_imgs(imgFolders):
                 band_id = band[-6:-4]
                 if img is None:
                     print 'Could not open band #{}'.format(band_id)
+                    logger.critical('Could not open band #{} in {}'.format(band_id, imgFolder))
                     sys.exit(1)
                 print 'Processing band #{}'.format(band_id)
 
@@ -508,8 +601,10 @@ def convert_imgs(imgFolders):
                 img = None
 
 
-        print 'Tile {} processed and stacked.'.format(tile_id)
+        print 'Tile {} of {} processed and stacked.'.format(tile_id, len(imgFolders))
         print '------------------------------------------------------------\n\n\n'
+        logger.info('Tile {} of {} processed and stacked.'.format(
+            tile_id, len(imgFolders)))
 
         #
         # Clean up to avoid problems processing tiles to follow.
@@ -528,14 +623,16 @@ def convert_imgs(imgFolders):
     print 'End time: {}'.format(datetime.datetime.now().time())
     print 'Total elapsed time: {}'.format(datetime.datetime.now() - start_time)
     print '==================================================================\n\n'
-
+    logger.info('End time: {}'.format(datetime.datetime.now().time()))
+    logger.info('Total elapsed time: {}'.format(datetime.datetime.now() - start_time))
 
 if __name__ == '__main__':
 
     #
     # Set-up logger.
     #
-    logging.basicConfig(filename='log/converter.log',
+    logger = logging.getLogger('converter ')
+    logger.basicConfig(filename='log/converter.log',
                     format='%(asctime)s:%(levelname)s:%(message)s',
                     level=logging.DEBUG)
 
@@ -543,12 +640,12 @@ if __name__ == '__main__':
     # Define S2 root folder, where all downloads are located.
     #
     options = get_args()
-    root_folder = options.write_dir
+    root_folder = options.read_dir
 
-    bool_answer, imgFolders = check_imgFolders(root_folder, options)
+    bool_answer, imgFolders_toProcess = check_imgFolders(root_folder, options)
 
     if not bool_answer:
         print 'No folders processed.'
         sys.exit(1)
 
-    convert_imgs(imgFolders)
+    convert_imgs(root_folder, imgFolders_toProcess)
