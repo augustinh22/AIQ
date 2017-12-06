@@ -80,7 +80,7 @@ def get_args():
         print('\n        {0} [options]'
             '\n        Help: {1} --help'
             '\n        or: {1} -h'
-            '\nexample python {0} -w /path/to/data/').format(
+            '\nexample python {0} -r /path/to/data/').format(
             sys.argv[0], prog)
 
         sys.exit(-1)
@@ -107,7 +107,7 @@ def get_args():
         return parser.parse_args()
 
 
-def check_imgFolders(root_folder, options):
+def check_imgFolders(options):
 
     #
     # Create list for IMG_DATA folder and existing PROC_DATA folder paths.
@@ -115,7 +115,7 @@ def check_imgFolders(root_folder, options):
     imgFolders = []
     procFolders = []
 
-    for dirpath, dirnames, filenames in os.walk(root_folder, topdown=True):
+    for dirpath, dirnames, filenames in os.walk(options.read_dir, topdown=True):
 
         for dirname in dirnames:
 
@@ -671,7 +671,7 @@ if __name__ == '__main__':
     options = get_args()
     root_folder = options.read_dir
 
-    bool_answer, imgFolders_toProcess = check_imgFolders(root_folder, options)
+    bool_answer, imgFolders_toProcess = check_imgFolders(options)
 
     if not bool_answer:
         print 'No folders processed.'
