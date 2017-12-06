@@ -253,9 +253,9 @@ def convert_imgs(root_folder, imgFolders):
     #
     # Possible XML Schema namespaces (plus a few potential future ones.)
     #
-    XML_namespaces = ['https://psd-12.sentinel2.eo.esa.int/',
+    XML_namespaces = ['https://psd-14.sentinel2.eo.esa.int/',
+                      'https://psd-12.sentinel2.eo.esa.int/',
                       'https://psd-13.sentinel2.eo.esa.int/',
-                      'https://psd-14.sentinel2.eo.esa.int/',
                       'https://psd-15.sentinel2.eo.esa.int/',
                       'https://psd-16.sentinel2.eo.esa.int/']
 
@@ -677,4 +677,11 @@ if __name__ == '__main__':
         print 'No folders processed.'
         sys.exit(1)
 
-    convert_imgs(root_folder, imgFolders_toProcess)
+    if imgFolders_toProcess = 0:
+
+        print 'No new folders to process.'
+        logger.info('No new folders to process.')
+
+    else:
+
+        convert_imgs(root_folder, imgFolders_toProcess)
