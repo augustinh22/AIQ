@@ -677,7 +677,7 @@ if __name__ == '__main__':
         print 'No folders processed.'
         sys.exit(1)
 
-    if imgFolders_toProcess = 0:
+    if imgFolders_toProcess == 0:
 
         print 'No new folders to process.'
         logger.info('No new folders to process.')
