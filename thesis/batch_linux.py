@@ -65,7 +65,7 @@ def get_args():
                 default='/opt/siam/SIAM_compilation_Ubuntu/SIAM_Ubuntu_r88v7.exe')
         parser.add_argument('-w', '--write_dir', dest='write_dir', action='store',
                 type=str, help='Path to save SIAM batch.',
-                default='/home/hannah/repos/AIQ/thesis/')
+                default='/home/hannah/repos/AIQ/thesis/siam/')
         parser.add_argument('--auto', dest='auto', action='store',
                 help=('Automatically creates batch file without user input.'),
                 default=None)
@@ -192,7 +192,7 @@ def check_procFolders(options):
             logger.info('Removed Folder: ' + siamFolder)
             unprocFolders.append(os.path.dirname(siamFolder))
 
-    question = ('{} unprocessed tiles from {} found. Process in SIAM?').format(
+    question = ('{} unprocessed tiles from {} found. Create batch for SIAM?').format(
         str(len(unprocFolders)), str(len(procFolders)))
 
     print question
