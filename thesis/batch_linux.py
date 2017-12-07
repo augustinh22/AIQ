@@ -141,7 +141,7 @@ def check_procFolders(options):
 
         test_path = os.path.join(procFolder, 'siamoutput')
 
-        if test_path in procFolders:
+        if test_path in siamFolders:
             continue
         else:
             unprocFolders.append(procFolder)
