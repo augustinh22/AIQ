@@ -7,6 +7,7 @@
 # Author:      h.Augustin
 #
 # Created:     21.12.2016
+# Modified:    07.12.2017
 #
 #-------------------------------------------------------------------------------
 
@@ -19,7 +20,6 @@ import shutil
 import fnmatch
 import argparse
 import logging
-import subprocess
 from time import strftime as date
 
 import gdal
@@ -41,7 +41,7 @@ def get_args():
         print('\n        {0} [options]'
             '\n        Help: {1} --help'
             '\n        or: {1} -h'
-            '\nexample python {0} -r /path/to/data/').format(
+            '\nexample python {0} -r /path/to/data/ --burnt-area 1').format(
             sys.argv[0], prog)
 
         sys.exit(-1)
@@ -74,43 +74,43 @@ def get_args():
         # Optional parameters.
         #
         parser.add_argument('-03', '--bin-mask', dest='var03', action='store',
-                help=('Use a binary mask for processing.'),
+                help=('Use a binary mask for processing. Default 0.'),
                 default=0)
         parser.add_argument('-07', '--crisp', dest='var07', action='store',
-                help=('Select crisp[1] or fuzzy [0] classification.'),
+                help=('Crisp[1] or fuzzy [0] classification. Default 1.'),
                 default=1)
         parser.add_argument('-09', '--smoke-plume', dest='var09', action='store',
-                help=('Create smoke-plume mask.'),
+                help=('Create smoke-plume mask. Default 0.'),
                 default=0)
         parser.add_argument('-10', '--cloud', dest='var10', action='store',
-                help=('Create cloud mask.'),
+                help=('Create cloud mask. Default 1.'),
                 default=1)
         parser.add_argument('-11', '--burnt-area', dest='var11', action='store',
-                help=('Create burnt-area mask.'),
+                help=('Create burnt-area mask. Default 0.'),
                 default=0)
         parser.add_argument('-12', '--veg-bin', dest='var12', action='store',
-                help=('Create binary vegetation mask.'),
+                help=('Create binary vegetation mask. Default 1.'),
                 default=1)
         parser.add_argument('-13', '--veg-tri', dest='var13', action='store',
-                help=('Create trinary vegetation mask.'),
+                help=('Create trinary vegetation mask. Default 0.'),
                 default=0)
         parser.add_argument('-14', '--baresoil', dest='var14', action='store',
-                help=('Create trinary baresoil builtup mask.'),
+                help=('Create trinary baresoil builtup mask. Default 0.'),
                 default=0)
         parser.add_argument('-15', '--cloud-tri', dest='var15', action='store',
-                help=('Create trinary cloud mask.'),
+                help=('Create trinary cloud mask. Default 0.'),
                 default=0)
         parser.add_argument('-16', '--water-tri', dest='var16', action='store',
-                help=('Create trinary water mask.'),
+                help=('Create trinary water mask. Default 0.'),
                 default=0)
         parser.add_argument('-17', '--shadow-tri', dest='var17', action='store',
-                help=('Create trinary shadow mask.'),
+                help=('Create trinary shadow mask. Default 0.'),
                 default=0)
         parser.add_argument('-18', '--urban-bin', dest='var18', action='store',
-                help=('Create binary urban area mask.'),
+                help=('Create binary urban area mask. Default 0.'),
                 default=0)
         parser.add_argument('-19', '--shape', dest='var19', action='store',
-                help=('Calculate shape indicators.'),
+                help=('Calculate shape indicators. Default 0.'),
                 default=0)
 
         return parser.parse_args()
@@ -181,7 +181,8 @@ def check_procFolders(options):
 
                         if file_size < 5:
                             remove_siamFolder = True
-                            logger.info('File smaller than 5 bytes: ' + file_path)
+                            logger.info('File smaller than 5 bytes: ' +
+                                file_path)
 
         #
         # Removes siamoutput folders with problem files and adds to list to be
@@ -198,11 +199,13 @@ def check_procFolders(options):
     if len(unprocFolders) == 0:
         question = ('{} unprocessed tiles from {} found.').format(
             str(len(unprocFolders)), str(len(procFolders)))
+        print question
         bool_answer = None
         return bool_answer, unprocFolders
 
-    question = ('{} unprocessed tiles from {} found. Create batch for SIAM?').format(
-        str(len(unprocFolders)), str(len(procFolders)))
+    question = ('{} unprocessed tiles from {} found. '
+        'Create batch for SIAM?').format(str(len(unprocFolders)),
+        str(len(procFolders)))
 
     print question
 
@@ -232,6 +235,7 @@ def check_procFolders(options):
         bool_answer = True
 
     return bool_answer, unprocFolders
+
 
 def create_batch(options, unprocFolders):
 
@@ -386,19 +390,6 @@ if __name__ == '__main__':
         print '\nNo SIAM batch file created.\n'
 
         sys.exit()
-
-
-#------------------------------------------------------------------------------#
-#                              Launch batch file.                              #
-#------------------------------------------------------------------------------#
-
-## May need to add threading to avoid GUI freezing upon launch.
-
-# Excerpt from Tiede's ArcGIS Python Toolbox to launch SIAM
-
-# myprocess = subprocess.Popen(batch_path)
-# myprocess.wait()               # We wait for process to finish
-# print myprocess.returncode     # then we get its returncode.
 
 
 #------------------------------------------------------------------------------#
