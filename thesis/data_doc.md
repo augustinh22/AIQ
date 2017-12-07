@@ -2,7 +2,7 @@
 #
 #
 ---
-1. Select tiles for download using Sentinel-2 Dashboard
+### 1. Select tiles for download using Sentinel-2 Dashboard
 
 #### _Border of Syria and Turkey_
 ##### 37SBA
@@ -53,20 +53,46 @@
  - 37SDB
  - 37SEB
 
-##### Create Cronjob
+### 2. Convert tiles.
+05.12.2017 -- average of less than 45s per tile for 433 tiles (total: 5.4h)
+  -- only logged 228 tiles at 2h39m, so average of 41.65seconds per tile
+  -- based on this average, it took 5.01h for 433 tiles
+
+### 3. Initial SIAM processing
+##### 37SBA
+ started 13:30 on 06.12.2017 (121 tiles) -- finished 00:38 on 07.12.2017
+##### 37SCA
+ started 13:51 on 06.12.2017 (193 tiles) --
+ cancelled before first finish due to server load -- manually deleted siamoutput folder
+ started again at 14:48 on 06.12.2017 (193 tiles) -- finished 08:19 on 07.12.2017
+##### 37SDA
+ started 14:32 on 06.12.2017 (119 tiles) -- finished 01:11 on 07.12.2017
+
+### 4. Create Cronjob to automate processes to keep up-to-date.
 - crontab -e
 - insert following: 0 2 * * * . $HOME/.bash_profile; /home/hannah/repos/AIQ/thesis/automate_downloads.sh
 - Contents of Script:
+
 """
 #!/bin/bash
 
 source activate aiq27
 cd /home/hannah/repos/AIQ/thesis/
-python download_linux.py -t 37SBA --auto y -a ./key.txt -w /data/s2/37SBA
-python download_linux.py -t 37SCA --auto y -a ./key.txt -w /data/s2/37SCA
-python download_linux.py -t 37SDA --auto y -a ./key.txt -w /data/s2/37SDA
+python download_linux.py -t 37SBA --auto y -a ./key.txt -w /data/s2/37SBA/
+python download_linux.py -t 37SCA --auto y -a ./key.txt -w /data/s2/37SCA/
+python download_linux.py -t 37SDA --auto y -a ./key.txt -w /data/s2/37SDA/
 
-python conversion_linux.py --auto y -r /data/s2/37SBA
-python conversion_linux.py --auto y -r /data/s2/37SCA
-python conversion_linux.py --auto y -r /data/s2/37SDA
+python conversion_linux.py --auto y -r /data/s2/37SBA/
+python conversion_linux.py --auto y -r /data/s2/37SCA/
+python conversion_linux.py --auto y -r /data/s2/37SDA/
+
+python batch_linux.py --auto y -r /data/s2/
+cd /home/hannah/repos/AIQ/thesis/siam/
+LATEST=$(find . -mmin -60 -type f)
+if [ -z "$LATEST" ]
+then
+  echo "\$LATEST is empty."
+else
+  bash "$LATEST"
+fi
 """
