@@ -192,6 +192,15 @@ def check_procFolders(options):
             logger.info('Removed Folder: ' + siamFolder)
             unprocFolders.append(os.path.dirname(siamFolder))
 
+    #
+    # If no unprocessed folders, skip input from user.
+    #
+    if len(unprocFolders) == 0:
+        question = ('{} unprocessed tiles from {} found.').format(
+            str(len(unprocFolders)), str(len(procFolders)))
+        bool_answer = None
+        return bool_answer, unprocFolders
+
     question = ('{} unprocessed tiles from {} found. Create batch for SIAM?').format(
         str(len(unprocFolders)), str(len(procFolders)))
 
