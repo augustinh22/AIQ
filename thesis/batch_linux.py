@@ -139,7 +139,7 @@ def check_procFolders(options):
 
     for procFolder in procFolders:
 
-        test_path = os.path.join(os.path.dirname(procFolder), 'siamoutput')
+        test_path = os.path.join(procFolder, 'siamoutput')
 
         if test_path in procFolders:
             continue
