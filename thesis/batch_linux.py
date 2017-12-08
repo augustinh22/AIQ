@@ -68,50 +68,50 @@ def get_args():
                 default='/home/hannah/repos/AIQ/thesis/siam/')
         parser.add_argument('--auto', dest='auto', action='store',
                 help=('Automatically creates batch file without user input.'),
-                default=None)
+                choices=['y','n'], default=None)
 
         #
         # Optional parameters.
         #
         parser.add_argument('-03', '--bin-mask', dest='var03', action='store',
                 help=('Use a binary mask for processing. Default 0.'),
-                default=0)
+                choices=['1','0'], default=0)
         parser.add_argument('-07', '--crisp', dest='var07', action='store',
                 help=('Crisp[1] or fuzzy [0] classification. Default 1.'),
-                default=1)
+                choices=['1','0'], default=1)
         parser.add_argument('-09', '--smoke-plume', dest='var09', action='store',
                 help=('Create smoke-plume mask. Default 0.'),
-                default=0)
+                choices=['1','0'], default=0)
         parser.add_argument('-10', '--cloud', dest='var10', action='store',
                 help=('Create cloud mask. Default 1.'),
-                default=1)
+                choices=['1','0'], default=1)
         parser.add_argument('-11', '--burnt-area', dest='var11', action='store',
                 help=('Create burnt-area mask. Default 0.'),
-                default=0)
+                choices=['1','0'], default=0)
         parser.add_argument('-12', '--veg-bin', dest='var12', action='store',
                 help=('Create binary vegetation mask. Default 1.'),
-                default=1)
+                choices=['1','0'], default=1)
         parser.add_argument('-13', '--veg-tri', dest='var13', action='store',
                 help=('Create trinary vegetation mask. Default 0.'),
-                default=0)
+                choices=['1','0'], default=0)
         parser.add_argument('-14', '--baresoil', dest='var14', action='store',
                 help=('Create trinary baresoil builtup mask. Default 0.'),
-                default=0)
+                choices=['1','0'], default=0)
         parser.add_argument('-15', '--cloud-tri', dest='var15', action='store',
                 help=('Create trinary cloud mask. Default 0.'),
-                default=0)
+                choices=['1','0'], default=0)
         parser.add_argument('-16', '--water-tri', dest='var16', action='store',
                 help=('Create trinary water mask. Default 0.'),
-                default=0)
+                choices=['1','0'], default=0)
         parser.add_argument('-17', '--shadow-tri', dest='var17', action='store',
                 help=('Create trinary shadow mask. Default 0.'),
-                default=0)
+                choices=['1','0'], default=0)
         parser.add_argument('-18', '--urban-bin', dest='var18', action='store',
                 help=('Create binary urban area mask. Default 0.'),
-                default=0)
+                choices=['1','0'], default=0)
         parser.add_argument('-19', '--shape', dest='var19', action='store',
                 help=('Calculate shape indicators. Default 0.'),
-                default=0)
+                choices=['1','0'], default=0)
 
         return parser.parse_args()
 
@@ -396,7 +396,7 @@ if __name__ == '__main__':
 #                Parameters from Example batch file explained.                 #
 #------------------------------------------------------------------------------#
 
-# (0) E:\SIAM\installation\SIAM_License_Executables\SIAM_r88v6_Windows.exe   [SIAM executable]
+# (0) C:\SIAM\SIAM_r88v7\SIAM_License_Executables\SIAM_r88v7_Windows.exe   [SIAM executable]
 # (1) E:\Temp_ha\S2A_OPER_MSI_L1C_TL_MTI__20150813T201603_A000734_T33TUN_N01.03   [location of calibrated files]
 # (2) S2A_OPER_MSI_L1C_TL_MTI__20150813T201603_A000734_T33TUN_calrefbyt_lndstlk.dat   [calibrated file]
 # (3) 0  [Use a binary mask for processing]

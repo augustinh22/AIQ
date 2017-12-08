@@ -67,7 +67,7 @@ def get_args():
         parser.add_argument('--auto', dest='auto', action='store',
                 help=('No user input necessary -- automatically downloads all '
                 'matching results ingested within the last month.'),
-                default=None)
+                choices=['y','n'], default=None)
 
         #
         # Location related commands
