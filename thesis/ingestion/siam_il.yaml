@@ -1,0 +1,54 @@
+name: siam_il
+description: Collection of SIAM-based information layers (IL)
+metadata_type: eo
+
+metadata:
+    platform:
+        code: SIAM_IL
+    instrument:
+        name: SIAM
+    product_type: INFORMATIONLAYERS
+    format:
+        name: GeoTiff
+
+measurements:
+    - name: 'spectral_categories_18'
+      aliases: [18spct, siam18]
+      dtype: uint8
+      nodata: 0
+      units: 'category'
+    - name: 'spectral_categories_33'
+      aliases: [33spct, siam33]
+      dtype: uint8
+      nodata: 0
+      units: 'category'
+    - name: 'spectral_categories_48'
+      aliases: [48spct, siam48]
+      dtype: uint8
+      nodata: 0
+      units: 'category'
+    - name: 'spectral_categories_96'
+      aliases: [96spct, siam96]
+      dtype: uint8
+      nodata: 0
+      units: 'category'
+    - name: 'haze_pentarnary_mask'
+      aliases: [haze, haze_mask]
+      dtype: uint8
+      nodata: 0
+      units: 'category'
+    - name: 'vegetation_binary_mask'
+      aliases: [vegetation, vegetation_mask]
+      dtype: uint8
+      nodata: 0
+      units: 'category'
+    - name: 'ratio_greenness_index'
+      aliases: [greenness, greenness_index]
+      dtype: float32
+      nodata: 0
+      units: 'greenness'
+    - name: 'brightness'
+      aliases: [brightness]
+      dtype: float32
+      nodata: 0
+      units: 'brightness'
