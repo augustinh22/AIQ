@@ -84,7 +84,7 @@ def get_args():
                 choices=['1','0'], default=0)
         parser.add_argument('-10', '--cloud', dest='var10', action='store',
                 help=('Create cloud mask. Default 1.'),
-                choices=['1','0'], default=1)
+                choices=['1','0'], default=0)
         parser.add_argument('-11', '--burnt-area', dest='var11', action='store',
                 help=('Create burnt-area mask. Default 0.'),
                 choices=['1','0'], default=0)
@@ -111,7 +111,7 @@ def get_args():
                 choices=['1','0'], default=0)
         parser.add_argument('-19', '--shape', dest='var19', action='store',
                 help=('Calculate shape indicators. Default 0.'),
-                choices=['1','0'], default=0)
+                choices=['1','0'], default=1)
 
         return parser.parse_args()
 
