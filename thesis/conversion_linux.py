@@ -107,6 +107,58 @@ def get_args():
         return parser.parse_args()
 
 
+def nodata_array(tile_bands):
+
+    '''
+    This function creates a noData mask array based on all pixels that have
+    a value of 0 in any of the original Sentinel-2 bands used to create the
+    6 band .dat SIAM input file.
+    These correspond to S2 bands: 2, 3, 4, 8, 10 and 11.
+    '''
+
+    #
+    # Create array with same projection, etc.
+    #
+    noData = gdal.Open(tile_bands[0], gdal.GA_ReadOnly)
+    noData_array = (noData.GetRasterBand(1)).ReadAsArray()
+    noData_array = numpy.where((noData_array > 0), (1), noData_array)
+
+    for band in tile_bands:
+
+        #
+        # Open the band as read only.
+        #
+        img = gdal.Open(band, gdal.GA_ReadOnly)
+        band_id = band[-6:-4]
+        if img is None:
+            print 'Could not open band #{}'.format(band_id)
+            sys.exit(1)
+        print 'Processing noData for band #{}'.format(band_id)
+
+        #
+        # Cycle through bands, removing noData.
+        #
+        band_array = (img.GetRasterBand(1)).ReadAsArray()
+
+        #
+        # Resample bands 11 and 12 from 20m to 10m resolution.
+        #
+        if band.endswith(('_B11.jp2','_B12.jp2')):
+            band_array = scipy.ndimage.zoom(band_array, 2, order=0)
+
+        #
+        # Adjust output layer to 0 where there is nodata.
+        #
+        noData_array = numpy.where((band_array == 0), (0), noData_array)
+
+    img = None
+    noData = None
+    band_id = None
+    band_array = None
+
+    return noData_array
+
+
 def check_imgFolders(options):
 
     #
@@ -372,6 +424,8 @@ def convert_imgs(root_folder, imgFolders):
         #
 
         print tile_bands
+        noData_array = None
+        noData_array = nodata_array(tile_bands)
 
         for band in tile_bands:
 
@@ -468,6 +522,11 @@ def convert_imgs(root_folder, imgFolders):
                 #
                 therm_array = numpy.ones((img_rows, img_cols)).astype(int)
                 therm_array = therm_array * 110
+
+                #
+                # Remove pixels having no data in any of the input bands.
+                #
+                therm_array = numpy.where((noData_array == 0), (0), therm_array)
 
                 #
                 # Write the data to the designated band.
@@ -596,6 +655,12 @@ def convert_imgs(root_folder, imgFolders):
                 outData = ((numpy.absolute(outData) * 255.0) + 0.5).astype(int)
 
                 #
+                # Remove pixels having no data in any of the input bands.
+                #
+                outData = numpy.where((noData_array == 0), (0), outData)
+
+
+                #
                 # Write the data to the designated band.
                 #
                 outBand = outDs.GetRasterBand(band_in_stack)
@@ -622,6 +687,7 @@ def convert_imgs(root_folder, imgFolders):
                 #
                 del outData
                 del outBand
+                noData_array = None
                 img_band = None
                 band_id = None
                 stats = None
