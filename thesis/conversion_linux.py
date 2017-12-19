@@ -687,7 +687,6 @@ def convert_imgs(root_folder, imgFolders):
                 #
                 del outData
                 del outBand
-                noData_array = None
                 img_band = None
                 band_id = None
                 stats = None
@@ -711,6 +710,7 @@ def convert_imgs(root_folder, imgFolders):
         del tile_bands
         del tile_id
         outDs = None
+        noData_array = None
 
     print '\n\n=================================================================='
     print 'Done processing.'
