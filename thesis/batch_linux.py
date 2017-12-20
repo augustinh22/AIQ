@@ -142,9 +142,7 @@ def check_procFolders(options):
         test_path = os.path.join(procFolder, 'siamoutput')
 
         if test_path in siamFolders:
-            print 'yes'
-            for f in os.listdir(test_path):
-                print f
+            print test_path
             print sum(os.path.getsize(f) for f in os.listdir(test_path) if os.path.isfile(f))
             continue
         else:
