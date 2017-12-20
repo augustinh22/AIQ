@@ -69,7 +69,7 @@ def siam_stack(siam_folders, stack_type, layer_endings):
             fn_parts = example.split("_")
             tileinfo = fn_parts[0]
             utm_tile = tileinfo[1:]
-            capture_date = (file_parts[2])[:8]
+            capture_date = (fn_parts[2])[:8]
 
         if (example).startswith('S2'):
             tileinfo = (example.split("_"))[9]
