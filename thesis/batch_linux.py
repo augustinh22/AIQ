@@ -143,6 +143,8 @@ def check_procFolders(options):
 
         if test_path in siamFolders:
             print 'yes'
+            for f in os.listdir(test_path):
+                print f
             print sum(os.path.getsize(f) for f in os.listdir(test_path) if os.path.isfile(f))
             continue
         else:
