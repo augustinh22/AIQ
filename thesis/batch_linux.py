@@ -83,7 +83,7 @@ def get_args():
                 help=('Create smoke-plume mask. Default 0.'),
                 choices=['1','0'], default=0)
         parser.add_argument('-10', '--cloud', dest='var10', action='store',
-                help=('Create cloud mask. Default 1.'),
+                help=('Create cloud mask. Default 0.'),
                 choices=['1','0'], default=0)
         parser.add_argument('-11', '--burnt-area', dest='var11', action='store',
                 help=('Create burnt-area mask. Default 0.'),
