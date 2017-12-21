@@ -10,13 +10,13 @@ metadata:
 
 measurements:
     - name: 'spectral_categories_18'
-      aliases: [18spct, siam18]
+      aliases: [18SpCt, siam18]
       dtype: uint8
       nodata: 255
-      units: 'categories'
+      units: 'category'
       flags_definition:
         siam:
-            categories: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,255]
+            bits: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,255]
             description: SIAM 18 Spectral Categories
             values:
                 0: Unclassified
@@ -37,39 +37,233 @@ measurements:
                 15: SH
                 16: UN
                 17: BA
-                18: FALME
-                255: NoData
+                18: FLAME
     - name: 'spectral_categories_33'
-      aliases: [33spct, siam33]
+      aliases: [33SharedSpCt, siam33]
       dtype: uint8
       nodata: 255
       units: 'category'
+      flags_definition:
+        siam:
+            bits: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,255]
+            description: SIAM 33 Shared Spectral Categories
+            values:
+                0: Unclassified
+                1:
+                2:
+                3:
+                4:
+                5:
+                6:
+                7:
+                8:
+                9:
+                10:
+                11:
+                12:
+                13:
+                14:
+                15:
+                16:
+                17:
+                18:
+                19:
+                20:
+                21:
+                22:
+                23:
+                24:
+                25:
+                26:
+                27:
+                28:
+                29:
+                30:
+                31:
+                32:
+                33:
     - name: 'spectral_categories_48'
-      aliases: [48spct, siam48]
+      aliases: [48SpCt, siam48]
       dtype: uint8
       nodata: 255
       units: 'category'
+      flags_definition:
+        siam:
+            bits: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,255]
+            description: SIAM 48 Spectral Categories
+            values:
+                0: Unclassified
+                1:
+                2:
+                3:
+                4:
+                5:
+                6:
+                7:
+                8:
+                9:
+                10:
+                11:
+                12:
+                13:
+                14:
+                15:
+                16:
+                17:
+                18:
+                19:
+                20:
+                21:
+                22:
+                23:
+                24:
+                25:
+                26:
+                27:
+                28:
+                29:
+                30:
+                31:
+                32:
+                33:
+                34:
+                35:
+                36:
+                37:
+                38:
+                39:
+                40:
+                41:
+                42:
+                43:
+                44:
+                45:
+                46:
+                47:
+                48:
     - name: 'spectral_categories_96'
-      aliases: [96spct, siam96]
+      aliases: [96SpCt, siam96]
       dtype: uint8
       nodata: 255
       units: 'category'
-    - name: 'haze_pentarnary_mask'
-      aliases: [haze, haze_mask]
+      flags_definition:
+        siam:
+            bits: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,255]
+            description: SIAM 96 Spectral Categories
+            values:
+                0: Unclassified
+                1:
+                2:
+                3:
+                4:
+                5:
+                6:
+                7:
+                8:
+                9:
+                10:
+                11:
+                12:
+                13:
+                14:
+                15:
+                16:
+                17:
+                18:
+                19:
+                20:
+                21:
+                22:
+                23:
+                24:
+                25:
+                26:
+                27:
+                28:
+                29:
+                30:
+                31:
+                32:
+                33:
+                34:
+                35:
+                36:
+                37:
+                38:
+                39:
+                40:
+                41:
+                42:
+                43:
+                44:
+                45:
+                46:
+                47:
+                48:
+                49:
+                50:
+                51:
+                52:
+                53:
+                54:
+                55:
+                56:
+                57:
+                58:
+                59:
+                60:
+                61:
+                62:
+                63:
+                64:
+                65:
+                66:
+                67:
+                68:
+                69:
+                70:
+                71:
+                72:
+                73:
+                74:
+                75:
+                76:
+                77:
+                78:
+                79:
+                80:
+                81:
+                82:
+                83:
+                84:
+                85:
+                86:
+                87:
+                88:
+                89:
+                90:
+                91:
+                92:
+                93:
+                94:
+                95:
+                96:
+    - name: 'HazePentarnaryMask'
+      aliases: [Haze, haze_mask]
       dtype: uint8
       nodata: 255
       units: 'category'
-    - name: 'vegetation_binary_mask'
-      aliases: [vegetation, vegetation_mask]
+    - name: 'VegetationBinaryMask'
+      aliases: [VegBinaryMask, vegetation_mask]
       dtype: uint8
       nodata: 255
       units: 'category'
-    - name: 'ratio_greenness_index'
+    - name: 'fRatioGreennessIndex'
       aliases: [greenness, greenness_index]
       dtype: float32
       nodata: 0
       units: 'greenness'
-    - name: 'brightness'
+    - name: 'cBrightness'
       aliases: [brightness]
       dtype: uint8
       nodata: 255
