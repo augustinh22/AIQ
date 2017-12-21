@@ -58,6 +58,9 @@
   -- only logged 228 tiles at 2h39m, so average of 41.65seconds per tile
   -- based on this average, it took 5.01h for 433 tiles
 
+  19.12.2017 -- all files deleted, adjusted for pixels with a value of 0.
+  -- 443 tiles, started at 14:04, estimated around 1 minute per tile due to nodata adjustment. in 8:09 hours for 443 tiles,. -- 8:09 hours for all 443 tiles.
+
 ### 3. Initial SIAM processing
 ##### 37SBA
  started 13:30 on 06.12.2017 (121 tiles) -- finished 00:38 on 07.12.2017
@@ -96,3 +99,5 @@ else
   bash "$LATEST"
 fi
 """
+### 5. Index Sentinel-2 Datata
+2017-12-21 Indexed all original data -- less than 5 minutes to create the yaml docs and 10 minutes to index all ~450 scenes.
