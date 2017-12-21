@@ -159,7 +159,7 @@ label05 = Tkinter.Label(sensor_options, text="Select the actual sensor: ")
 label05.pack(side='left')
 
 sensor_type = Tkinter.StringVar()
-data_type = {"Sentinel-2": 1, "Landsat 8": 2, "Landsat 8 mosaic": 3}
+data_type = {"Sentinel-2": 1, "Landsat 8": 2, "clip_mosaic_calrefbyt": 3}
 sensor_type.set('Select one.')
 sensor_typex = Tkinter.OptionMenu(sensor_options, sensor_type, *data_type.keys())
 sensor_typex.config(width=15, anchor='w')
@@ -572,12 +572,12 @@ elif data_type[sensor_type.get()] == 2:
         sys.exit()
 
 #
-# Landsat-8 mosaic
+# Landsat-8 or Sentinel-2 clipped mosaic.
 #
 elif data_type[sensor_type.get()] == 3:
 
     #
-    # Create list for landsat-8 folders folder paths.
+    # Create list for landsat-8 or sentinel-2 clipped mosaic folder paths.
     #
     mosaicFiles = []
 
@@ -585,7 +585,7 @@ elif data_type[sensor_type.get()] == 3:
 
         for filename in filenames:
 
-            if filename.endswith('_mosaic_calrefbyt_lndstlk.dat'):
+            if filename.endswith('_clip_mosaic_calrefbyt_lndstlk.dat'):
 
                 mosaicFiles.append(os.path.join(dirpath, filename))
 
@@ -596,7 +596,7 @@ elif data_type[sensor_type.get()] == 3:
     #
     Tkinter.Tk().withdraw()
 
-    question = ('Wold you like to process {} landsat8 mosaics in SIAM?').format(
+    question = ('Wold you like to process {} mosaics in SIAM?').format(
         len(mosaicFiles))
 
     #
