@@ -123,6 +123,10 @@ def prepare_dataset(path):
 
     platform_code = root.findall('./*/Product_Info/Datatake/SPACECRAFT_NAME')[0].text
 
+    #
+    # Handle all of the different metadata formats that have happened since
+    # the beginning of Sentinel-2.
+    #
     granules = {granule.get('granuleIdentifier'): [imid.text for imid in granule.findall('IMAGE_ID')]
                 for granule in root.findall('./*/Product_Info/Product_Organisation/Granule_List/Granules')}
 
