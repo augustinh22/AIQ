@@ -12,32 +12,57 @@ measurements:
     - name: 'spectral_categories_18'
       aliases: [18spct, siam18]
       dtype: uint8
-      nodata: 0
-      units: 'category'
+      nodata: 255
+      units: 'categories'
+      flags_definition:
+        siam:
+            categories: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,255]
+            description: SIAM 18 Spectral Categories
+            values:
+                0: Unclassified
+                1: V
+                2: VSH_VWA
+                3: R
+                4: WR
+                5: PB
+                6: GH
+                7: BB
+                8: BBSH
+                9: WASH
+                10: CL
+                11: SMKPLM
+                12: TNCL_SHRBR_HRBCR_BB
+                13: SN_WAICE
+                14: SHSN
+                15: SH
+                16: UN
+                17: BA
+                18: FALME
+                255: NoData
     - name: 'spectral_categories_33'
       aliases: [33spct, siam33]
       dtype: uint8
-      nodata: 0
+      nodata: 255
       units: 'category'
     - name: 'spectral_categories_48'
       aliases: [48spct, siam48]
       dtype: uint8
-      nodata: 0
+      nodata: 255
       units: 'category'
     - name: 'spectral_categories_96'
       aliases: [96spct, siam96]
       dtype: uint8
-      nodata: 0
+      nodata: 255
       units: 'category'
     - name: 'haze_pentarnary_mask'
       aliases: [haze, haze_mask]
       dtype: uint8
-      nodata: 0
+      nodata: 255
       units: 'category'
     - name: 'vegetation_binary_mask'
       aliases: [vegetation, vegetation_mask]
       dtype: uint8
-      nodata: 0
+      nodata: 255
       units: 'category'
     - name: 'ratio_greenness_index'
       aliases: [greenness, greenness_index]
@@ -47,5 +72,5 @@ measurements:
     - name: 'brightness'
       aliases: [brightness]
       dtype: uint8
-      nodata: 0
+      nodata: 255
       units: 'brightness'
