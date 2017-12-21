@@ -526,7 +526,7 @@ def convert_imgs(root_folder, imgFolders):
                 #
                 # Remove pixels having no data in any of the input bands.
                 #
-                therm_array = numpy.where((noData_array == 0), (0), therm_array)
+                therm_array = numpy.where((noData_array == 0), (255), therm_array)
 
                 #
                 # Write the data to the designated band.
@@ -657,7 +657,7 @@ def convert_imgs(root_folder, imgFolders):
                 #
                 # Remove pixels having no data in any of the input bands.
                 #
-                outData = numpy.where((noData_array == 0), (0), outData)
+                outData = numpy.where((noData_array == 0), (255), outData)
 
 
                 #
