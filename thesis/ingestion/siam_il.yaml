@@ -46,6 +46,6 @@ measurements:
       units: 'greenness'
     - name: 'brightness'
       aliases: [brightness]
-      dtype: float32
+      dtype: uint8
       nodata: 0
       units: 'brightness'
