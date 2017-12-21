@@ -3,13 +3,10 @@ description: Collection of SIAM-based information layers (IL)
 metadata_type: eo
 
 metadata:
-    platform:
-        code: SIAM_IL
-    instrument:
-        name: SIAM
+    format: {name: ENVI}
+    platform: {code: SIAM_IL}
+    instrument: {name: SIAM}
     product_type: INFORMATIONLAYERS
-    format:
-        name: GeoTiff
 
 measurements:
     - name: 'spectral_categories_18'
