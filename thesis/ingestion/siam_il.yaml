@@ -16,7 +16,7 @@ measurements:
       units: 'category'
       flags_definition:
         siam:
-            bits: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,255]
+            bits: 8
             description: SIAM 18 Spectral Categories
             values:
                 0: Unclassified
@@ -45,43 +45,43 @@ measurements:
       units: 'category'
       flags_definition:
         siam:
-            bits: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,255]
+            bits: 8
             description: SIAM 33 Shared Spectral Categories
             values:
                 0: Unclassified
-                1:
-                2:
-                3:
-                4:
-                5:
-                6:
-                7:
-                8:
-                9:
-                10:
-                11:
-                12:
-                13:
-                14:
-                15:
-                16:
-                17:
-                18:
-                19:
-                20:
-                21:
-                22:
-                23:
-                24:
-                25:
-                26:
-                27:
-                28:
-                29:
-                30:
-                31:
-                32:
-                33:
+                1: SVHNIR
+                2: SVLNIR
+                3: AVHNIR
+                4: AVLNIR
+                5: WV
+                6: VSH_VWA_TWASH
+                7: SHRBRHNIR
+                8: SHRBRLNIR
+                9: HRBCR
+                10: WR
+                11: PB
+                12: GH
+                13: VBBB
+                14: BBB
+                15: SBB
+                16: ABB
+                17: DBB
+                18: WBBorBBSH
+                19: NIRPBB
+                20: BA
+                21: DPWASH
+                22: SLWASH
+                23: TWASH
+                24: SASLWA
+                25: CL
+                26: SMKPLM
+                27: TNCLV
+                28: TNCLWA_BB
+                29: SN_WAICE
+                30: SHSN
+                31: SH
+                32: FLAME
+                33: UN
     - name: 'spectral_categories_48'
       aliases: [48SpCt, siam48]
       dtype: uint8
@@ -89,58 +89,58 @@ measurements:
       units: 'category'
       flags_definition:
         siam:
-            bits: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,255]
+            bits: 8
             description: SIAM 48 Spectral Categories
             values:
                 0: Unclassified
-                1:
-                2:
-                3:
-                4:
-                5:
-                6:
-                7:
-                8:
-                9:
-                10:
-                11:
-                12:
-                13:
-                14:
-                15:
-                16:
-                17:
-                18:
-                19:
-                20:
-                21:
-                22:
-                23:
-                24:
-                25:
-                26:
-                27:
-                28:
-                29:
-                30:
-                31:
-                32:
-                33:
-                34:
-                35:
-                36:
-                37:
-                38:
-                39:
-                40:
-                41:
-                42:
-                43:
-                44:
-                45:
-                46:
-                47:
-                48:
+                1: SV
+                2: AV
+                3: WV
+                4: RWESH
+                5: SHV
+                6: SSHRBR
+                7: ASHRBR
+                8: SHR
+                9: AHRBCR
+                10: WR
+                11: WEDR
+                12: VSN
+                13: PB
+                14: GH
+                15: VWA
+                16: BBB_VBBB
+                17: SBB
+                18: ABB
+                19: DBB
+                20: WBB
+                21: NIRPBB
+                22: NIRPSABA
+                23: BBSH
+                24: RBA
+                25: BSFAFS
+                26: OBA
+                27: BSFS
+                28: DPWASH
+                29: SLWASH
+                30: TWA
+                31: SASLWA
+                32: CRCL
+                33: TKCL
+                34: SMKPLMWA
+                35: SMKPLMV
+                36: SMKPLMBB
+                37: TNCLV_SHRBR_HRBCR
+                38: TNCLWA_BB
+                39: SN_WAICE
+                40: SHSN
+                41: WASHLTIR
+                42: VDTWASH
+                43: DTWASH
+                44: VTNCLWA
+                45: FLAME
+                46: WAICE_SHSN
+                47: UN2
+                48: UN3
     - name: 'spectral_categories_96'
       aliases: [96SpCt, siam96]
       dtype: uint8
@@ -148,116 +148,130 @@ measurements:
       units: 'category'
       flags_definition:
         siam:
-            bits: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,255]
+            bits: 8
             description: SIAM 96 Spectral Categories
             values:
                 0: Unclassified
-                1:
-                2:
-                3:
-                4:
-                5:
-                6:
-                7:
-                8:
-                9:
-                10:
-                11:
-                12:
-                13:
-                14:
-                15:
-                16:
-                17:
-                18:
-                19:
-                20:
-                21:
-                22:
-                23:
-                24:
-                25:
-                26:
-                27:
-                28:
-                29:
-                30:
-                31:
-                32:
-                33:
-                34:
-                35:
-                36:
-                37:
-                38:
-                39:
-                40:
-                41:
-                42:
-                43:
-                44:
-                45:
-                46:
-                47:
-                48:
-                49:
-                50:
-                51:
-                52:
-                53:
-                54:
-                55:
-                56:
-                57:
-                58:
-                59:
-                60:
-                61:
-                62:
-                63:
-                64:
-                65:
-                66:
-                67:
-                68:
-                69:
-                70:
-                71:
-                72:
-                73:
-                74:
-                75:
-                76:
-                77:
-                78:
-                79:
-                80:
-                81:
-                82:
-                83:
-                84:
-                85:
-                86:
-                87:
-                88:
-                89:
-                90:
-                91:
-                92:
-                93:
-                94:
-                95:
-                96:
+                1: SVVH2NIR
+                2: SVVH1NIR
+                3: SVVHNIR
+                4: SVHNIR
+                5: SVMNIR
+                6: SVLNIR
+                7: SVVLNIR
+                8: AVVH1NIR
+                9: AVVHNIR
+                10: AVHNIR
+                11: AVMNIR
+                12: AVLNIR
+                13: AVVLNIR
+                14: WVHNIR
+                15: WVLNIR
+                16: RWESH
+                17: SHV
+                18: SSHRBR
+                19: ASHRBRVH1NIR
+                20: ASHRBRVHNIR
+                21: ASHRBRHNIR
+                22: ASHRBRMNIR
+                23: ASHRBRLNIR
+                24: ASHRBRVLNIR
+                25: SHRBCR
+                26: AHRBCR
+                27: WR
+                28: WEDR
+                29: VSN
+                30: PB
+                31: GH
+                32: VWA
+                33: VBBBFVHTIR
+                34: VBBBNFVHTIR
+                35: VBBBFLTIR
+                36: VBBBNFLTIR
+                37: BBBFVHTIR
+                38: BBBNFVHTIR
+                39: BBBFLTIR
+                40: BBBFLTIR
+                41: SBBVFVHTIR
+                42: SBBFVHTIR
+                43: SBBNFVHTIR
+                44: SBBVFLTIR
+                45: SBBFLTIR
+                46: SBBNFLTIR
+                47: ABBVFVHTIR
+                48: ABBFVHTIR
+                49: ABBNFVHTIR
+                50: ABBVFLTIR
+                51: ABBFLTIR
+                52: ABBNFLTIR
+                53: DBBVFVHTIR
+                54: DBBFVHTIR
+                55: DBBNFVHTIR
+                56: DBBVFLTIR
+                57: DBBFLTIR
+                58: DBBNFLTIR
+                59: WBB
+                60: NIRPBB
+                61: NIRPSABA
+                62: BBSH
+                63: RBA
+                64: BSFAFS
+                65: OBA
+                66: BSFS
+                67: DPWASHLTIR
+                68: DPWASHMTIR
+                69: DPWASHHTIR
+                70: DPWASHVHTIR
+                71: SLWASHLTIR
+                72: SLWASHMTIR
+                73: SLWASHHTIR
+                74: SLWASHVHTIR
+                75: TWA
+                76: SASLWA
+                77: CRCL
+                78: TKCL
+                79: TKSMKPLMWA
+                80: TNSMKPLMWA
+                81: SMKPLMV
+                82: SMKPLMBB
+                83: TNCLV_SHRBR
+                84: TNCLV_HRBCR
+                85: TNCLWA
+                86: TNCLWA_BB
+                87: SN_WAICE
+                88: SHSN
+                89: WASHLTIR
+                90: VDTWASH
+                91: DTWASH
+                92: VTNCLWA
+                93: FLAME
+                94: WAICE_SHSN
+                95: UN2
+                96: UN3
     - name: 'HazePentarnaryMask'
       aliases: [Haze, haze_mask]
       dtype: uint8
       nodata: 255
       units: 'category'
+      flags_definition:
+        siam:
+            bits: 8
+            description: Haze Pentarnary Mask
+            values:
+                0: Likely not haze
+                1: Looks like haze
     - name: 'VegetationBinaryMask'
       aliases: [VegBinaryMask, vegetation_mask]
       dtype: uint8
       nodata: 255
       units: 'category'
+      flags_definition:
+        siam:
+            bits: 8
+            description: Vegetation Binary Mask
+            values:
+                0: Likely not vegetation
+                1: Looks like vegetation
     - name: 'fRatioGreennessIndex'
       aliases: [greenness, greenness_index]
       dtype: float32
