@@ -75,7 +75,7 @@ def get_args():
         #
         parser.add_argument('-03', '--bin-mask', dest='var03', action='store',
                 help=('Use a binary mask for processing. Default 0.'),
-                choices=['1','0'], default=0)
+                choices=['1','0'], default=1)
         parser.add_argument('-07', '--crisp', dest='var07', action='store',
                 help=('Crisp[1] or fuzzy [0] classification. Default 1.'),
                 choices=['1','0'], default=1)
@@ -311,6 +311,10 @@ def create_batch(options, unprocFolders):
 
                 var02 = filename
 
+            elif (filename.endswith('.dat')
+                    and fnmatch.fnmatch(filename, '*nodata.dat')):
+
+                noData_Mask = filename
         #
         # Go to next folder if calibrated, stacked raster not yet craeted.
         #
@@ -318,6 +322,18 @@ def create_batch(options, unprocFolders):
 
             print '*_calrefbyt_* not found in {}'.format(unprocFolder)
             logger.error('*_calrefbyt_* not found in {}'.format(unprocFolder))
+            print 'Tile not processed.'
+
+            continue
+
+        if var03 == '1' and noData_Mask:
+
+            var03 = os.path.join(unprocFolder, noData_Mask)
+
+        elif var03 == '1' and not noData_Mask:
+
+            print '*nodata.dat not found in {}'.format(unprocFolder)
+            logger.error('*nodata.dat not found in {}'.format(unprocFolder))
             print 'Tile not processed.'
 
             continue
