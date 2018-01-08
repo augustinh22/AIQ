@@ -1,4 +1,4 @@
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Name:        Sentinel2 'Conversion' for SIAM.
 # Purpose:     Use NumPy, GDAL and SciPy to convert all Sentinel2 bands to
 #              8-bit, resample bands 11 and 12 to 10m pixels and build a 6-band
@@ -12,40 +12,40 @@
 #
 # Created:     14.12.2016
 #
-#------------------------------------------------------------------------------
-##; FROM Andrea Baraldi:
-##;     OBJECTIVE: Radiometric calibration of Sentinel-2A/2B imagery into
-##;         (i)  TOP-OF-ATMOSPHERE (TOA, PLANETARY, EXOATMOSPHERIC)
-##;              reflectance (in range [0,1]), byte-coded,
-##;              i.e., scaled into range {1, 255}, output ENVI file format:
-##;              ...calrefbyt_lndstlk, band sequential (BSQ).
-##;              Equivalent to Landsat bands 1, 2, 3, 4, 5 and 7 are
-##;              the Sentinel-2A/2B bands    2, 3, 4, 8, 11 and 12
-##;              with spatial resolutions   10, 10, 10, 10, 20, 20.
-##;         (ii) faked temperature in kelvin degrees, equivalent to
-##;              10 degree Celsius,output value = 110, output
-##;              ENVI file format: ...caltembyt_lndstlk.
-##;
-##;         where:
-##;             - Sentinel-2A/2B bands are:
-##;
-##;             1, Aerosols (nm): 443?20/2,       Spatial resolution (in m): 60
-##;             2: Vis B (like TM1), 490?65/2,    Spatial resolution (in m): 10
-##;             3: Vis G (like TM2), 560?35/2,    Spatial resolution (in m): 10
-##;             4: Vis R (like TM3), 665?30/2,    Spatial resolution (in m): 10
-##;             5: NIR1 (Red Edge1), 705?15/2,    Spatial resolution (in m): 20
-##;             6: NIR2 (Red Edge2), 740?15/2,    Spatial resolution (in m): 20
-##;             7: NIR3 (Red Edge3),783?20/2,     Spatial resolution (in m): 20
-##;             8: NIR4 (like TM4), 842?115/2,    Spatial resolution (in m): 10
-##;             8a: NIR5, 865?20/2,               Spatial resolution (in m): 20
-##;             9, Water vapour: 945?20/2,        Spatial resolution (in m): 60
-##;             10, Cirrus: 1375?30/2,            Spatial resolution (in m): 60
-##;             11: MIR1 (like TM5) 1610?90/2,    Spatial resolution (in m): 20
-##;             12: MIR2 (like TM7) 2190?180/2    Spatial resolution (in m): 20
-##;
-##;             Hence, equivalent to Landsat bands 1, 2, 3, 4, 5 and 7 are
-##;             the Sentinel-2A/2B bands           2, 3, 4, 8, 11 and 12
-##;             with spatial resolutions          10, 10, 10, 10, 20, 20.
+# ------------------------------------------------------------------------------
+# #;FROM Andrea Baraldi:
+# #;    OBJECTIVE: Radiometric calibration of Sentinel-2A/2B imagery into
+# #;        (i)  TOP-OF-ATMOSPHERE (TOA, PLANETARY, EXOATMOSPHERIC)
+# #;             reflectance (in range [0,1]), byte-coded,
+# #;             i.e., scaled into range {1, 255}, output ENVI file format:
+# #;             ...calrefbyt_lndstlk, band sequential (BSQ).
+# #;             Equivalent to Landsat bands 1, 2, 3, 4, 5 and 7 are
+# #;             the Sentinel-2A/2B bands    2, 3, 4, 8, 11 and 12
+# #;             with spatial resolutions   10, 10, 10, 10, 20, 20.
+# #;        (ii) faked temperature in kelvin degrees, equivalent to
+# #;             10 degree Celsius,output value = 110, output
+# #;             ENVI file format: ...caltembyt_lndstlk.
+# #;
+# #;        where:
+# #;            - Sentinel-2A/2B bands are:
+# #;
+# #;            1, Aerosols (nm): 443?20/2,       Spatial resolution (in m): 60
+# #;            2: Vis B (like TM1), 490?65/2,    Spatial resolution (in m): 10
+# #;            3: Vis G (like TM2), 560?35/2,    Spatial resolution (in m): 10
+# #;            4: Vis R (like TM3), 665?30/2,    Spatial resolution (in m): 10
+# #;            5: NIR1 (Red Edge1), 705?15/2,    Spatial resolution (in m): 20
+# #;            6: NIR2 (Red Edge2), 740?15/2,    Spatial resolution (in m): 20
+# #;            7: NIR3 (Red Edge3),783?20/2,     Spatial resolution (in m): 20
+# #;            8: NIR4 (like TM4), 842?115/2,    Spatial resolution (in m): 10
+# #;            8a: NIR5, 865?20/2,               Spatial resolution (in m): 20
+# #;            9, Water vapour: 945?20/2,        Spatial resolution (in m): 60
+# #;            10, Cirrus: 1375?30/2,            Spatial resolution (in m): 60
+# #;            11: MIR1 (like TM5) 1610?90/2,    Spatial resolution (in m): 20
+# #;            12: MIR2 (like TM7) 2190?180/2    Spatial resolution (in m): 20
+# #;
+# #;            Hence, equivalent to Landsat bands 1, 2, 3, 4, 5 and 7 are
+# #;            the Sentinel-2A/2B bands           2, 3, 4, 8, 11 and 12
+# #;            with spatial resolutions          10, 10, 10, 10, 20, 20.
 
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
@@ -68,7 +68,9 @@ import scipy.ndimage
 
 def get_args():
 
-    '''Gets arguments from command line. '''
+    '''
+    Gets arguments from command line.
+    '''
 
     #
     # Create download tool help response.
@@ -77,17 +79,19 @@ def get_args():
 
     if len(sys.argv) == 1:
 
-        print('\n        {0} [options]'
+        print(
+            '\n        {0} [options]'
             '\n        Help: {1} --help'
             '\n        or: {1} -h'
-            '\nexample python {0} -r /path/to/data/').format(
-            sys.argv[0], prog)
+            '\nexample python {0} -r /path/to/data/'
+            ).format(sys.argv[0], prog)
 
         sys.exit(-1)
 
     else:
 
-        parser = argparse.ArgumentParser(prog=prog,
+        parser = argparse.ArgumentParser(
+            prog=prog,
             usage='%(prog)s [options]',
             description='Sentinel data converter.',
             argument_default=None,
@@ -96,13 +100,14 @@ def get_args():
         #
         # Arguments.
         #
-        parser.add_argument('-r', '--read_dir', dest='read_dir', action='store',
-                type=str, help='Path where downloaded products are located.',
-                default=None)
-        parser.add_argument('--auto', dest='auto', action='store',
-                help=('No user input necessary -- automatically converts all '
-                'previously not converted images files.'),
-                default=None)
+        parser.add_argument(
+            '-r', '--read_dir', dest='read_dir', action='store', type=str,
+            help='Path where downloaded products are located.', default=None)
+        parser.add_argument(
+            '--auto', dest='auto', action='store',
+            help=('No user input necessary -- automatically converts all '
+                  'previously not converted images files.'),
+            default=None)
 
         return parser.parse_args()
 
@@ -133,8 +138,8 @@ def nodata_array(tile_bands, PROC_DATA):
     #
     # Open output format driver, see gdal_translate --formats for list.
     #
-    format = 'ENVI'
-    driver = gdal.GetDriverByName(format)
+    gdal_format = 'ENVI'
+    driver = gdal.GetDriverByName(gdal_format)
 
     #
     # Test nodata mask file path.
@@ -148,7 +153,7 @@ def nodata_array(tile_bands, PROC_DATA):
     # Print driver for nodata mask (1 band, 8-bit unsigned).
     #
     outDs = driver.Create(filepath, img_cols, img_rows, 1,
-        gdal.GDT_Byte)
+                          gdal.GDT_Byte)
     if outDs is None:
         print 'Could not create test file.'
         sys.exit(1)
@@ -179,7 +184,7 @@ def nodata_array(tile_bands, PROC_DATA):
         #
         # Resample bands 11 and 12 from 20m to 10m resolution.
         #
-        if band.endswith(('_B11.jp2','_B12.jp2')):
+        if band.endswith(('_B11.jp2', '_B12.jp2')):
             band_array = scipy.ndimage.zoom(band_array, 2, order=0)
 
         #
@@ -209,7 +214,7 @@ def nodata_array(tile_bands, PROC_DATA):
     stats = outBand.ComputeStatistics(False)
     outBand.SetStatistics(stats[0], stats[1], stats[2], stats[3])
 
-    del format
+    del gdal_format
     del outDs
     del outBand
     del noData
@@ -222,7 +227,7 @@ def nodata_array(tile_bands, PROC_DATA):
     return noData_array
 
 
-def check_imgFolders(options):
+def check_imgFolders(options_in):
 
     #
     # Create list for IMG_DATA folder and existing PROC_DATA folder paths.
@@ -230,7 +235,8 @@ def check_imgFolders(options):
     imgFolders = []
     procFolders = []
 
-    for dirpath, dirnames, filenames in os.walk(options.read_dir, topdown=True):
+    for dirpath, dirnames, filenames in os.walk(
+            options_in.read_dir, topdown=True):
 
         for dirname in dirnames:
 
@@ -257,7 +263,6 @@ def check_imgFolders(options):
         else:
             unprocFolders.append(imgFolder)
 
-
     #
     # Check validity of relevant PROC_DATA contents.
     #
@@ -266,10 +271,8 @@ def check_imgFolders(options):
         #
         # Initialize variables for PROC_DATA folder.
         #
-        caltembyt = None
         caltembyt_path = None
         caltembyt_size = 0
-        calrefbyt = None
         calrefbyt_path = None
         calrefbyt_size = 0
         remove_procFolder = None
@@ -284,9 +287,6 @@ def check_imgFolders(options):
                 if caltembyt_size < 5:
                     remove_procFolder = True
                     logger.info('caltembyt file error: ' + caltembyt_path)
-                else:
-                    caltembyt = True
-
 
             elif filename.endswith('calrefbyt_lndstlk.dat'):
 
@@ -296,8 +296,6 @@ def check_imgFolders(options):
                 if calrefbyt_size < 5:
                     remove_procFolder = True
                     logger.info('calrefbyt file error: ' + calrefbyt_path)
-                else:
-                    calrefbyt = True
 
         #
         # Removes PROC_DATA folders with problem files and adds to list to be
@@ -311,16 +309,17 @@ def check_imgFolders(options):
     #
     # Create the content of the popup window.
     #
-    question = ('Number of tiles found: {}'
-        '\n\nDo you want to process all unprocessed folders [{}]?').format(
-        len(imgFolders), len(unprocFolders))
+    question = (
+        'Number of tiles found: {}'
+        '\n\nDo you want to process all unprocessed folders [{}]?'
+        ).format(len(imgFolders), len(unprocFolders))
 
     print question
 
     ins = None
-    bool_answer = None
+    bool_ans = None
 
-    if options.auto is not None:
+    if options_in.auto is not None:
 
         ins = 'y'
 
@@ -330,36 +329,38 @@ def check_imgFolders(options):
 
             ins = raw_input('Answer [y/n]: ')
 
-            if (ins == 'y' or ins == 'n'):
+            if ins == 'y' or ins == 'n':
 
                 break
 
             else:
 
-                print  'Your input should indicate yes [y] or no [n].'
+                print 'Your input should indicate yes [y] or no [n].'
 
     if ins == 'y' or ins == 'Y' or ins == 'yes' or ins == 'Yes':
 
-        bool_answer = True
+        bool_ans = True
 
-    return bool_answer, unprocFolders
+    return bool_ans, unprocFolders
 
 
 def convert_imgs(root_folder, imgFolders):
 
     start_time = datetime.datetime.now()
 
-    print '=================================================================='
+    print '================================================================='
     print 'Hold on to your hat. This may take ~45s per S2 tile folder.'
     print 'Number of unprocessed IMG_DATA folders found: {}'.format(
         len(imgFolders))
     print 'Estimated time: {} minutes'.format(int(len(imgFolders)) * 0.75)
     print 'Start time: {}'.format(start_time.time())
-    print '==================================================================\n\n'
+    print '=================================================================\n'
 
-    logger.info(('Root Folder: {} \nNumber of unprocessed IMG_DATA folders '
-        'found: {}\nStart time: {}').format(
-        root_folder, len(imgFolders), start_time.time()))
+    message = (
+        'Root Folder: {} \nNumber of unprocessed IMG_DATA folders '
+        'found: {}\nStart time: {}'
+        ).format(root_folder, len(imgFolders), start_time.time())
+    logger.info(message)
     #
     # Register all of the GDAL drivers.
     #
@@ -381,15 +382,19 @@ def convert_imgs(root_folder, imgFolders):
         metadata_path = []
 
         for fn in os.listdir(os.path.dirname(imgFolder)):
-            if (fn.startswith('S2A_') or fn.startswith('MTD')) and fn.endswith('.xml'):
+            if ((fn.startswith('S2A_') or fn.startswith('MTD'))
+                    and fn.endswith('.xml')):
                 metadata_file = fn
-                metadata_path.append(os.path.join(os.path.dirname(imgFolder), fn))
+                metadata_path.append(
+                    os.path.join(os.path.dirname(imgFolder), fn))
+
         if len(metadata_path) > 1:
-            print ('Make sure only the original metadata exists in the tile folder'
-                '\n{}'.format(os.path.dirname(imgFolder)))
-            logger.critical(('Make sure only the original metadata exists '
-                'in the tile folder\n{}\nAborting.').format(
-                os.path.dirname(imgFolder)))
+            message = (
+                'Make sure only the original metadata exists in the tile '
+                'folder\n{}\nAborting.'
+                ).format(os.path.dirname(imgFolder))
+            print message
+            logger.critical(message)
             sys.exit()
 
         #
@@ -398,9 +403,10 @@ def convert_imgs(root_folder, imgFolders):
         try:
             tree = etree.parse(metadata_path[0])
         except Exception as e:
-            logger.critical(('{} {} in {} could not be parsed.').format(
-                str(e), metadata_path[0], imgFolder))
-
+            message = (
+                '{} {} in {} could not be parsed.'
+                ).format(str(e), metadata_path[0], imgFolder)
+            logger.critical(message)
 
         for namespace in XML_namespaces:
 
@@ -409,7 +415,8 @@ def convert_imgs(root_folder, imgFolders):
                 #
                 # Get metadata values from the General_Info element.
                 #
-                General_Info = tree.find('{' + namespace + 'PSD/'
+                General_Info = tree.find(
+                    '{' + namespace + 'PSD/'
                     'S2_PDI_Level-1C_Tile_Metadata.xsd}General_Info')
                 TILE_ID = General_Info.find('TILE_ID').text
                 tile_id = TILE_ID[-12:-7]
@@ -418,22 +425,24 @@ def convert_imgs(root_folder, imgFolders):
                 #
                 # Get metadata values from the Geometric_Info element.
                 #
-                Geometric_Info = tree.find('{' + namespace + 'PSD/'
+                Geometric_Info = tree.find(
+                    '{' + namespace + 'PSD/'
                     'S2_PDI_Level-1C_Tile_Metadata.xsd}Geometric_Info')
-                HORIZONTAL_CS_NAME = Geometric_Info.find('Tile_Geocoding').find(
-                    'HORIZONTAL_CS_NAME').text
-                HORIZONTAL_CS_CODE = Geometric_Info.find('Tile_Geocoding').find(
-                    'HORIZONTAL_CS_CODE').text
+                HORIZONTAL_CS_NAME = Geometric_Info.find(
+                    'Tile_Geocoding').find('HORIZONTAL_CS_NAME').text
+                HORIZONTAL_CS_CODE = Geometric_Info.find(
+                    'Tile_Geocoding').find('HORIZONTAL_CS_CODE').text
                 break
+
             except Exception as e:
-                logger.error(('{} {} in {} could not be parsed with {}.').format(
-                    str(e), metadata_path[0], imgFolder, namespace))
+                message = ('{} {} in {} could not be parsed with {}.').format(
+                    str(e), metadata_path[0], imgFolder, namespace)
+                logger.error(message)
         else:
-            logger.error(('{} in {} could not be parsed.').format(
-                metadata_path[0], imgFolder))
+            message = ('{} in {} could not be parsed.').format(
+                metadata_path[0], imgFolder)
+            logger.error(message)
             continue
-
-
 
         tile_bands = []
 
@@ -441,15 +450,17 @@ def convert_imgs(root_folder, imgFolders):
         # Retrieve desired bands from old data structure.
         #
         if metadata_file.startswith('S2A_'):
-            for dirpath, dirnames, filenames in os.walk(imgFolder, topdown=True):
+            for dirpath, dirnames, filenames in os.walk(
+                    imgFolder, topdown=True):
                 for filename in filenames:
-                    if (filename.startswith('S2A') and filename.endswith('.jp2')
+                    if (filename.startswith('S2A')
+                            and filename.endswith('.jp2')
                             and (fnmatch.fnmatch(filename, '*_B02.*')
-                            or fnmatch.fnmatch(filename, '*_B03.*')
-                            or fnmatch.fnmatch(filename, '*_B04.*')
-                            or fnmatch.fnmatch(filename, '*_B08.*')
-                            or fnmatch.fnmatch(filename, '*_B11.*')
-                            or fnmatch.fnmatch(filename, '*_B12.*'))):
+                                 or fnmatch.fnmatch(filename, '*_B03.*')
+                                 or fnmatch.fnmatch(filename, '*_B04.*')
+                                 or fnmatch.fnmatch(filename, '*_B08.*')
+                                 or fnmatch.fnmatch(filename, '*_B11.*')
+                                 or fnmatch.fnmatch(filename, '*_B12.*'))):
 
                         tile_bands.append(os.path.join(dirpath, filename))
 
@@ -457,20 +468,22 @@ def convert_imgs(root_folder, imgFolders):
         # Retrieve desired bands from data structure.
         #
         elif metadata_file.startswith('M'):
-            for dirpath, dirnames, filenames in os.walk(imgFolder, topdown=True):
+            for dirpath, dirnames, filenames in os.walk(
+                    imgFolder, topdown=True):
                 for filename in filenames:
-                    if (filename.startswith('T') and filename.endswith('.jp2')
+                    if (filename.startswith('T')
+                            and filename.endswith('.jp2')
                             and (fnmatch.fnmatch(filename, '*_B02.*')
-                            or fnmatch.fnmatch(filename, '*_B03.*')
-                            or fnmatch.fnmatch(filename, '*_B04.*')
-                            or fnmatch.fnmatch(filename, '*_B08.*')
-                            or fnmatch.fnmatch(filename, '*_B11.*')
-                            or fnmatch.fnmatch(filename, '*_B12.*'))):
+                                 or fnmatch.fnmatch(filename, '*_B03.*')
+                                 or fnmatch.fnmatch(filename, '*_B04.*')
+                                 or fnmatch.fnmatch(filename, '*_B08.*')
+                                 or fnmatch.fnmatch(filename, '*_B11.*')
+                                 or fnmatch.fnmatch(filename, '*_B12.*'))):
 
                         tile_bands.append(os.path.join(dirpath, filename))
 
         #
-        # Put bands in numeric order for processing. Redundant now, keep anyways.
+        # Put bands in numeric order for processing. Redundant, keep anyways.
         #
         tile_bands.sort()
 
@@ -478,12 +491,12 @@ def convert_imgs(root_folder, imgFolders):
         # Create the folder for processed data if it doesn't exist.
         #
         PROC_DATA = os.path.join(os.path.dirname(imgFolder), 'PROC_DATA')
-        if not(os.path.exists(PROC_DATA)):
+        if not os.path.exists(PROC_DATA):
             os.mkdir(PROC_DATA)
 
         #
-        # Create file to save stack to -- there is probably a better way to do this!
-        # Also create fake thermal band file.
+        # Create file to save stack to -- there is probably a better way to do
+        # this! Also create fake thermal band file.
         #
 
         print tile_bands
@@ -495,18 +508,20 @@ def convert_imgs(root_folder, imgFolders):
             if band.endswith('_B02.jp2'):
 
                 #
-                # Open the B02 image in order to initialize .dat files. Any band
+                # Open B02 image in order to initialize .dat files. Any band
                 # with 10m pixel size would do. Gets georeferencing info, etc.
                 #
                 img = gdal.Open(band, gdal.GA_ReadOnly)
                 band_id = band[-6:-4]
                 if img is None:
-                    print 'Could not open band #{}'.format(band_id)
-                    logger.critical(('{} in {} could not be opened.').format(
-                        band, imgFolder))
+                    message = (
+                        '{} in {} could not be opened.'
+                        ).format(band, imgFolder)
+                    print message
+                    logger.critical(message)
                     sys.exit(1)
 
-                print '------------------------------------------------------------'
+                print '-------------------------------------------------------'
                 print 'Processing tile {} sensed at {}'.format(
                     tile_id, SENSING_TIME)
                 print 'Coordinate system: {}, {}\n\n'.format(
@@ -529,10 +544,10 @@ def convert_imgs(root_folder, imgFolders):
                 img_cols = img.RasterXSize
 
                 #
-                # Open output format driver, see gdal_translate --formats for list.
+                # Open output format driver, see gdal_translate for formats.
                 #
-                format = 'ENVI'
-                driver = gdal.GetDriverByName(format)
+                gdal_format = 'ENVI'
+                driver = gdal.GetDriverByName(gdal_format)
 
                 #
                 # Test stacked band file path.
@@ -545,7 +560,7 @@ def convert_imgs(root_folder, imgFolders):
                 # Print driver for stacked layers (6 bands, 8-bit unsigned).
                 #
                 outDs = driver.Create(filepath, img_cols, img_rows, 6,
-                    gdal.GDT_Byte)
+                                      gdal.GDT_Byte)
                 if outDs is None:
                     print 'Could not create test file.'
                     sys.exit(1)
@@ -569,7 +584,7 @@ def convert_imgs(root_folder, imgFolders):
                 # Print driver for fake thermal band (1 band, 8-bit unsigned).
                 #
                 thermDs = driver.Create(filepath, img_cols, img_rows, 1,
-                    gdal.GDT_Byte)
+                                        gdal.GDT_Byte)
                 if thermDs is None:
                     print 'Could not create test file.'
                     sys.exit(1)
@@ -589,7 +604,8 @@ def convert_imgs(root_folder, imgFolders):
                 #
                 # Remove pixels having no data in any of the input bands.
                 #
-                therm_array = numpy.where((noData_array == 1), (0), therm_array)
+                therm_array = numpy.where(
+                    (noData_array == 1), (0), therm_array)
 
                 #
                 # Write the data to the designated band.
@@ -624,7 +640,6 @@ def convert_imgs(root_folder, imgFolders):
                 thermDs = None
                 img = None
 
-
         print 'Creating 6 band stack for tile {}\n'.format(tile_id)
 
         for band in tile_bands:
@@ -651,8 +666,8 @@ def convert_imgs(root_folder, imgFolders):
             #
             # This if statement is redundant now, but keep for now anyways.
             #
-            if band.endswith(('_B02.jp2','_B03.jp2','_B04.jp2','_B08.jp2',
-                    '_B11.jp2','_B12.jp2')):
+            if band.endswith(('_B02.jp2', '_B03.jp2', '_B04.jp2', '_B08.jp2',
+                              '_B11.jp2', '_B12.jp2')):
 
                 #
                 # Open the band as read only.
@@ -660,9 +675,10 @@ def convert_imgs(root_folder, imgFolders):
                 img = gdal.Open(band, gdal.GA_ReadOnly)
                 band_id = band[-6:-4]
                 if img is None:
-                    print 'Could not open band #{}'.format(band_id)
-                    logger.critical(('Could not open band #{} in {}').format(
-                        band_id, imgFolder))
+                    message = ('Could not open band #{} in {}').format(
+                        band_id, imgFolder)
+                    print message
+                    logger.critical(message)
                     sys.exit(1)
                 print 'Processing band #{}'.format(band_id)
 
@@ -676,13 +692,13 @@ def convert_imgs(root_folder, imgFolders):
                 #
                 # Read image as array using GDAL.
                 #
-                img_array = img_band.ReadAsArray(0,0, img_cols, img_rows)
+                img_array = img_band.ReadAsArray(0, 0, img_cols, img_rows)
                 print 'Original shape: {}'.format(img_array.shape)
                 # print 'Original max: {}'.format(numpy.amax(img_array))
                 # print 'Original min: {}'.format(numpy.amin(img_array))
 
                 #
-                # Adjust outliers (areas with very high reflectance and negative).
+                # Adjust outliers (very high reflectance and negative).
                 #
                 outData = img_array / 10000.0
                 outData = numpy.where((outData > 1), (1), outData)
@@ -698,17 +714,13 @@ def convert_imgs(root_folder, imgFolders):
                 #         elif outData[i,j] < 0:
                 #             outData[i,j] = 0
 
-                #
-                # Possible adjustment for noData.
-                #
-                #outData = numpy.where((img_array == 0), (-1), outData)
                 img_array = None
 
                 #
                 # Resample bands 11 and 12 from 20m to 10m resolution.
                 #
-                if band.endswith(('_B11.jp2','_B12.jp2')):
-                    print 'Resample by a factor of 2 with nearest interpolation.'
+                if band.endswith(('_B11.jp2', '_B12.jp2')):
+                    print 'Resample by a factor of 2 - nearest interpolation.'
                     outData = scipy.ndimage.zoom(outData, 2, order=0)
                     print 'Resampled size: {}'.format(outData.shape)
 
@@ -721,7 +733,6 @@ def convert_imgs(root_folder, imgFolders):
                 # Remove pixels having no data in any of the input bands.
                 #
                 outData = numpy.where((noData_array == 1), (0), outData)
-
 
                 #
                 # Write the data to the designated band.
@@ -757,10 +768,12 @@ def convert_imgs(root_folder, imgFolders):
 
         i += 1
 
-        print 'Tile {}, {} of {} processed and stacked.'.format(tile_id, str(i), len(imgFolders))
-        print '------------------------------------------------------------\n\n\n'
-        logger.info(('Tile {}, {} of {} processed and stacked.').format(
-            tile_id, str(i), len(imgFolders)))
+        message = (
+            'Tile {}, {} of {} processed and stacked.'
+            ).format(tile_id, str(i), len(imgFolders))
+        print message
+        print '------------------------------------------------------------\n'
+        logger.info(message)
 
         #
         # Clean up to avoid problems processing tiles to follow.
@@ -775,14 +788,17 @@ def convert_imgs(root_folder, imgFolders):
         outDs = None
         noData_array = None
 
-    print '\n\n=================================================================='
+    print '\n\n==============================================================='
     print 'Done processing.'
     print 'End time: {}'.format(datetime.datetime.now().time())
     print 'Total elapsed time: {}'.format(datetime.datetime.now() - start_time)
-    print '==================================================================\n\n'
-    logger.info(('End time: {}').format(datetime.datetime.now().time()))
-    logger.info(('Total elapsed time: {}').format(
-        datetime.datetime.now() - start_time))
+    print '===============================================================\n\n'
+    message = ('End time: {}').format(datetime.datetime.now().time())
+    logger.info(message)
+    message = ('Total elapsed time: {}').format(
+        datetime.datetime.now() - start_time)
+    logger.info(message)
+
 
 if __name__ == '__main__':
 
@@ -790,8 +806,8 @@ if __name__ == '__main__':
     # Set-up logger.
     #
     logging.basicConfig(filename='log/converter.log',
-                    format='%(asctime)s:%(levelname)s:%(message)s',
-                    level=logging.DEBUG)
+                        format='%(asctime)s:%(levelname)s:%(message)s',
+                        level=logging.DEBUG)
     logger = logging.getLogger('converter ')
 
     #
