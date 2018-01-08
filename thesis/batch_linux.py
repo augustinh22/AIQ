@@ -1,4 +1,4 @@
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Name:        SIAM batch creator
 # Purpose:     This script uses a Tkinter GUI to create a SIAM
 #              batch file based on SIAM compatible files located in a target
@@ -9,7 +9,7 @@
 # Created:     21.12.2016
 # Modified:    07.12.2017
 #
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
@@ -27,9 +27,12 @@ import gdal
 # Set GDAL environment variable for translating grib to tiff.
 # os.environ['GDAL_DATA'] = r'C:\Program Files\GDAL\gdal-data'
 
+
 def get_args():
 
-    '''Gets arguments from command line. '''
+    '''
+    Gets arguments from command line.
+    '''
 
     #
     # Create download tool help response.
@@ -38,17 +41,19 @@ def get_args():
 
     if len(sys.argv) == 1:
 
-        print('\n        {0} [options]'
+        print(
+            '\n        {0} [options]'
             '\n        Help: {1} --help'
             '\n        or: {1} -h'
-            '\nexample python {0} -r /path/to/data/ --burnt-area 1').format(
-            sys.argv[0], prog)
+            '\nexample python {0} -r /path/to/data/ --burnt-area 1'
+            ).format(sys.argv[0], prog)
 
         sys.exit(-1)
 
     else:
 
-        parser = argparse.ArgumentParser(prog=prog,
+        parser = argparse.ArgumentParser(
+            prog=prog,
             usage='%(prog)s [options]',
             description='SIAM batch creator.',
             argument_default=None,
@@ -57,61 +62,95 @@ def get_args():
         #
         # General arguments.
         #
-        parser.add_argument('-r', '--read_dir', dest='read_dir', action='store',
-                type=str, help='Path where downloaded products are located.',
-                default=None)
-        parser.add_argument('-s', '--siam', dest='siam', action='store',
-                type=str, help='Path to SIAM executable.',
-                default='/opt/siam/SIAM_compilation_Ubuntu/SIAM_Ubuntu_r88v7.exe')
-        parser.add_argument('-w', '--write_dir', dest='write_dir', action='store',
-                type=str, help='Path to save SIAM batch.',
-                default='/home/hannah/repos/AIQ/thesis/siam/')
-        parser.add_argument('--auto', dest='auto', action='store',
-                help=('Automatically creates batch file without user input.'),
-                choices=['y','n'], default=None)
+        parser.add_argument(
+            '-r', '--read_dir', dest='read_dir', action='store',
+            type=str,
+            help='Path where downloaded products are located.',
+            default=None)
+        parser.add_argument(
+            '-s', '--siam', dest='siam', action='store',
+            type=str,
+            help='Path to SIAM executable.',
+            default='/opt/siam/SIAM_compilation_Ubuntu/SIAM_Ubuntu_r88v7.exe')
+        parser.add_argument(
+            '-w', '--write_dir', dest='write_dir', action='store',
+            type=str,
+            help='Path to save SIAM batch.',
+            default='/home/hannah/repos/AIQ/thesis/siam/')
+        parser.add_argument(
+            '--auto', dest='auto', action='store',
+            help=('Automatically creates batch file without user input.'),
+            choices=['y', 'n'],
+            default=None)
 
         #
         # Optional parameters.
         #
-        parser.add_argument('-03', '--bin-mask', dest='var03', action='store',
-                help=('Use a binary mask for processing. Default 0.'),
-                choices=['1','0'], default=1)
-        parser.add_argument('-07', '--crisp', dest='var07', action='store',
-                help=('Crisp[1] or fuzzy [0] classification. Default 1.'),
-                choices=['1','0'], default=1)
-        parser.add_argument('-09', '--smoke-plume', dest='var09', action='store',
-                help=('Create smoke-plume mask. Default 0.'),
-                choices=['1','0'], default=0)
-        parser.add_argument('-10', '--cloud', dest='var10', action='store',
-                help=('Create cloud mask. Default 0.'),
-                choices=['1','0'], default=0)
-        parser.add_argument('-11', '--burnt-area', dest='var11', action='store',
-                help=('Create burnt-area mask. Default 0.'),
-                choices=['1','0'], default=0)
-        parser.add_argument('-12', '--veg-bin', dest='var12', action='store',
-                help=('Create binary vegetation mask. Default 1.'),
-                choices=['1','0'], default=1)
-        parser.add_argument('-13', '--veg-tri', dest='var13', action='store',
-                help=('Create trinary vegetation mask. Default 0.'),
-                choices=['1','0'], default=0)
-        parser.add_argument('-14', '--baresoil', dest='var14', action='store',
-                help=('Create trinary baresoil builtup mask. Default 0.'),
-                choices=['1','0'], default=0)
-        parser.add_argument('-15', '--cloud-tri', dest='var15', action='store',
-                help=('Create trinary cloud mask. Default 0.'),
-                choices=['1','0'], default=0)
-        parser.add_argument('-16', '--water-tri', dest='var16', action='store',
-                help=('Create trinary water mask. Default 0.'),
-                choices=['1','0'], default=0)
-        parser.add_argument('-17', '--shadow-tri', dest='var17', action='store',
-                help=('Create trinary shadow mask. Default 0.'),
-                choices=['1','0'], default=0)
-        parser.add_argument('-18', '--urban-bin', dest='var18', action='store',
-                help=('Create binary urban area mask. Default 0.'),
-                choices=['1','0'], default=0)
-        parser.add_argument('-19', '--shape', dest='var19', action='store',
-                help=('Calculate shape indicators. Default 0.'),
-                choices=['1','0'], default=1)
+        parser.add_argument(
+            '-03', '--bin-mask', dest='var03', action='store',
+            help=('Use a binary mask for processing. Default 0.'),
+            choices=['1', '0'],
+            default=1)
+        parser.add_argument(
+            '-07', '--crisp', dest='var07', action='store',
+            help=('Crisp[1] or fuzzy [0] classification. Default 1.'),
+            choices=['1', '0'],
+            default=1)
+        parser.add_argument(
+            '-09', '--smoke-plume', dest='var09', action='store',
+            help=('Create smoke-plume mask. Default 0.'),
+            choices=['1', '0'],
+            default=0)
+        parser.add_argument(
+            '-10', '--cloud', dest='var10', action='store',
+            help=('Create cloud mask. Default 0.'),
+            choices=['1', '0'],
+            default=0)
+        parser.add_argument(
+            '-11', '--burnt-area', dest='var11', action='store',
+            help=('Create burnt-area mask. Default 0.'),
+            choices=['1', '0'],
+            default=0)
+        parser.add_argument(
+            '-12', '--veg-bin', dest='var12', action='store',
+            help=('Create binary vegetation mask. Default 1.'),
+            choices=['1', '0'],
+            default=1)
+        parser.add_argument(
+            '-13', '--veg-tri', dest='var13', action='store',
+            help=('Create trinary vegetation mask. Default 0.'),
+            choices=['1', '0'],
+            default=0)
+        parser.add_argument(
+            '-14', '--baresoil', dest='var14', action='store',
+            help=('Create trinary baresoil builtup mask. Default 0.'),
+            choices=['1', '0'],
+            default=0)
+        parser.add_argument(
+            '-15', '--cloud-tri', dest='var15', action='store',
+            help=('Create trinary cloud mask. Default 0.'),
+            choices=['1', '0'],
+            default=0)
+        parser.add_argument(
+            '-16', '--water-tri', dest='var16', action='store',
+            help=('Create trinary water mask. Default 0.'),
+            choices=['1', '0'],
+            default=0)
+        parser.add_argument(
+            '-17', '--shadow-tri', dest='var17', action='store',
+            help=('Create trinary shadow mask. Default 0.'),
+            choices=['1', '0'],
+            default=0)
+        parser.add_argument(
+            '-18', '--urban-bin', dest='var18', action='store',
+            help=('Create binary urban area mask. Default 0.'),
+            choices=['1', '0'],
+            default=0)
+        parser.add_argument(
+            '-19', '--shape', dest='var19', action='store',
+            help=('Calculate shape indicators. Default 0.'),
+            choices=['1', '0'],
+            default=1)
 
         return parser.parse_args()
 
@@ -121,7 +160,8 @@ def check_procFolders(options):
     procFolders = []
     siamFolders = []
 
-    for dirpath, dirnames, filenames in os.walk(options.read_dir, topdown=True):
+    for dirpath, dirnames, filenames in os.walk(
+            options.read_dir, topdown=True):
 
         for dirname in dirnames:
 
@@ -157,12 +197,12 @@ def check_procFolders(options):
         #
         # Initialize variables for PROC_DATA folder.
         #
-        siam_Parts = [ '18SpCt',
-                       '33SharedSpCt',
-                       '48SpCt',
-                       '96SpCt',
-                       'VegBinaryMask',
-                       'fRatioGreennessIndex' ]
+        siam_Parts = ['18SpCt',
+                      '33SharedSpCt',
+                      '48SpCt',
+                      '96SpCt',
+                      'VegBinaryMask',
+                      'fRatioGreennessIndex']
 
         remove_siamFolder = None
 
@@ -184,8 +224,8 @@ def check_procFolders(options):
 
                         if file_size < 5:
                             remove_siamFolder = True
-                            logger.info('File smaller than 5 bytes: ' +
-                                file_path)
+                            logger.info(
+                                'File smaller than 5 bytes: ' + file_path)
 
         #
         # Removes siamoutput folders with problem files and adds to list to be
@@ -203,17 +243,18 @@ def check_procFolders(options):
         question = ('{} unprocessed tiles from {} found.').format(
             str(len(unprocFolders)), str(len(procFolders)))
         print question
-        bool_answer = None
-        return bool_answer, unprocFolders
+        bool_ans = None
+        return bool_ans, unprocFolders
 
-    question = ('{} unprocessed tiles from {} found. '
-        'Create batch for SIAM?').format(str(len(unprocFolders)),
-        str(len(procFolders)))
+    question = (
+        '{} unprocessed tiles from {} found. '
+        'Create batch for SIAM?'
+        ).format(str(len(unprocFolders)), str(len(procFolders)))
 
     print question
 
     ins = None
-    bool_answer = None
+    bool_ans = None
 
     if options.auto is not None:
 
@@ -225,19 +266,19 @@ def check_procFolders(options):
 
             ins = raw_input('Answer [y/n]: ')
 
-            if (ins == 'y' or ins == 'n'):
+            if ins == 'y' or ins == 'n':
 
                 break
 
             else:
 
-                print  'Your input should indicate yes [y] or no [n].'
+                print 'Your input should indicate yes [y] or no [n].'
 
     if ins == 'y' or ins == 'Y' or ins == 'yes' or ins == 'Yes':
 
-        bool_answer = True
+        bool_ans = True
 
-    return bool_answer, unprocFolders
+    return bool_ans, unprocFolders
 
 
 def create_batch(options, unprocFolders):
@@ -295,7 +336,7 @@ def create_batch(options, unprocFolders):
         #
         siam_output = os.path.join(unprocFolder, 'siamoutput')
 
-        if not(os.path.exists(siam_output)):
+        if not os.path.exists(siam_output):
 
             os.mkdir(siam_output)
 
@@ -312,7 +353,7 @@ def create_batch(options, unprocFolders):
                 var02 = filename
 
             elif (filename.endswith('.dat')
-                    and fnmatch.fnmatch(filename, '*nodata.dat')):
+                  and fnmatch.fnmatch(filename, '*nodata.dat')):
 
                 noData_Mask = filename
         #
@@ -320,8 +361,9 @@ def create_batch(options, unprocFolders):
         #
         if not var02:
 
-            print '*_calrefbyt_* not found in {}'.format(unprocFolder)
-            logger.error('*_calrefbyt_* not found in {}'.format(unprocFolder))
+            message = '*_calrefbyt_* not found in {}'.format(unprocFolder)
+            print message
+            logger.error(message)
             print 'Tile not processed.'
 
             continue
@@ -332,8 +374,9 @@ def create_batch(options, unprocFolders):
 
         elif var03 == '1' and not noData_Mask:
 
-            print '*nodata.dat not found in {}'.format(unprocFolder)
-            logger.error('*nodata.dat not found in {}'.format(unprocFolder))
+            message = '*nodata.dat not found in {}'.format(unprocFolder)
+            print message
+            logger.error(message)
             print 'Tile not processed.'
 
             continue
@@ -350,10 +393,11 @@ def create_batch(options, unprocFolders):
 
         if img is None:
 
-            print '\nCould not open *calrefbyt*.dat'
-            print 'Folder not processed: {}\n'.format(unprocFolder)
-            logger.error(('Could not open *calrefbyt*.dat. '
-                'Folder not processed: {}\n').format(unprocFolder))
+            message = (
+                'Could not open *calrefbyt*.dat. '
+                'Folder not processed: {}\n').format(unprocFolder)
+            print message
+            logger.error(message)
 
             continue
 
@@ -363,14 +407,14 @@ def create_batch(options, unprocFolders):
         #
         # Create string to write to batch file.
         #
-        batch_entry = ' '.join((var00, var01, var02, var03, var04, var05,
-            var06, var07, var08, var09, var10, var11, var12, var13, var14,
-            var15, var16, var17, var18, var19))
+        batch_entry = ' '.join((
+            var00, var01, var02, var03, var04, var05, var06, var07, var08,
+            var09, var10, var11, var12, var13, var14, var15, var16, var17,
+            var18, var19))
 
         with open(batch_path, 'a') as f:
 
             f.write(batch_entry + '\n')
-        ## print batch_entry
 
         #
         # Clean up.
@@ -380,17 +424,20 @@ def create_batch(options, unprocFolders):
     #
     # Location.
     #
-    print '\n\n{} created.\nSaved to: {}\n\n'.format(batFilename, batch_path)
-    logger.info('{} created. Saved to: {}\n\n'.format(batFilename, batch_path))
+    message = (
+        '\n\n{} created.\nSaved to: {}\n\n').format(batFilename, batch_path)
+    print message
+    logger.info(message)
 
 
 if __name__ == '__main__':
     #
     # Set-up logger.
     #
-    logging.basicConfig(filename='log/batch.log',
-                    format='%(asctime)s:%(levelname)s:%(message)s',
-                    level=logging.DEBUG)
+    logging.basicConfig(
+        filename='log/batch.log',
+        format='%(asctime)s:%(levelname)s:%(message)s',
+        level=logging.DEBUG)
     logger = logging.getLogger('batch')
 
     #
