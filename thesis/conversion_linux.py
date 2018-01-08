@@ -112,7 +112,7 @@ def nodata_array(tile_bands, PROC_DATA):
     '''
     This function creates a noData mask array based on all pixels that have
     a value of 0 in any of the original Sentinel-2 bands used to create the
-    6 band .dat SIAM input file.
+    6 band .dat SIAM input file, and saves a copy as '*nodata.dat'.
     These correspond to S2 bands: 2, 3, 4, 8, 10 and 11.
     '''
 
@@ -123,7 +123,7 @@ def nodata_array(tile_bands, PROC_DATA):
     noData_array = (noData.GetRasterBand(1)).ReadAsArray()
     noData_array = numpy.where((noData_array > 0), (1), noData_array)
     #
-    # Establish size of raster from B02 for stacked output file.
+    # Establish size of raster from B02 for nodata output file.
     #
     projection = noData.GetProjection()
     transform = noData.GetGeoTransform()
@@ -145,7 +145,7 @@ def nodata_array(tile_bands, PROC_DATA):
     filepath = os.path.join(PROC_DATA, nodata_file)
 
     #
-    # Print driver for no data mask (1 band, 8-bit unsigned).
+    # Print driver for nodata mask (1 band, 8-bit unsigned).
     #
     outDs = driver.Create(filepath, img_cols, img_rows, 1,
         gdal.GDT_Byte)
@@ -186,6 +186,11 @@ def nodata_array(tile_bands, PROC_DATA):
         # Adjust output layer to 0 where there is nodata.
         #
         noData_array = numpy.where((band_array == 0), (0), noData_array)
+
+    #
+    # Invert array to mask, where 0 are values to be processed and 1 is nodata.
+    #
+    noData_array = numpy.where((noData_array == 0), (1), (0))
 
     #
     # Write the data to the designated band.
@@ -584,7 +589,7 @@ def convert_imgs(root_folder, imgFolders):
                 #
                 # Remove pixels having no data in any of the input bands.
                 #
-                therm_array = numpy.where((noData_array == 0), (0), therm_array)
+                therm_array = numpy.where((noData_array == 1), (0), therm_array)
 
                 #
                 # Write the data to the designated band.
@@ -715,7 +720,7 @@ def convert_imgs(root_folder, imgFolders):
                 #
                 # Remove pixels having no data in any of the input bands.
                 #
-                outData = numpy.where((noData_array == 0), (0), outData)
+                outData = numpy.where((noData_array == 1), (0), outData)
 
 
                 #
