@@ -328,7 +328,7 @@ def create_batch(options, unprocFolders):
 
         if var03 == '1' and noData_Mask:
 
-            var03 = os.path.join(unprocFolder, noData_Mask)
+            var03 = noData_Mask
 
         elif var03 == '1' and not noData_Mask:
 
