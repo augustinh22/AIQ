@@ -107,7 +107,7 @@ def get_args():
         return parser.parse_args()
 
 
-def nodata_array(tile_bands):
+def nodata_array(tile_bands, PROC_DATA):
 
     '''
     This function creates a noData mask array based on all pixels that have
@@ -122,6 +122,42 @@ def nodata_array(tile_bands):
     noData = gdal.Open(tile_bands[0], gdal.GA_ReadOnly)
     noData_array = (noData.GetRasterBand(1)).ReadAsArray()
     noData_array = numpy.where((noData_array > 0), (1), noData_array)
+    #
+    # Establish size of raster from B02 for stacked output file.
+    #
+    projection = noData.GetProjection()
+    transform = noData.GetGeoTransform()
+    img_rows = noData.RasterYSize
+    img_cols = noData.RasterXSize
+
+    #
+    # Open output format driver, see gdal_translate --formats for list.
+    #
+    format = 'ENVI'
+    driver = gdal.GetDriverByName(format)
+
+    #
+    # Test nodata mask file path.
+    #
+    band_basename = os.path.basename(tile_bands[0])
+    nodata_file = '{}nodata.dat'.format(
+        os.path.basename(band_basename[:-7]))
+    filepath = os.path.join(PROC_DATA, nodata_file)
+
+    #
+    # Print driver for no data mask (1 band, 8-bit unsigned).
+    #
+    outDs = driver.Create(filepath, img_cols, img_rows, 1,
+        gdal.GDT_Byte)
+    if outDs is None:
+        print 'Could not create test file.'
+        sys.exit(1)
+
+    #
+    # Georeference the nodata .dat file and set the projection.
+    #
+    outDs.SetGeoTransform(transform)
+    outDs.SetProjection(projection)
 
     for band in tile_bands:
 
@@ -151,10 +187,32 @@ def nodata_array(tile_bands):
         #
         noData_array = numpy.where((band_array == 0), (0), noData_array)
 
+    #
+    # Write the data to the designated band.
+    #
+    outBand = outDs.GetRasterBand(1)
+    outBand.WriteArray(noData_array, 0, 0)
+
+    #
+    # Flush data to disk.
+    #
+    outBand.FlushCache()
+
+    #
+    # Calculate statistics.
+    #
+    stats = outBand.ComputeStatistics(False)
+    outBand.SetStatistics(stats[0], stats[1], stats[2], stats[3])
+
+    del format
+    del outDs
+    del outBand
+    del noData
     img = None
-    noData = None
     band_id = None
     band_array = None
+    outBand = None
+    stats = None
 
     return noData_array
 
@@ -425,7 +483,7 @@ def convert_imgs(root_folder, imgFolders):
 
         print tile_bands
         noData_array = None
-        noData_array = nodata_array(tile_bands)
+        noData_array = nodata_array(tile_bands, PROC_DATA)
 
         for band in tile_bands:
 
