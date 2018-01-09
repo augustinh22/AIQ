@@ -312,7 +312,6 @@ def create_batch(options, unprocFolders):
     # Convert binary variables and image type identifier from GUI to strings.
     #
     var00 = options.siam
-    var03 = str(options.var03)
     var06 = str(1)
     var07 = str(options.var07)
     var09 = str(options.var09)
@@ -368,11 +367,11 @@ def create_batch(options, unprocFolders):
 
             continue
 
-        if var03 == '1' and noData_Mask:
+        if str(options.var03) == '1' and noData_Mask:
 
             var03 = noData_Mask
 
-        elif var03 == '1' and not noData_Mask:
+        elif str(options.var03) == '1' and not noData_Mask:
 
             message = '*nodata.dat not found in {}'.format(unprocFolder)
             print message
