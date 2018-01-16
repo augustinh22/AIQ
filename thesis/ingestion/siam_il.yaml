@@ -38,6 +38,7 @@ measurements:
                 16: UN
                 17: BA
                 18: FLAME
+                255: NO_DATA_MASK
     - name: 'spectral_categories_33'
       aliases: [33SharedSpCt, siam33]
       dtype: uint8
@@ -82,6 +83,7 @@ measurements:
                 31: SH
                 32: FLAME
                 33: UN
+                255: NO_DATA_MASK
     - name: 'spectral_categories_48'
       aliases: [48SpCt, siam48]
       dtype: uint8
@@ -141,6 +143,7 @@ measurements:
                 46: WAICE_SHSN
                 47: UN2
                 48: UN3
+                255: NO_DATA_MASK
     - name: 'spectral_categories_96'
       aliases: [96SpCt, siam96]
       dtype: uint8
@@ -248,10 +251,10 @@ measurements:
                 94: WAICE_SHSN
                 95: UN2
                 96: UN3
+                255: NO_DATA_MASK
     - name: 'HazePentarnaryMask'
       aliases: [Haze, haze_mask]
       dtype: uint8
-      nodata: 255
       units: 'category'
       flags_definition:
         siam:
@@ -263,7 +266,6 @@ measurements:
     - name: 'VegetationBinaryMask'
       aliases: [VegBinaryMask, vegetation_mask]
       dtype: uint8
-      nodata: 255
       units: 'category'
       flags_definition:
         siam:
@@ -280,5 +282,16 @@ measurements:
     - name: 'cBrightness'
       aliases: [brightness]
       dtype: uint8
-      nodata: 255
+      nodata: 0
       units: 'brightness'
+    - name: 'nodata'
+      aliases: [noData, NoData, no_data]
+      dtype: uint8
+      units: 'category'
+      flags_definition:
+        siam:
+            bits: 8
+            description: NoData Binary Mask
+            values:
+                0: Data
+                1: No data
