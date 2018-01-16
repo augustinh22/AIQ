@@ -259,7 +259,7 @@ measurements:
       nodata: NaN
       flags_definition:
         siam:
-            bits: 8
+            bits: [0,1]
             description: Haze Pentarnary Mask
             values:
                 0: Likely not haze
@@ -271,7 +271,7 @@ measurements:
       nodata: NaN
       flags_definition:
         siam:
-            bits: 8
+            bits: [0,1]
             description: Vegetation Binary Mask
             values:
                 0: Likely not vegetation
@@ -293,7 +293,7 @@ measurements:
       nodata: NaN
       flags_definition:
         siam:
-            bits: 8
+            bits: [0,1]
             description: NoData Binary Mask
             values:
                 0: Data
