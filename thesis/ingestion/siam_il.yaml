@@ -256,6 +256,7 @@ measurements:
       aliases: [Haze, haze_mask]
       dtype: uint8
       units: 'category'
+      nodata: NaN
       flags_definition:
         siam:
             bits: 8
@@ -267,6 +268,7 @@ measurements:
       aliases: [VegBinaryMask, vegetation_mask]
       dtype: uint8
       units: 'category'
+      nodata: NaN
       flags_definition:
         siam:
             bits: 8
@@ -288,6 +290,7 @@ measurements:
       aliases: [noData, NoData, no_data]
       dtype: uint8
       units: 'category'
+      nodata: NaN
       flags_definition:
         siam:
             bits: 8
