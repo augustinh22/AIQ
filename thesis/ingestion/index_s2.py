@@ -1,6 +1,7 @@
 import os
 import sys
 import logging
+import datetime
 import subprocess
 
 def main(datasets):
@@ -36,6 +37,14 @@ if __name__ == "__main__":
     datasets = []
     for dirpath, dirnames, filenames in os.walk('/data/s2/', topdown=True):
         for filename in filenames:
-            if filename.endswith('.yaml'):
-               datasets.append(os.path.join(dirpath, filename))
+            if filename.endswith('datacube-metadata.yaml'):
+                #
+                # Only adds files older than 5 days.
+                #
+                test_path = os.path.join(dirpath, filename)
+                creation_time = (datetime.datetime.fromtimestamp(os.path.getmtime(test_path)))
+                now = datetime.datetime.now()
+                diff = (now-creation_time).days
+                if diff <= 6:
+                    datasets.append(os.path.join(dirpath, filename))
     main(datasets)
