@@ -10,7 +10,7 @@ metadata:
 
 measurements:
     - name: 'spectral_categories_18'
-      aliases: [18SpCt, siam18]
+      aliases: [18spct, 18SpCt, siam18]
       dtype: uint8
       nodata: 255
       units: 'category'
@@ -40,7 +40,7 @@ measurements:
                 18: FLAME
                 255: NO_DATA_MASK
     - name: 'spectral_categories_33'
-      aliases: [33SharedSpCt, siam33]
+      aliases: [33sharedspct, 33SharedSpCt, siam33]
       dtype: uint8
       nodata: 255
       units: 'category'
@@ -85,7 +85,7 @@ measurements:
                 33: UN
                 255: NO_DATA_MASK
     - name: 'spectral_categories_48'
-      aliases: [48SpCt, siam48]
+      aliases: [48spct, 48SpCt, siam48]
       dtype: uint8
       nodata: 255
       units: 'category'
@@ -145,7 +145,7 @@ measurements:
                 48: UN3
                 255: NO_DATA_MASK
     - name: 'spectral_categories_96'
-      aliases: [96SpCt, siam96]
+      aliases: [96spct, 96SpCt, siam96]
       dtype: uint8
       nodata: 255
       units: 'category'
@@ -253,25 +253,25 @@ measurements:
                 96: UN3
                 255: NO_DATA_MASK
     - name: 'HazePentarnaryMask'
-      aliases: [Haze, haze_mask]
+      aliases: [haze, Haze, haze_mask]
       dtype: uint8
       units: 'category'
       nodata: NaN
       flags_definition:
         siam:
-            bits: 8
+            bits: [0,1]
             description: Haze Pentarnary Mask
             values:
                 0: Likely not haze
                 1: Looks like haze
     - name: 'VegetationBinaryMask'
-      aliases: [VegBinaryMask, vegetation_mask]
+      aliases: [vegbinarymask, VegBinaryMask, vegetation_mask]
       dtype: uint8
       units: 'category'
       nodata: NaN
       flags_definition:
         siam:
-            bits: 8
+            bits: [0,1]
             description: Vegetation Binary Mask
             values:
                 0: Likely not vegetation
