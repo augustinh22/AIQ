@@ -61,6 +61,8 @@
   19.12.2017 -- all files deleted, adjusted for pixels with a value of 0.
   -- 443 tiles, started at 14:04, estimated around 1 minute per tile due to nodata adjustment. in 8:09 hours for 443 tiles,. -- 8:09 hours for all 443 tiles.
 
+08.01.2018 -- create nodata masks for each tile (460) retroactively. Start 17:30, end 20:44 -- time 3.25hours.
+
 ### 3. Initial SIAM processing
 ##### 37SBA
  started 13:30 on 06.12.2017 (121 tiles) -- finished 00:38 on 07.12.2017
@@ -70,6 +72,9 @@
  started again at 14:48 on 06.12.2017 (193 tiles) -- finished 08:19 on 07.12.2017
 ##### 37SDA
  started 14:32 on 06.12.2017 (119 tiles) -- finished 01:11 on 07.12.2017
+
+##### Reprocessed with nodata masks
+started between 10:36 and 10:48 on 09.01.18 in 12 batches for 462 tiles -- finished at 14:56 with uneven batch sizes.
 
 ### 4. Create Cronjob to automate processes to keep up-to-date.
 - crontab -e
@@ -101,3 +106,39 @@ fi
 """
 ### 5. Index Sentinel-2 Datata
 2017-12-21 Indexed all original data -- less than 5 minutes to create the yaml docs and 10 minutes to index all ~450 scenes.
+
+#### Deal with re-indexed scenes...
+sudo su - postgres
+
+psql
+
+\dt agdc.*
+
+DELETE FROM agdc.dataset_location
+    WHERE added IN
+        (SELECT A.added
+        FROM agdc.dataset_location A
+        WHERE EXISTS (SELECT B.uri_body, count(*) FROM agdc.dataset_location B GROUP BY B.uri_body HAVING count(*) > 1 AND A.uri_body = B.uri_body) AND A.added < '2018-01-15 13:15:00.000');
+
+DELETE FROM agdc.dataset
+    WHERE id NOT IN
+        (SELECT dataset_ref FROM agdc.dataset_location);
+
+### 6. Automate indexing S2 Data
+#### Create Crontab for admin to change permissions on all files in /data/s2/
+"""
+40 2 * * * sudo chown -R hannah:aiq /data/s2/
+55 2 * * * sudo chown -R hannah:aiq /data/s2/
+"""
+#### Create crontab for automating all indexing operations (to be expanded with ingestion)
+42 2 * * * . $HOME/.bash_profile; /data/s2/automate_ODC.sh
+"""
+#!/bin/bash
+
+source ~/Datacube/datacube_env/bin/activate
+
+cd /home/odci/Datacube/agdc-v2/ingest/prepare_scripts/sentinel_2/
+python prep_s2.py
+python index_s2.py
+
+"""
