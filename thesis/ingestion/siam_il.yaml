@@ -293,7 +293,7 @@ measurements:
       nodata: NaN
       flags_definition:
         siam:
-            bits: 8
+            bits: [0,1]
             description: NoData Binary Mask
             values:
                 0: Data
