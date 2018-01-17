@@ -111,7 +111,7 @@ fi
 sudo su - postgres
 
 psql
-
+\c datacube
 \dt agdc.*
 
 DELETE FROM agdc.dataset_location
@@ -132,6 +132,7 @@ DELETE FROM agdc.dataset
 """
 #### Create crontab for automating all indexing operations (to be expanded with ingestion)
 42 2 * * * . $HOME/.bash_profile; /data/s2/automate_ODC.sh
+- Be sure permissions are correct if editing: sudo chmod 755 automate_ODC.sh
 """
 #!/bin/bash
 
@@ -142,3 +143,27 @@ python prep_s2.py
 python index_s2.py
 
 """
+### Index SIAM dataset
+#### Add product definition
+
+#### Index
+(datacube_env) [odci@cf000508 siam]$ datacube -v dataset add /data/s2/37SBA/S2A_OPER_PRD_MSIL1C_PDMC_20161007T104254_R121_V20150830T082006_20150830T082754.SAFE/GRANULE/S2A_OPER_MSI_L1C_TL_EPA__20161006T204405_A000976_T37SBA_N02.04/PROC_DATA/siam-metadata.yaml
+2018-01-17 15:16:16,295 8532 datacube INFO Running datacube command: /home/odci/Datacube/datacube_env/bin/datacube -v dataset add /data/s2/37SBA/S2A_OPER_PRD_MSIL1C_PDMC_20161007T104254_R121_V20150830T082006_20150830T082754.SAFE/GRANULE/S2A_OPER_MSI_L1C_TL_EPA__20161006T204405_A000976_T37SBA_N02.04/PROC_DATA/siam-metadata.yaml
+Indexing datasets  [####################################]  100%2018-01-17 15:16:16,363 8532 datacube-dataset INFO Matched Dataset <id=bf0c6842-1bf5-4c63-86cc-84eb1d690d6b type=siam_il2 location=/data/s2/37SBA/S2A_OPER_PRD_MSIL1C_PDMC_20161007T104254_R121_V20150830T082006_20150830T082754.SAFE/GRANULE/S2A_OPER_MSI_L1C_TL_EPA__20161006T204405_A000976_T37SBA_N02.04/PROC_DATA/siam-metadata.yaml>
+2018-01-17 15:16:16,364 8532 datacube.index._datasets INFO Indexing c4e3a133-dc6f-429e-be76-fa4f5c591741
+2018-01-17 15:16:16,374 8532 datacube.index._datasets WARNING Duplicate dataset, not inserting: c4e3a133-dc6f-429e-be76-fa4f5c591741
+2018-01-17 15:16:16,386 8532 datacube.index._datasets INFO Indexing bf0c6842-1bf5-4c63-86cc-84eb1d690d6b
+__
+#### Ingest
+be sure to set fuse_data: copy acccording to https://github.com/opendatacube/datacube-core/issues/147
+
+select as subquery:
+SELECT count(*) FROM (SELECT added FROM agdc.dataset_location WHERE added > '2018-01-17 16:00:00.000') as subquery;
+**
+
+
+#### Delete process:
+DELETE  FROM agdc.dataset_location WHERE added > '2018-01-17 16:00:00.000';
+DELETE FROM agdc.dataset_source WHERE dataset_ref NOT IN (SELECT dataset_ref FROM agdc.dataset_location);
+DELETE FROM agdc.dataset WHERE id NOT IN (SELECT dataset_ref FROM agdc.dataset_location);
+DELETE FROM agdc.dataset_type WHERE name = 'siam_utm37n_tiled';
