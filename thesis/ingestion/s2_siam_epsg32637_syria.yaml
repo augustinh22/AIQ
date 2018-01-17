@@ -3,8 +3,8 @@ output_type: siam_utm37n_tiled
 
 description: SIAM results processed using all Sentinel-2 data for granules 37SBA, 37SCA and 37SDA (10meter, 100km tile, EPSG:32637)
 
-location: '/datacube/ingested_data'
-file_path_template: 'syria_siam/v1/S2_MSI_LC1_SIAM_32637_{start_time}_{tile_index[0]}_{tile_index[1]}.nc'
+location: '/data/s2/ingested_data'
+file_path_template: 'siam_syria/v1/S2_MSI_LC1_SIAM_32637_{start_time}_{tile_index[0]}_{tile_index[1]}.nc'
 
 global_attributes:
   title: Syria Data Cube Sentinel-2 SIAM Data
@@ -121,8 +121,7 @@ measurements:
           alias: "bright"
     - name: nodata_mask
       dtype: uint8
-      n
-data: 2
+      nodata: 2
       resampling_method: nearest
       src_varname: 'nodata'
       zlib: True
