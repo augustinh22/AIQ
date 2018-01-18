@@ -107,6 +107,9 @@ fi
 ### 5. Index Sentinel-2 Datata
 2017-12-21 Indexed all original data -- less than 5 minutes to create the yaml docs and 10 minutes to index all ~450 scenes.
 
+```bash
+(datacube_env) [odci@cf000508 dataset_types]$ datacube -v product add /home/odci/Datacube/agdc-v2/ingest/dataset_types/sentinel_2/s2_granules.yaml
+```
 #### Deal with re-indexed scenes...
 sudo su - postgres
 
@@ -160,7 +163,9 @@ be sure to set fuse_data: copy acccording to https://github.com/opendatacube/dat
 select as subquery:
 SELECT count(*) FROM (SELECT added FROM agdc.dataset_location WHERE added > '2018-01-17 16:00:00.000') as subquery;
 **
+datacube -v ingest -c /home/odci/Datacube/agdc-v2/ingest/ingestion_configs/siam/s2_siam_epsg32637_syria_25km.yaml --executor multiproc 10
 
+datacube -v ingest -c /home/odci/Datacube/agdc-v2/ingest/ingestion_configs/siam/s2_siam_epsg32637_syria.yaml --executor multiproc 6
 
 #### Delete process:
 DELETE  FROM agdc.dataset_location WHERE added > '2018-01-17 16:00:00.000';
