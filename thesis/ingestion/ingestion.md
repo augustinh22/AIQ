@@ -56,7 +56,7 @@ Once the metadata have been created, the products can be batch indexed using the
 ```bash
 (datacube_env) [odci@cf000508 dataset_types]$ python /home/odci/Datacube/agdc-v2/ingest/prepare_scripts/siam/index_siam.py
 ```
-_note: the metadata created for the source sentinel-2 dataset is incorporated in this process, which makes the sentinel-2 indexing redundant._
+_note: the metadata created for the source sentinel-2 dataset is incorporated in this process, which initiates an automatic index check of the source dataset making an initial sentinel-2 indexing redundant._
 
 ## Ingest siam products
 In this step, a new product definition is created and associated metadata are both automatically ingested into the datacube database at once.
@@ -70,4 +70,5 @@ datacube -v ingest -c /home/odci/Datacube/agdc-v2/ingest/ingestion_configs/siam/
 datacube -v ingest -c /home/odci/Datacube/agdc-v2/ingest/ingestion_configs/siam/s2_siam_epsg32637_syria_25km.yaml --executor multiproc 10
 ```
 _note: be sure to have the optional (and poorly documented) [fuse_data](https://github.com/opendatacube/datacube-core/issues/147) flag set to copy in order to better handle overlapping areas._
-_note: Be sure that the permissions of whatever folder you are writing the ingested data to (in this case e.g. /data/s2/ingested_data/siam_syria/v1/) are set to 777 according to the [documentation](https://github.com/ceos-seo/data_cube_ui/blob/master/docs/ingestion_guide.md) _
+
+_note: Be sure that the permissions of whatever folder you are writing the ingested data to (in this case e.g. /data/s2/ingested_data/siam_syria/v1/) are set to 777 according to the [documentation](https://github.com/ceos-seo/data_cube_ui/blob/master/docs/ingestion_guide.md)_
