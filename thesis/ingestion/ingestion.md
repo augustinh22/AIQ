@@ -14,6 +14,11 @@ The command line should now look like this
 ```bash
 (datacube_env)  [odci@cf000508 dataset_types]$
 ```
+__OR__
+Start the python conda environment:
+```bash
+source activate cubeenv_2
+```
 
 
 ## Product definition of the sentinel 2 products
