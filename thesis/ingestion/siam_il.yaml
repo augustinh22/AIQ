@@ -1,4 +1,4 @@
-name: siam_il2
+name: siam_il
 description: Collection of SIAM-based information layers (IL)
 metadata_type: eo
 
@@ -256,14 +256,17 @@ measurements:
   aliases: [haze, Haze, haze_mask]
   dtype: uint8
   units: 'category'
-  nodata: 2
+  nodata: 0
   flags_definition:
     siam:
-        bits: [0,1,2]
+        bits: [50,100,150,200,250]
         description: Haze Pentarnary Mask
         values:
-            0: Likely not haze
-            1: Looks like haze
+            50: Very low
+            100: Low
+            150: Medium
+            200: High
+            250: Very high
 - name: 'VegBinaryMask'
   aliases: [vegbinarymask, VegetationBinaryMask, vegetation_mask]
   dtype: uint8
