@@ -172,3 +172,39 @@ DELETE  FROM agdc.dataset_location WHERE added > '2018-01-17 16:00:00.000';
 DELETE FROM agdc.dataset_source WHERE dataset_ref NOT IN (SELECT dataset_ref FROM agdc.dataset_location);
 DELETE FROM agdc.dataset WHERE id NOT IN (SELECT dataset_ref FROM agdc.dataset_location);
 DELETE FROM agdc.dataset_type WHERE name = 'siam_utm37n_tiled';
+
+## Jupyter notebook
+```
+cd /home/odci/Datacube/data_cube_notebooks/
+source activate cubeenv_2
+jupyter notebook
+# hit control-Z
+disown -h
+bg
+```
+
+#### Drop DB and re-create (22.01.2018 @ 13:00)
+delete from agdc.dataset_location;
+delete from agdc.dataset_source;
+delete from agdc.dataset;
+delete from agdc.dataset_type;
+
+source ~/Datacube/datacube_env/bin/activate
+python /home/odci/Datacube/agdc-v2/ingest/prepare_scripts/siam/prep_siam.py
+python /home/odci/Datacube/agdc-v2/ingest/prepare_scripts/sentinel_2/prep_s2.py
+
+```bash
+datacube -v product add /home/odci/Datacube/agdc-v2/ingest/dataset_types/sentinel_2/s2_granules.yaml
+datacube -v product add /home/odci/Datacube/agdc-v2/ingest/dataset_types/siam/siam_il.yaml
+```
+@ 13:14:33 - 13:26:15 for 471 scenes
+python /home/odci/Datacube/agdc-v2/ingest/prepare_scripts/sentinel_2/index_s2.py
+
+@ 13:27:57 - 13:39:41 for 471 scenes
+python /home/odci/Datacube/agdc-v2/ingest/prepare_scripts/siam/index_siam.py
+
+sudo chown -R hannah:aiq /data/s2/ingested_data/siam_syria/v1
+sudo chmod 777  /data/s2/ingested_data/siam_syria/v1
+
+@ 14:13 - 16:08:15 (2373 processes)
+datacube -v ingest -c /home/odci/Datacube/agdc-v2/ingest/ingestion_configs/siam/s2_siam_epsg32637_syria_100km.yaml --executor multiproc 10
