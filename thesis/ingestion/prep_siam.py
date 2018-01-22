@@ -127,10 +127,11 @@ def get_relevantpaths(path):
 
 def get_PROC_DATA(path):
 
-    for dirpath, dirnames, filenames in os.walk(str(path.parent)):
+    for dirpath, dirnames, filenames in os.walk(path):
         for dirname in dirnames:
             if dirname == 'PROC_DATA':
-                PROC_DATA = os.path.join(dirpath, dirname)
+                PROC_DATA =  os.path.join(dirpath, dirname)
+
     return PROC_DATA
 
 def get_siamlayers(path):
@@ -294,10 +295,11 @@ def main(datasets):
 
         logging.info("Processing %s", path)
         documents = prepare_dataset(path)
+        print(documents)
         #
         # BE sure to save in PROC_DATA folder.
         #
-        PROC_DATA = get_PROC_DATA(path)
+        PROC_DATA = get_PROC_DATA(dataset)
         if documents:
             yaml_path = os.path.join(PROC_DATA, 'siam-metadata.yaml')
             logging.info("Writing %s dataset(s) into %s", len(documents), yaml_path)
@@ -315,7 +317,7 @@ if __name__ == "__main__":
         folder_path = os.path.join(root_folder, tile)
         for ds in os.listdir(folder_path):
             dataset = os.path.join(folder_path, ds)
-            test_path = get_PROC_DATA(Path(dataset))
+            test_path = get_PROC_DATA(dataset)
             yaml_test = Path(os.path.join(test_path, 'siam-metadata.yaml'))
             if not yaml_test.exists():
                 datasets.append(dataset)
