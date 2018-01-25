@@ -1,7 +1,7 @@
 This project is still under development and was undertaken for the capstone 
 I3 Project course in the University of Salzburg's M.Sc program in Applied Geoinformatics.  
 
-## Configuration (for Windows 64-bit and Python 2.7)
+## Configuration (for Windows 64-bit and Python 2.7 without conda -- NEEDS UPDATING)
 1. If not already installed, install Python 2.7.x
  * Download necessary .msi from https://www.python.org/downloads/
      * _Note: 32-bit is default. You have to explicitly download 64-bit._
