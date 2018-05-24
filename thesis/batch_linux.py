@@ -380,6 +380,10 @@ def create_batch(options, unprocFolders):
 
             continue
 
+        elif str(options.var03) == '0':
+
+            var03 = str(options.var03)
+
         #
         # Path to calrefbyt.
         #
