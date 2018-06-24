@@ -1,0 +1,130 @@
+source_type: siam_il
+output_type: siam_utm37n_10km
+
+description: SIAM results processed using all Sentinel-2 data for granules 37SBA, 37SCA and 37SDA (10meter, 10km tile, EPSG:32637)
+
+location: '/data/s2/ingested_data'
+file_path_template: 'siam_syria/v2/S2_MSI_LC1_SIAM_32637_10km_{start_time}_{tile_index[0]}_{tile_index[1]}.nc'
+
+global_attributes:
+  title: Syria Data Cube Sentinel-2 SIAM Data
+  summary: Sentinel-2 Multispectral Imager Precision data processed using SIAM from Dr. Andrea Baraldi  by h.Augustin at Z_GIS (University of Salzburg).
+  source: S2 MSI Level-1c granules processed using SIAM
+  history: This data represents a tile of Sentinel-2 MSI granule data processed with SIAM from Dr. Andrea Baraldi.
+  institution: Z_GIS
+  instrument: SIAM
+  cdm_data_type: Grid
+  keywords: EARTH SCIENCE
+  keywords_vocabulary: GCMD
+  platform: SIAM_IL
+  product_version: '1.0.0'
+  product_suite: SIAM
+  project: Syria Master Thesis
+  publisher_email: hannahlucille.augustin@sbg.ac.at
+  publisher_name: Hannah Augustin
+  publisher_url: obia.zgis.at
+  coverage_content_type: preclassification
+  license: https://creativecommons.org/licenses/by/4.0/
+  naming_authority: obia.zgis.at
+  acknowledgment: Sentinel-2 data is provided by the European Space Agency on behalf of the European Commission via download.
+
+storage:
+  driver: NetCDF CF
+
+  crs: EPSG:32637
+  tile_size:
+          x: 10000.0
+          y: 10000.0
+  resolution:
+          x: 10
+          y: -10
+  chunking:
+      x: 200
+      y: 200
+      time: 1
+  dimension_order: ['time', 'y', 'x']
+
+fuse_data: copy
+
+measurements:
+    - name: siam18
+      dtype: uint8
+      nodata: 255
+      src_varname: '18SpCt'
+      resampling_method: nearest 
+      zlib: True
+      attrs:
+          long_name: "18 SIAM spectral categories"
+          alias: "18SpCt"
+    - name: siam33
+      dtype: uint8
+      nodata: 255
+      resampling_method: nearest
+      src_varname: '33SharedSpCt'
+      zlib: True
+      attrs:
+          long_name: "33 SIAM spectral categories"
+          alias: "33SpCt"
+    - name: siam48
+      dtype: uint8
+      nodata: 255
+      resampling_method: nearest
+      src_varname: '48SpCt'
+      zlib: True
+      attrs:
+          long_name: "48 SIAM spectral categories"
+          alias: "48SpCt"
+    - name: siam96
+      dtype: uint8
+      nodata: 255
+      resampling_method: nearest
+      src_varname: '96SpCt'
+      zlib: True
+      attrs:
+          long_name: "96 SIAM spectral categories"
+          alias: "96SpCt"
+    - name: haze_mask
+      dtype: uint8
+      nodata: 0
+      resampling_method: nearest
+      src_varname: 'HazePentarnaryMask'
+      zlib: True
+      attrs:
+          long_name: "SIAM Haze Mask"
+          alias: "haze"
+    - name: veg_mask
+      dtype: uint8
+      nodata: 2
+      resampling_method: nearest
+      src_varname: 'VegBinaryMask'
+      zlib: True
+      attrs:
+          long_name: "SIAM Binary Vegetation Mask"
+          alias: "veg"
+    - name: greenness
+      dtype: float32
+      nodata: 0
+      resampling_method: nearest
+      src_varname: 'fRatioGreennessIndex'
+      zlib: True
+      attrs:
+          long_name: "SIAM greenness index"
+          alias: "green"
+    - name: brightness
+      dtype: uint8
+      nodata: 0
+      resampling_method: nearest
+      src_varname: 'cBrightness'
+      zlib: True
+      attrs:
+          long_name: "SIAM brightness"
+          alias: "bright"
+    - name: nodata_mask
+      dtype: uint8
+      nodata: 2
+      resampling_method: nearest
+      src_varname: 'nodata'
+      zlib: True
+      attrs:
+          long_name: "SIAM nodata mask"
+          alias: "nodata"
