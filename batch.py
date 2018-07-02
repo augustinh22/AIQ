@@ -439,6 +439,8 @@ elif data_type[sensor_type.get()] == 2:
     #
     # Create the content of the window.
     #
+    procFolders = landsat8Folders
+
     messagebox = tkMessageBox.askyesno('SIAM batch creator',
         question)
 
