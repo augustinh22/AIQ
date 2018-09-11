@@ -13,6 +13,8 @@
 2. Create python environment:
   
   `conda create --name aiq27 python=2.7 requests scipy gdal=2.2.3 -c conda-forge`
+  
+  *Note: if the gdal version can no longer be found in the conda repository, don't pin the version (i.e. remove `=2.2.3`).*
 
 3. Export Environment file:
   
