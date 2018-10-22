@@ -1047,6 +1047,8 @@ def download_check(write_dir, title_element, filename):
         print ('{} already exists in zipped form and will not '
             'be unzipped').format(filename)
 
+        return True
+
     elif os.path.exists(zipped_path) and options.unzip == 'y':
 
         try:
