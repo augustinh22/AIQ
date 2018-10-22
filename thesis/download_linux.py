@@ -68,6 +68,9 @@ def get_args():
                 help=('No user input necessary -- automatically downloads all '
                 'matching results ingested within the last month.'),
                 choices=['y','n'], default=None)
+        parser.add_argument('--unzip', dest='unzip', action='store',
+                help=('Determines whether complete downloaded products are '
+                'unzipped.'), choices=['y','n'], default='y')
 
         #
         # Location related commands
@@ -1039,7 +1042,12 @@ def download_check(write_dir, title_element, filename):
 
         return True
 
-    elif os.path.exists(zipped_path):
+    elif os.path.exists(zipped_path) and options.unzip == 'n':
+
+        print ('{} already exists in zipped form and will not '
+            'be unzipped').format(filename)
+
+    elif os.path.exists(zipped_path) and options.unzip == 'y':
 
         try:
 
@@ -1327,19 +1335,25 @@ def download_results(entries):
                 unzipped_path = os.path.join(options.write_dir, filename)
                 zipped_path = os.path.join(options.write_dir, zfile)
 
-                try:
+                if options.unzip == 'y':
 
-                    with zipfile.ZipFile(zipped_path) as z:
+                    try:
 
-                        z.extractall(u'{}'.format(options.write_dir))
+                        with zipfile.ZipFile(zipped_path) as z:
 
-                        print 'Unzipped Scene #{}'.format(str(entry + 1))
+                            z.extractall(u'{}'.format(options.write_dir))
 
-                except zipfile.BadZipfile:
+                            print 'Unzipped Scene #{}'.format(str(entry + 1))
 
-                    print 'Zipfile corrupt or hub might have a problem.'
+                    except zipfile.BadZipfile:
 
-                    continue
+                        print 'Zipfile corrupt or hub might have a problem.'
+
+                        continue
+
+                elif options.unzip == 'n':
+
+                    print 'Scene #{} remains unzipped'.format(str(entry + 1))
 
                 #
                 # If the unzipped and zipped version exist, delete the zipped version.
@@ -1530,23 +1544,28 @@ def download_results(entries):
                     unzipped_path = os.path.join(options.write_dir, filename)
                     zipped_path = os.path.join(options.write_dir, zfile)
 
-                    try:
-                        with zipfile.ZipFile(zipped_path) as z:
+                    if options.unzip == 'y':
+                        try:
+                            with zipfile.ZipFile(zipped_path) as z:
 
-                            if (sys.platform.startswith('linux')
-                                    or sys.platform.startswith('darwin')):
+                                if (sys.platform.startswith('linux')
+                                        or sys.platform.startswith('darwin')):
 
-                                z.extractall(u'{}'.format(options.write_dir))
+                                    z.extractall(u'{}'.format(options.write_dir))
 
-                            else:
+                                else:
 
-                                z.extractall(u'\\\\?\\{}'.format(options.write_dir))
+                                    z.extractall(u'\\\\?\\{}'.format(options.write_dir))
 
-                            print 'Unzipped Scene #{}'.format(str(entry + 1))
+                                print 'Unzipped Scene #{}'.format(str(entry + 1))
 
-                    except zipfile.BadZipfile:
+                        except zipfile.BadZipfile:
 
-                        print 'Zipfile corrupt or problem with hub.'
+                            print 'Zipfile corrupt or problem with hub.'
+
+                    elif options.unzip == 'n':
+
+                        print 'Scene #{} remains unzipped'.format(str(entry + 1))
 
                     #
                     # If the unzipped and zipped version exist, delete the zipped version.
