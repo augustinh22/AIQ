@@ -184,7 +184,7 @@ def nodata_array(tile_bands, PROC_DATA):
         #
         # Resample bands 11 and 12 from 20m to 10m resolution.
         #
-        if band.endswith(('_B11.jp2', '_B12.jp2')):
+        if band.endswith(('_B11.tif', '_B12.tif')):
             band_array = scipy.ndimage.zoom(band_array, 2, order=0)
 
         #
@@ -454,7 +454,7 @@ def convert_imgs(root_folder, imgFolders):
                     imgFolder, topdown=True):
                 for filename in filenames:
                     if (filename.startswith('S2A')
-                            and filename.endswith('.jp2')
+                            and filename.endswith('.tif')
                             and (fnmatch.fnmatch(filename, '*_B02.*')
                                  or fnmatch.fnmatch(filename, '*_B03.*')
                                  or fnmatch.fnmatch(filename, '*_B04.*')
@@ -472,7 +472,7 @@ def convert_imgs(root_folder, imgFolders):
                     imgFolder, topdown=True):
                 for filename in filenames:
                     if (filename.startswith('T')
-                            and filename.endswith('.jp2')
+                            and filename.endswith('.tif')
                             and (fnmatch.fnmatch(filename, '*_B02.*')
                                  or fnmatch.fnmatch(filename, '*_B03.*')
                                  or fnmatch.fnmatch(filename, '*_B04.*')
@@ -505,7 +505,7 @@ def convert_imgs(root_folder, imgFolders):
 
         for band in tile_bands:
 
-            if band.endswith('_B02.jp2'):
+            if band.endswith('_B02.tif'):
 
                 #
                 # Open B02 image in order to initialize .dat files. Any band
@@ -650,24 +650,24 @@ def convert_imgs(root_folder, imgFolders):
 
             band_in_stack = None
 
-            if band.endswith('_B02.jp2'):
+            if band.endswith('_B02.tif'):
                 band_in_stack = 1
-            if band.endswith('_B03.jp2'):
+            if band.endswith('_B03.tif'):
                 band_in_stack = 2
-            if band.endswith('_B04.jp2'):
+            if band.endswith('_B04.tif'):
                 band_in_stack = 3
-            if band.endswith('_B08.jp2'):
+            if band.endswith('_B08.tif'):
                 band_in_stack = 4
-            if band.endswith('_B11.jp2'):
+            if band.endswith('_B11.tif'):
                 band_in_stack = 5
-            if band.endswith('_B12.jp2'):
+            if band.endswith('_B12.tif'):
                 band_in_stack = 6
 
             #
             # This if statement is redundant now, but keep for now anyways.
             #
-            if band.endswith(('_B02.jp2', '_B03.jp2', '_B04.jp2', '_B08.jp2',
-                              '_B11.jp2', '_B12.jp2')):
+            if band.endswith(('_B02.tif', '_B03.tif', '_B04.tif', '_B08.tif',
+                              '_B11.tif', '_B12.tif')):
 
                 #
                 # Open the band as read only.
@@ -719,7 +719,7 @@ def convert_imgs(root_folder, imgFolders):
                 #
                 # Resample bands 11 and 12 from 20m to 10m resolution.
                 #
-                if band.endswith(('_B11.jp2', '_B12.jp2')):
+                if band.endswith(('_B11.tif', '_B12.tif')):
                     print 'Resample by a factor of 2 - nearest interpolation.'
                     outData = scipy.ndimage.zoom(outData, 2, order=0)
                     print 'Resampled size: {}'.format(outData.shape)
