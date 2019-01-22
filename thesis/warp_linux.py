@@ -376,7 +376,7 @@ def warp_imgs(root_folder, imgFolders, warp_epsg):
         tile_bands.sort()
 
         warp_opts = gdal.WarpOptions(
-            format="JP2OpenJPEG",
+            format="ENVI",
             resampleAlg=gdal.GRIORA_Bilinear,
             dstSRS='EPSG:{}'.format(warp_epsg)
         )
@@ -394,7 +394,7 @@ def warp_imgs(root_folder, imgFolders, warp_epsg):
             ds = None
 
             os.remove(band)
-            os.rename(warped_filepath, band_filepath)
+            # os.rename(warped_filepath, band_filepath)
 
     print '\n\n==============================================================='
     print 'Done processing.'
