@@ -232,7 +232,7 @@ def check_imgFolders(options_in):
     return bool_ans, unprocFolders
 
 
-def warp_imgs(root_folder, imgFolders):
+def warp_imgs(root_folder, imgFolders, warp_epsg):
 
     start_time = datetime.datetime.now()
 
@@ -378,7 +378,7 @@ def warp_imgs(root_folder, imgFolders):
         warp_opts = gdal.WarpOptions(
             format="JPEG2000",
             resampleAlg=gdal.GRIORA_Bilinear,
-            dstSRS='EPSG:31287'
+            dstSRS='EPSG:{}'.format(warp_epsg)
         )
 
         for band in tile_bands:
@@ -395,9 +395,6 @@ def warp_imgs(root_folder, imgFolders):
 
             os.remove(band)
             os.rename(warped_filepath, band_filepath)
-
-
-
 
     print '\n\n==============================================================='
     print 'Done processing.'
@@ -440,4 +437,4 @@ if __name__ == '__main__':
 
     else:
 
-        warp_imgs(root_folder, imgFolders_toProcess)
+        warp_imgs(root_folder, imgFolders_toProcess, options.warp)
