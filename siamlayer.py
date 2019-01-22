@@ -299,7 +299,7 @@ def remove_nodata(folder, outData):
     metadata_path = []
 
     for fn in os.listdir(os.path.dirname(imgFolder)):
-        if (fn.startswith('S2A_') or fn.startswith('MTD')) and fn.endswith('.xml'):
+        if (fn.startswith('S2') or fn.startswith('MTD')) and fn.endswith('.xml'):
             metadata_file = fn
             metadata_path.append(os.path.join(os.path.dirname(imgFolder), fn))
     if len(metadata_path) > 1:
