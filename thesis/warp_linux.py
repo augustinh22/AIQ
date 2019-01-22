@@ -376,7 +376,7 @@ def warp_imgs(root_folder, imgFolders, warp_epsg):
         tile_bands.sort()
 
         warp_opts = gdal.WarpOptions(
-            format="JPEG2000",
+            format="JP2OpenJPEG",
             resampleAlg=gdal.GRIORA_Bilinear,
             dstSRS='EPSG:{}'.format(warp_epsg)
         )
