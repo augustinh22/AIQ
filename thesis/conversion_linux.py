@@ -104,6 +104,9 @@ def get_args():
             '-r', '--read_dir', dest='read_dir', action='store', type=str,
             help='Path where downloaded products are located.', default=None)
         parser.add_argument(
+            '-wa', '--warp', dest='warp', action='store', type=str,
+            help='EPSG code for warping.', default=None)
+        parser.add_argument(
             '--auto', dest='auto', action='store',
             help=('No user input necessary -- automatically converts all '
                   'previously not converted images files.'),
