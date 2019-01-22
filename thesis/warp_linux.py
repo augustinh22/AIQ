@@ -376,15 +376,14 @@ def warp_imgs(root_folder, imgFolders, warp_epsg):
         tile_bands.sort()
 
         warp_opts = gdal.WarpOptions(
-            format="ENVI",
+            format="GTiff",
             resampleAlg=gdal.GRIORA_Bilinear,
-            dstSRS='EPSG:{}'.format(warp_epsg)
-        )
+            dstSRS='EPSG:{}'.format(warp_epsg))
 
         for band in tile_bands:
 
-            orginal_name = os.path.basename(band)
-            warped_name = '{}{}'.format(orginal_name, '_warp')
+            orginal_name = os.path.basename(band)[:-4]
+            warped_name = '{}{}'.format(orginal_name, '.tif')
             warped_filepath = os.path.join(imgFolder, warped_name)
             band_filepath = band
 
@@ -394,7 +393,6 @@ def warp_imgs(root_folder, imgFolders, warp_epsg):
             ds = None
 
             os.remove(band)
-            # os.rename(warped_filepath, band_filepath)
 
     print '\n\n==============================================================='
     print 'Done processing.'
