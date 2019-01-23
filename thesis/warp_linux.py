@@ -585,7 +585,7 @@ def warp_envi(root_folder, procFolders, warp_epsg):
                     resampleAlg=gdal.GRIORA_Bilinear,
                     dstSRS='EPSG:{}'.format(warp_epsg))
 
-            orginal_name = os.path.basename(file)
+            original_name = os.path.basename(file)
             warped_filepath = os.path.join(proj_folder, original_name)
 
             img = gdal.Open(file, gdal.GA_ReadOnly)
