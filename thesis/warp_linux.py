@@ -575,6 +575,7 @@ def warp_envi(root_folder, procFolders, warp_epsg):
                     format="ENVI",
                     resampleAlg=gdal.GRIORA_Bilinear,
                     dstSRS='EPSG:{}'.format(warp_epsg),
+                    srcNodata=1,
                     dstNodata=1)
 
             else:
