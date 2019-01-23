@@ -542,6 +542,7 @@ def warp_envi(root_folder, procFolders, warp_epsg):
         #
         caltembyt_path = None
         calrefbyt_path = None
+        nodata_path = None
         files_to_warp = []
 
         for filename in os.listdir(procFolder):
@@ -556,24 +557,41 @@ def warp_envi(root_folder, procFolders, warp_epsg):
                 calrefbyt_path = os.path.join(procFolder, filename)
                 files_to_warp.append(calrefbyt_path)
 
-        warp_opts = gdal.WarpOptions(
-            format="ENVI",
-            resampleAlg=gdal.GRIORA_Bilinear,
-            dstSRS='EPSG:{}'.format(warp_epsg))
+            elif filename.endswith('_nodata.dat'):
+
+                nodata_path = os.path.join(procFolder, filename)
+                files_to_warp.append(nodata_path)
+
+        proj_folder = os.path.join(os.path.dirname(procFolder), 'PROC_DATA_{}'.format(warp_epsg))
+
+        if not os.path.exists(proj_folder):
+            os.mkdir(proj_folder)
 
         for file in files_to_warp:
 
+            if file.endswith('_nodata.dat'):
+
+                warp_opts = gdal.WarpOptions(
+                    format="ENVI",
+                    resampleAlg=gdal.GRIORA_Bilinear,
+                    dstSRS='EPSG:{}'.format(warp_epsg),
+                    srcNodata=1,
+                    dstNodata=1)
+            elif:
+                warp_opts = gdal.WarpOptions(
+                    format="ENVI",
+                    resampleAlg=gdal.GRIORA_Bilinear,
+                    dstSRS='EPSG:{}'.format(warp_epsg),
+                    srcNodata=0,
+                    dstNodata=0)
+
             orginal_name = os.path.basename(file)
-            warped_name = '{}{}'.format(orginal_name[:-4], '_warp.dat')
-            warped_filepath = os.path.join(procFolder, warped_name)
-            original_filepath = file
+            warped_filepath = os.path.join(proj_folder, original_name)
 
             img = gdal.Open(file, gdal.GA_ReadOnly)
             ds = gdal.Warp(warped_filepath, img, options=warp_opts)
             img = None
             ds = None
-            os.remove(file)
-            os.rename(warped_filepath, original_filepath)
 
     print '\n\n==============================================================='
     print 'Done processing.'
