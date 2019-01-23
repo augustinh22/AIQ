@@ -560,21 +560,20 @@ def warp_envi(root_folder, procFolders, warp_epsg):
             format="ENVI",
             resampleAlg=gdal.GRIORA_Bilinear,
             dstSRS='EPSG:{}'.format(warp_epsg))
-        print files_to_warp
-        print 'next'
-        # for file in files_to_warp:
-        #
-        #     orginal_name = os.path.basename(file)
-        #     warped_name = '{}{}'.format(orginal_name[:-4], '_warp.dat')
-        #     warped_filepath = os.path.join(procFolder, warped_name)
-        #     original_filepath = file
-        #
-        #     img = gdal.Open(file, gdal.GA_ReadOnly)
-        #     ds = gdal.Warp(warped_filepath, img, options=warp_opts)
-        #     img = None
-        #     ds = None
-        #     os.remove(file)
-        #     os.rename(warped_filepath, original_filepath)
+
+        for file in files_to_warp:
+
+            orginal_name = os.path.basename(file)
+            warped_name = '{}{}'.format(orginal_name[:-4], '_warp.dat')
+            warped_filepath = os.path.join(procFolder, warped_name)
+            original_filepath = file
+
+            img = gdal.Open(file, gdal.GA_ReadOnly)
+            ds = gdal.Warp(warped_filepath, img, options=warp_opts)
+            img = None
+            ds = None
+            os.remove(file)
+            os.rename(warped_filepath, original_filepath)
 
     print '\n\n==============================================================='
     print 'Done processing.'
