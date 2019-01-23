@@ -577,13 +577,13 @@ def warp_envi(root_folder, procFolders, warp_epsg):
                     dstSRS='EPSG:{}'.format(warp_epsg),
                     srcNodata=1,
                     dstNodata=1)
-            elif:
+
+            else:
+
                 warp_opts = gdal.WarpOptions(
                     format="ENVI",
                     resampleAlg=gdal.GRIORA_Bilinear,
-                    dstSRS='EPSG:{}'.format(warp_epsg),
-                    srcNodata=0,
-                    dstNodata=0)
+                    dstSRS='EPSG:{}'.format(warp_epsg))
 
             orginal_name = os.path.basename(file)
             warped_filepath = os.path.join(proj_folder, original_name)
