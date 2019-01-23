@@ -636,7 +636,7 @@ if __name__ == '__main__':
 
         else:
             print procFolders_toProcess
-            # warp_envi(root_folder, procFolders_toProcess, options.warp)
+            warp_envi(root_folder, procFolders_toProcess, options.warp)
 
     else:
         print 'Unknown command. Try again.'
