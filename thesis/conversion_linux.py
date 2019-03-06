@@ -62,6 +62,7 @@ import xml.etree.ElementTree as etree
 import gdal
 import numpy
 import scipy.ndimage
+# from PIL import Image
 
 ###############################################################################
 
@@ -723,8 +724,39 @@ def convert_imgs(root_folder, imgFolders):
                 # Resample bands 11 and 12 from 20m to 10m resolution.
                 #
                 if band.endswith(('_B11.tif', '_B12.tif')):
+
+                    print 'start resample: {}'.format(
+                        datetime.datetime.now() - start_time)
+
                     print 'Resample by a factor of 2 - nearest interpolation.'
                     outData = scipy.ndimage.zoom(outData, 2, order=0)
+
+                    # print 'Resample by a factor of 2 - bilinear interpolation.'
+                    #
+                    # # Reference:
+                    # # ndimage "bilinear" spline interpolation
+                    # # (a bit weird, not really bilinear...)
+                    # #
+                    # # outData = scipy.ndimage.zoom(outData, 2, order=1)
+                    #
+                    # #
+                    # # Calculate bilinear interpolation (2x2) using pillow
+                    # # (comparable to ArcGIS output)
+                    # #
+                    # im = Image.fromarray(outData)
+                    # img_cols_2 = int(img_cols)*2
+                    # img_rows_2 = int(img_rows)*2
+                    # im = im.resize((img_cols_2, img_rows_2), resample=Image.BILINEAR)
+                    # outData = numpy.array(im)
+                    #
+                    # #
+                    # # Close and clean up.
+                    # #
+                    # im.close()
+                    # del im
+
+                    print 'end resample: {}'.format(
+                        datetime.datetime.now() - start_time)
                     print 'Resampled size: {}'.format(outData.shape)
 
                 #
