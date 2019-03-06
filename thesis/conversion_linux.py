@@ -185,7 +185,10 @@ def nodata_array(tile_bands, PROC_DATA):
         # Resample bands 11 and 12 from 20m to 10m resolution.
         #
         if band.endswith(('_B11.tif', '_B12.tif')):
-            band_array = scipy.ndimage.zoom(band_array, 2, order=1)
+            #
+            # Nearest neighbour interpolation.
+            #
+            band_array = scipy.ndimage.zoom(band_array, 2, order=0)
 
         #
         # Adjust output layer to 0 where there is nodata.
@@ -720,8 +723,8 @@ def convert_imgs(root_folder, imgFolders):
                 # Resample bands 11 and 12 from 20m to 10m resolution.
                 #
                 if band.endswith(('_B11.tif', '_B12.tif')):
-                    print 'Resample by a factor of 2 - bilinear interpolation.'
-                    outData = scipy.ndimage.zoom(outData, 2, order=1)
+                    print 'Resample by a factor of 2 - nearest interpolation.'
+                    outData = scipy.ndimage.zoom(outData, 2, order=0)
                     print 'Resampled size: {}'.format(outData.shape)
 
                 #
