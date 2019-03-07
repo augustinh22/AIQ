@@ -82,6 +82,10 @@ def get_args():
             help=('Automatically creates batch file without user input.'),
             choices=['y', 'n'],
             default=None)
+        parser.add_argument(
+            '-wa', '--warp', dest='warp', action='store', type=str,
+            help=('EPSG code for different PROC_DATA directory.'),
+            default=None)
 
         #
         # Optional parameters.
@@ -160,12 +164,17 @@ def check_procFolders(options):
     procFolders = []
     siamFolders = []
 
+    if options.warp is None:
+        PROC_DATA = 'PROC_DATA'
+    else:
+        PROC_DATA = 'PROC_DATA_{}'.format(options.warp)
+
     for dirpath, dirnames, filenames in os.walk(
             options.read_dir, topdown=True):
 
         for dirname in dirnames:
 
-            if dirname == 'PROC_DATA':
+            if dirname == PROC_DATA:
 
                 procFolders.append(os.path.join(dirpath, dirname))
 
