@@ -371,6 +371,7 @@ def warp_imgs(root_folder, imgFolders, warp_epsg):
         datetime.datetime.now() - start_time)
     logger.info(message)
 
+
 def get_procFolders(options_in):
 
     #
@@ -530,9 +531,9 @@ def warp_envi(root_folder, procFolders, warp_epsg, delete_option):
         if not os.path.exists(proj_folder):
             os.mkdir(proj_folder)
 
-        for file in files_to_warp:
+        for filen in files_to_warp:
 
-            if file.endswith('_nodata.dat'):
+            if filen.endswith('_nodata.dat'):
 
                 warp_opts = gdal.WarpOptions(
                     format="ENVI",
@@ -548,10 +549,10 @@ def warp_envi(root_folder, procFolders, warp_epsg, delete_option):
                     resampleAlg=gdal.GRA_Bilinear,
                     dstSRS='EPSG:{}'.format(warp_epsg))
 
-            original_name = os.path.basename(file)
+            original_name = os.path.basename(filen)
             warped_filepath = os.path.join(proj_folder, original_name)
 
-            img = gdal.Open(file, gdal.GA_ReadOnly)
+            img = gdal.Open(filen, gdal.GA_ReadOnly)
             ds = gdal.Warp(warped_filepath, img, options=warp_opts)
             img = None
             ds = None
@@ -587,7 +588,7 @@ if __name__ == '__main__':
     options = get_args()
     root_folder = options.read_dir
 
-    if options.bit8 == None:
+    if options.bit8 is None:
 
         bool_answer, imgFolders_toProcess = check_imgFolders(options)
 
