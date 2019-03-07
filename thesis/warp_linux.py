@@ -76,7 +76,7 @@ def get_args():
         parser.add_argument(
             '-del', '--delete', dest='delete', action='store', type=str,
             help='If original PROC_DATA should be deleted.',
-            choices=['y', 'n', None], default=)
+            choices=['y', 'n'], default='n')
 
         return parser.parse_args()
 
@@ -559,7 +559,6 @@ def warp_envi(root_folder, procFolders, warp_epsg, delete_option):
         if delete_option == 'y':
             shutil.rmtree(procFolder)
             logger.info('Removed Folder: ' + procFolder)
-
 
     print '\n\n==============================================================='
     print 'Done processing.'
