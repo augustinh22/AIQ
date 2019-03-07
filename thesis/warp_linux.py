@@ -552,10 +552,14 @@ def warp_envi(root_folder, procFolders, warp_epsg, delete_option):
             original_name = os.path.basename(filen)
             warped_filepath = os.path.join(proj_folder, original_name)
 
-            img = gdal.Open(filen, gdal.GA_ReadOnly)
-            ds = gdal.Warp(warped_filepath, img, options=warp_opts)
-            img = None
-            ds = None
+            #
+            # Only warp if it does not already exist.
+            #
+            if not os.path.exists(warped_filepath):
+                img = gdal.Open(filen, gdal.GA_ReadOnly)
+                ds = gdal.Warp(warped_filepath, img, options=warp_opts)
+                img = None
+                ds = None
 
         if delete_option == 'y':
             shutil.rmtree(procFolder)
