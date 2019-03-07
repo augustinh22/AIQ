@@ -73,6 +73,10 @@ def get_args():
             help=('No user input necessary -- automatically converts all '
                   'previously not converted images files.'),
             default=None)
+        parser.add_argument(
+            '-del', '--delete', dest='delete', action='store', type=str,
+            help='If original PROC_DATA should be deleted.',
+            choices=['y', 'n', None], default=)
 
         return parser.parse_args()
 
@@ -472,7 +476,7 @@ def get_procFolders(options_in):
     return bool_ans, unprocFolders
 
 
-def warp_envi(root_folder, procFolders, warp_epsg):
+def warp_envi(root_folder, procFolders, warp_epsg, delete_option):
 
     start_time = datetime.datetime.now()
 
@@ -552,6 +556,11 @@ def warp_envi(root_folder, procFolders, warp_epsg):
             img = None
             ds = None
 
+        if delete_option == 'y':
+            shutil.rmtree(procFolder)
+            logger.info('Removed Folder: ' + procFolder)
+
+
     print '\n\n==============================================================='
     print 'Done processing.'
     print 'End time: {}'.format(datetime.datetime.now().time())
@@ -611,7 +620,7 @@ if __name__ == '__main__':
 
         else:
             print procFolders_toProcess
-            warp_envi(root_folder, procFolders_toProcess, options.warp)
+            warp_envi(root_folder, procFolders_toProcess, options.warp, options.delete)
 
     else:
         print 'Unknown command. Try again.'
