@@ -185,7 +185,7 @@ def nodata_array(tile_bands, PROC_DATA):
         #
         # Resample bands 11 and 12 from 20m to 10m resolution.
         #
-        if band.endswith(('_B11.tif', '_B12.tif')):
+        if band.endswith(('_B11.jp2', '_B12.jp2')):
             #
             # Nearest neighbour interpolation.
             #
@@ -723,7 +723,7 @@ def convert_imgs(root_folder, imgFolders):
                 #
                 # Resample bands 11 and 12 from 20m to 10m resolution.
                 #
-                if band.endswith(('_B11.tif', '_B12.tif')):
+                if band.endswith(('_B11.jp2', '_B12.jp2')):
 
                     print 'start resample: {}'.format(
                         datetime.datetime.now() - start_time)
