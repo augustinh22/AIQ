@@ -458,7 +458,7 @@ def convert_imgs(root_folder, imgFolders):
                     imgFolder, topdown=True):
                 for filename in filenames:
                     if (filename.startswith('S2A')
-                            and filename.endswith('.tif')
+                            and filename.endswith('.jp2')
                             and (fnmatch.fnmatch(filename, '*_B02.*')
                                  or fnmatch.fnmatch(filename, '*_B03.*')
                                  or fnmatch.fnmatch(filename, '*_B04.*')
@@ -476,7 +476,7 @@ def convert_imgs(root_folder, imgFolders):
                     imgFolder, topdown=True):
                 for filename in filenames:
                     if (filename.startswith('T')
-                            and filename.endswith('.tif')
+                            and filename.endswith('.jp2')
                             and (fnmatch.fnmatch(filename, '*_B02.*')
                                  or fnmatch.fnmatch(filename, '*_B03.*')
                                  or fnmatch.fnmatch(filename, '*_B04.*')
