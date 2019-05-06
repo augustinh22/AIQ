@@ -654,24 +654,24 @@ def convert_imgs(root_folder, imgFolders):
 
             band_in_stack = None
 
-            if band.endswith('_B02.tif'):
+            if band.endswith('_B02.jp2'):
                 band_in_stack = 1
-            if band.endswith('_B03.tif'):
+            if band.endswith('_B03.jp2'):
                 band_in_stack = 2
-            if band.endswith('_B04.tif'):
+            if band.endswith('_B04.jp2'):
                 band_in_stack = 3
-            if band.endswith('_B08.tif'):
+            if band.endswith('_B08.jp2'):
                 band_in_stack = 4
-            if band.endswith('_B11.tif'):
+            if band.endswith('_B11.jp2'):
                 band_in_stack = 5
-            if band.endswith('_B12.tif'):
+            if band.endswith('_B12.jp2'):
                 band_in_stack = 6
 
             #
             # This if statement is redundant now, but keep for now anyways.
             #
-            if band.endswith(('_B02.tif', '_B03.tif', '_B04.tif', '_B08.tif',
-                              '_B11.tif', '_B12.tif')):
+            if band.endswith(('_B02.jp2', '_B03.jp2', '_B04.jp2', '_B08.jp2',
+                              '_B11.jp2', '_B12.jp2')):
 
                 #
                 # Open the band as read only.
