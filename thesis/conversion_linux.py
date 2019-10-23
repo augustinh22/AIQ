@@ -259,7 +259,14 @@ def check_imgFolders(options_in):
         test_path = os.path.join(os.path.dirname(imgFolder), 'PROC_DATA')
 
         if test_path in procFolders:
-            continue
+            
+            files = os.listdir(test_path)
+
+            if len(files) > 0:
+                 continue
+            elif len(files) == 0:
+                os.rmdir(test_path)
+                unprocFolders.append(imgFolder)
         else:
             unprocFolders.append(imgFolder)
 
@@ -276,6 +283,7 @@ def check_imgFolders(options_in):
         calrefbyt_path = None
         calrefbyt_size = 0
         remove_procFolder = None
+        datacube_skip = False
 
         for filename in os.listdir(procFolder):
 
@@ -296,7 +304,13 @@ def check_imgFolders(options_in):
                 if calrefbyt_size < 5:
                     remove_procFolder = True
                     logger.info('calrefbyt file error: ' + calrefbyt_path)
-
+                    
+             elif filename.endswith('siam-metadata-yaml'):
+                #
+                # Maybe do something with this later.
+                #
+                datacube_skip = True
+                
         #
         # Removes PROC_DATA folders with problem files and adds to list to be
         # processed.
