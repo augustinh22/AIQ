@@ -312,6 +312,7 @@ def create_batch(options, unprocFolders):
     # Convert binary variables and image type identifier from GUI to strings.
     #
     var00 = options.siam
+    var02 = None
     var06 = str(1)
     var07 = str(options.var07)
     var09 = str(options.var09)
@@ -358,7 +359,7 @@ def create_batch(options, unprocFolders):
         #
         # Go to next folder if calibrated, stacked raster not yet craeted.
         #
-        if not var02:
+        if var02 is None:
 
             message = '*_calrefbyt_* not found in {}'.format(unprocFolder)
             print message
