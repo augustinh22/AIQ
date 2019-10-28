@@ -305,7 +305,7 @@ def check_imgFolders(options_in):
                     remove_procFolder = True
                     logger.info('calrefbyt file error: ' + calrefbyt_path)
                     
-             elif filename.endswith('siam-metadata-yaml'):
+            elif filename.endswith('siam-metadata-yaml'):
                 #
                 # Maybe do something with this later.
                 #
