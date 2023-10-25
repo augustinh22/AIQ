@@ -334,7 +334,7 @@ def main(datasets):
 
 if __name__ == "__main__":
     root_folder = '/data/s2/'
-    granule_folders = ['37SBA', '37SCA', '37SDA']
+    granule_folders = ['37SBA', '37SCA', '37SDA', '37SBU', '37SBV']
     datasets = []
     for tile in granule_folders:
         folder_path = os.path.join(root_folder, tile)
